@@ -1,0 +1,32 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo -->
+  <rect width="32" height="32" rx="6" fill="#3B82F6"/>
+  
+  <!-- Icono simplificado -->
+  <g transform="translate(4, 4)">
+    <!-- Panel principal -->
+    <rect x="2" y="2" width="20" height="12" rx="2" fill="white" opacity="0.9"/>
+    
+    <!-- Gráfico de barras mini -->
+    <g transform="translate(4, 4)">
+      <rect x="0" y="4" width="2" height="4" fill="#3B82F6"/>
+      <rect x="3" y="2" width="2" height="6" fill="#60A5FA"/>
+      <rect x="6" y="3" width="2" height="5" fill="#93C5FD"/>
+      <rect x="9" y="1" width="2" height="7" fill="#3B82F6"/>
+    </g>
+    
+    <!-- Indicador circular mini -->
+    <circle cx="18" cy="8" r="3" fill="none" stroke="#10B981" stroke-width="1" stroke-dasharray="6 2"/>
+    <circle cx="18" cy="8" r="1" fill="#10B981"/>
+    
+    <!-- Tarjetas inferiores mini -->
+    <rect x="2" y="16" width="6" height="4" rx="1" fill="white" opacity="0.8"/>
+    <rect x="9" y="16" width="6" height="4" rx="1" fill="white" opacity="0.8"/>
+    <rect x="16" y="16" width="6" height="4" rx="1" fill="white" opacity="0.8"/>
+    
+    <!-- Puntos indicadores -->
+    <circle cx="5" cy="18" r="0.5" fill="#3B82F6"/>
+    <circle cx="12" cy="18" r="0.5" fill="#10B981"/>
+    <circle cx="19" cy="18" r="0.5" fill="#F59E0B"/>
+  </g>
+</svg>
