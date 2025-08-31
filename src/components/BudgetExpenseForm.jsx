@@ -17,7 +17,7 @@ const BudgetExpenseForm = ({ expense, onSubmit, onCancel }) => {
     frequency: 'monthly', // monthly, weekly, yearly
     dueDate: new Date().toISOString().split('T')[0],
     isPaid: false,
-    category: 'general',
+    category: 'otros',
     notes: ''
   });
 
@@ -30,7 +30,7 @@ const BudgetExpenseForm = ({ expense, onSubmit, onCancel }) => {
         frequency: expense.frequency,
         dueDate: expense.dueDate,
         isPaid: expense.isPaid,
-        category: expense.category || 'general',
+        category: expense.category || 'otros',
         notes: expense.notes || ''
       });
     } else {
@@ -41,7 +41,7 @@ const BudgetExpenseForm = ({ expense, onSubmit, onCancel }) => {
         frequency: 'monthly',
         dueDate: new Date().toISOString().split('T')[0],
         isPaid: false,
-        category: 'general',
+        category: 'otros',
         notes: ''
       });
     }
@@ -55,18 +55,13 @@ const BudgetExpenseForm = ({ expense, onSubmit, onCancel }) => {
   ];
 
   const categoryOptions = [
-    { value: 'general', label: 'General' },
-    { value: 'housing', label: 'Vivienda' },
-    { value: 'utilities', label: 'Servicios Públicos' },
-    { value: 'food', label: 'Alimentación' },
-    { value: 'transportation', label: 'Transporte' },
-    { value: 'healthcare', label: 'Salud' },
-    { value: 'entertainment', label: 'Entretenimiento' },
-    { value: 'education', label: 'Educación' },
-    { value: 'insurance', label: 'Seguros' },
-    { value: 'debt', label: 'Deudas' },
-    { value: 'savings', label: 'Ahorros' },
-    { value: 'other', label: 'Otros' }
+    { value: 'sueldo', label: 'Sueldo' },
+    { value: 'sueldo2', label: 'Sueldo2' },
+    { value: 'mama', label: 'Mamá' },
+    { value: 'luciana', label: 'Luciana' },
+    { value: 'deudas', label: 'Deudas' },
+    { value: 'vivienda', label: 'Vivienda' },
+    { value: 'otros', label: 'Otros' }
   ];
 
   const handleInputChange = (e) => {
