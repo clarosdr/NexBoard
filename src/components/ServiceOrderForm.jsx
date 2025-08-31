@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase' // ✅ Cliente único de Supabase
+import { supabase } from '../lib/supabase'
 
-// Generar UUID
 const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0
@@ -10,7 +9,6 @@ const generateUUID = () => {
   })
 }
 
-// Formatear moneda COP
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('es-CO', {
     style: 'currency',
@@ -20,7 +18,7 @@ const formatCurrency = (value) => {
   }).format(value)
 }
 
-const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
+export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     customerName: '',
     description: '',
@@ -32,7 +30,6 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Cargar datos si estamos editando
   useEffect(() => {
     if (order) {
       const payments = order.payments || []
@@ -116,7 +113,6 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
     return Math.max(0, total - paid)
   }
 
-  // ✅ Guardar en Supabase
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (isSubmitting) return
@@ -208,7 +204,14 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
         ))}
       </select>
 
-      {/* Aquí iría tu lógica para items, pagos, totales, etc. */}
+      {/* Aquí puedes renderizar items, pagos y totales como ya tenías */}
+      {/* Ejemplo de totales */}
+      <div className="space-y-1 text-sm">
+        <div>Total: {formatCurrency(calculateGrandTotal())}</div>
+        <div>Costos de partes: {formatCurrency(calculateTotalPartCost())}</div>
+        <div>Utilidad: {formatCurrency(calculateProfit())}</div>
+        <div>Saldo pendiente: {formatCurrency(calculatePendingBalance())}</div>
+      </div>
 
       <button type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Guardando...' : 'Guardar Orden'}
@@ -221,5 +224,3 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
     </form>
   )
 }
-
-export default ServiceOrderForm
