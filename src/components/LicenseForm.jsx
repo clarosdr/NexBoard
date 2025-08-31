@@ -47,8 +47,8 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
       const licenseData = {
         ...formData,
         id: license ? license.id : generateUUID(),
-        createdAt: license ? license.createdAt : new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        created_at: license ? license.created_at : new Date().toISOString(),
+      updated_at: new Date().toISOString()
       }
 
       let error

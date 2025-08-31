@@ -45,7 +45,7 @@ export const useDataMigration = () => {
         estimated_delivery: order.estimatedDelivery || null,
         actual_delivery: order.actualDelivery || null,
         notes: order.notes || '',
-        created_at: order.createdAt || new Date().toISOString(),
+        created_at: order.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString()
       }));
 
@@ -71,7 +71,7 @@ export const useDataMigration = () => {
         category: expense.category || '',
         date: expense.date || new Date().toISOString().split('T')[0],
         notes: expense.notes || '',
-        created_at: expense.createdAt || new Date().toISOString(),
+        created_at: expense.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString()
       }));
 
@@ -97,7 +97,7 @@ export const useDataMigration = () => {
         category: expense.category || '',
         date: expense.date || new Date().toISOString().split('T')[0],
         notes: expense.notes || '',
-        created_at: expense.createdAt || new Date().toISOString(),
+        created_at: expense.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString()
       }));
 
@@ -127,7 +127,7 @@ export const useDataMigration = () => {
         max_installations: parseInt(license.maxInstallations) || 1,
         current_installations: parseInt(license.currentInstallations) || 0,
         notes: license.notes || '',
-        created_at: license.createdAt || new Date().toISOString(),
+        created_at: license.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString()
       }));
 
@@ -155,7 +155,7 @@ export const useDataMigration = () => {
         url: password.url || '',
         notes: password.notes || '',
         category: password.category || '',
-        created_at: password.createdAt || new Date().toISOString(),
+        created_at: password.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString()
       }));
 
@@ -186,7 +186,7 @@ export const useDataMigration = () => {
         protocol: credential.protocol || 'SSH',
         description: credential.description || '',
         notes: credential.notes || '',
-        created_at: credential.createdAt || new Date().toISOString(),
+        created_at: credential.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString()
       }));
 

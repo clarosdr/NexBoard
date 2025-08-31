@@ -47,8 +47,8 @@ export default function CasualExpensesForm({ expense, onSubmit, onCancel }) {
       const expenseData = {
         ...formData,
         id: expense ? expense.id : generateUUID(),
-        createdAt: expense ? expense.createdAt : new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        created_at: expense ? expense.created_at : new Date().toISOString(),
+      updated_at: new Date().toISOString(),
         amount: Number(formData.amount) || 0
       }
 

@@ -198,7 +198,7 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
         return {
           ...expense,
           dueDate: calculateNextDueDate(expense.dueDate, expense.frequency),
-          updatedAt: new Date().toISOString()
+          updated_at: new Date().toISOString()
         };
       }
       return expense;

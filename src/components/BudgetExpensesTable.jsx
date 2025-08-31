@@ -191,7 +191,7 @@ const BudgetExpensesTable = () => {
       const updatedExpense = await supabaseService.updateBudgetExpense(expenseId, {
         ...expense,
         isPaid: !expense.isPaid,
-        updatedAt: new Date().toISOString()
+        updated_at: new Date().toISOString()
       });
       setExpenses(prev => prev.map(exp => 
         exp.id === expenseId ? updatedExpense : exp

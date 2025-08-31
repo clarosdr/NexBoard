@@ -45,8 +45,8 @@ const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
       website: formData.website.trim(),
       username: formData.username.trim(),
       password: formData.password.trim(),
-      createdAt: editingPassword ? editingPassword.createdAt : new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      created_at: editingPassword ? editingPassword.created_at : new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
     onSubmit(passwordData);

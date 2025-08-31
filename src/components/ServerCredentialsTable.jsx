@@ -258,7 +258,7 @@ const ServerCredentialsTable = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
-                        {new Date(credential.updatedAt).toLocaleDateString('es-CO', {
+                        {new Date(credential.updated_at).toLocaleDateString('es-CO', {
                           year: 'numeric',
                           month: 'short',
                           day: 'numeric'

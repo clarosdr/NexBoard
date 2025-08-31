@@ -70,7 +70,7 @@ const OrderDetailsModal = ({ order, isOpen, onClose }) => {
         <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
           <div>
             <h2 className="text-2xl font-bold text-gray-800 dark:text-white transition-colors duration-200">Orden de Servicio #{order.id}</h2>
-            <p className="text-gray-600 dark:text-gray-400 mt-1 transition-colors duration-200">Creada el {formatDateTime(order.createdAt)}</p>
+            <p className="text-gray-600 dark:text-gray-400 mt-1 transition-colors duration-200">Creada el {formatDateTime(order.created_at)}</p>
           </div>
           <div className="flex items-center space-x-3">
             <button
