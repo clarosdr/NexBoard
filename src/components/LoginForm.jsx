@@ -78,14 +78,14 @@ const LoginForm = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 px-4 transition-colors duration-200">
       <div className="max-w-md w-full space-y-8">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8 transition-colors duration-200">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 transition-colors duration-200">
               {isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
             </h2>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400 transition-colors duration-200">
               {isLogin ? 'Accede a tu cuenta de NexBoard' : 'Únete a NexBoard'}
             </p>
           </div>
@@ -93,7 +93,7 @@ const LoginForm = () => {
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
                   Email
                 </label>
                 <input
@@ -104,13 +104,13 @@ const LoginForm = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
                   placeholder="tu@email.com"
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
                   Contraseña
                 </label>
                 <input
@@ -121,14 +121,14 @@ const LoginForm = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
                   placeholder="••••••••"
                 />
               </div>
 
               {!isLogin && (
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
                     Confirmar Contraseña
                   </label>
                   <input
@@ -139,7 +139,7 @@ const LoginForm = () => {
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
                     placeholder="••••••••"
                   />
                 </div>
@@ -147,13 +147,13 @@ const LoginForm = () => {
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm transition-colors duration-200">
                 {error}
               </div>
             )}
 
             {message && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-4 py-3 rounded-lg text-sm transition-colors duration-200">
                 {message}
               </div>
             )}
@@ -162,7 +162,7 @@ const LoginForm = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
                 {loading ? (
                   <div className="flex items-center">
@@ -179,7 +179,7 @@ const LoginForm = () => {
               <button
                 type="button"
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-medium transition-colors duration-200"
               >
                 {isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
               </button>
@@ -188,7 +188,7 @@ const LoginForm = () => {
                 <button
                   type="button"
                   onClick={handleResetPassword}
-                  className="text-sm text-gray-600 hover:text-gray-500 font-medium"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 font-medium transition-colors duration-200"
                 >
                   ¿Olvidaste tu contraseña?
                 </button>
@@ -197,7 +197,7 @@ const LoginForm = () => {
           </form>
         </div>
 
-        <div className="text-center text-sm text-gray-500">
+        <div className="text-center text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
           <p>NexBoard - Sistema de Gestión Empresarial</p>
         </div>
       </div>

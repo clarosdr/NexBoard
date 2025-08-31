@@ -111,8 +111,8 @@ const BudgetExpenseForm = ({ expense, onSubmit, onCancel }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md transition-colors duration-200">
+      <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 transition-colors duration-200">
         {expense ? 'Editar Gasto Recurrente' : 'Nuevo Gasto Recurrente'}
       </h2>
       
@@ -120,7 +120,7 @@ const BudgetExpenseForm = ({ expense, onSubmit, onCancel }) => {
         {/* Información básica */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
               Descripción del Gasto *
             </label>
             <input
@@ -129,13 +129,13 @@ const BudgetExpenseForm = ({ expense, onSubmit, onCancel }) => {
               value={formData.description}
               onChange={handleInputChange}
               required
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
+              className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
               placeholder="Ej: Arriendo, Servicios públicos, etc."
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
               Monto *
             </label>
             <input
@@ -146,10 +146,10 @@ const BudgetExpenseForm = ({ expense, onSubmit, onCancel }) => {
               required
               min="0"
               step="1"
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
+              className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
               placeholder="0"
             />
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 transition-colors duration-200">
               Valor: {formatCurrency(formData.amount)}
             </p>
           </div>
@@ -158,14 +158,14 @@ const BudgetExpenseForm = ({ expense, onSubmit, onCancel }) => {
         {/* Frecuencia y categoría */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
               Frecuencia
             </label>
             <select
               name="frequency"
               value={formData.frequency}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
+              className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
             >
               {frequencyOptions.map(option => (
                 <option key={option.value} value={option.value}>
@@ -176,14 +176,14 @@ const BudgetExpenseForm = ({ expense, onSubmit, onCancel }) => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
               Categoría
             </label>
             <select
               name="category"
               value={formData.category}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
+              className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
             >
               {categoryOptions.map(option => (
                 <option key={option.value} value={option.value}>
@@ -197,7 +197,7 @@ const BudgetExpenseForm = ({ expense, onSubmit, onCancel }) => {
         {/* Fecha de vencimiento y estado */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
               Fecha de Vencimiento
             </label>
             <input
@@ -205,7 +205,7 @@ const BudgetExpenseForm = ({ expense, onSubmit, onCancel }) => {
               name="dueDate"
               value={formData.dueDate}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
+              className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
             />
           </div>
           
@@ -216,9 +216,9 @@ const BudgetExpenseForm = ({ expense, onSubmit, onCancel }) => {
                 name="isPaid"
                 checked={formData.isPaid}
                 onChange={handleInputChange}
-                className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 touch-manipulation"
+                className="w-5 h-5 text-blue-600 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-2 touch-manipulation transition-colors duration-200"
               />
-              <label className="ml-2 text-sm font-medium text-gray-700">
+              <label className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">
                 Marcado como pagado
               </label>
             </div>
@@ -227,7 +227,7 @@ const BudgetExpenseForm = ({ expense, onSubmit, onCancel }) => {
 
         {/* Notas */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
             Notas (Opcional)
           </label>
           <textarea
@@ -235,16 +235,16 @@ const BudgetExpenseForm = ({ expense, onSubmit, onCancel }) => {
             value={formData.notes}
             onChange={handleInputChange}
             rows={3}
-            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation resize-none"
+            className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
             placeholder="Información adicional sobre este gasto..."
           />
         </div>
 
         {/* Información de próximo vencimiento */}
         {formData.dueDate && (
-          <div className="bg-blue-50 p-4 rounded-md">
-            <h3 className="text-sm font-medium text-blue-800 mb-2">Información de Recurrencia</h3>
-            <p className="text-sm text-blue-700">
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md border border-blue-200 dark:border-blue-800 transition-colors duration-200">
+            <h3 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2 transition-colors duration-200">Información de Recurrencia</h3>
+            <p className="text-sm text-blue-700 dark:text-blue-400 transition-colors duration-200">
               Próximo vencimiento: {new Date(calculateNextDueDate(formData.dueDate, formData.frequency)).toLocaleDateString('es-CO')}
             </p>
           </div>
@@ -255,13 +255,13 @@ const BudgetExpenseForm = ({ expense, onSubmit, onCancel }) => {
           <button
             type="button"
             onClick={onCancel}
-            className="w-full sm:w-auto px-8 py-4 text-base border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 touch-manipulation min-h-[48px]"
+            className="w-full sm:w-auto px-8 py-4 text-base border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 touch-manipulation min-h-[48px] bg-white dark:bg-gray-800 transition-colors duration-200"
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className="w-full sm:w-auto px-8 py-4 text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation min-h-[48px] font-medium"
+            className="w-full sm:w-auto px-8 py-4 text-base bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation min-h-[48px] font-medium transition-colors duration-200"
           >
             Guardar Gasto
           </button>

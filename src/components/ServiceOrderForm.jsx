@@ -211,8 +211,8 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md transition-colors duration-200">
+      <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 transition-colors duration-200">
         {order ? 'Editar Orden de Servicio' : 'Nueva Orden de Servicio'}
       </h2>
       
@@ -221,7 +221,7 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
                 Cliente *
               </label>
               <input
@@ -230,12 +230,12 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
                 value={formData.customerName}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
+                className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
                 placeholder="Nombre del cliente"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
                 Descripción del Servicio *
               </label>
               <textarea
@@ -244,7 +244,7 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
                 onChange={handleInputChange}
                 required
                 rows={3}
-                className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation resize-none"
+                className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
                 placeholder="Describe el problema o servicio a realizar..."
               />
             </div>
@@ -252,7 +252,7 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
           
           <div>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
                 Fecha
               </label>
               <input
@@ -260,19 +260,19 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
                 name="date"
                 value={formData.date}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
+                className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
                 Estado
               </label>
               <select
                 name="status"
                 value={formData.status}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
+                className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
               >
                 {statusOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -287,11 +287,11 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
         {/* Ítems */}
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">Ítems de Venta</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white transition-colors duration-200">Ítems de Venta</h3>
             <button
               type="button"
               onClick={addItem}
-              className="px-6 py-3 text-base bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 touch-manipulation min-h-[44px]"
+              className="px-6 py-3 text-base bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400 touch-manipulation min-h-[44px] transition-colors duration-200"
             >
               + Agregar Ítem
             </button>
@@ -299,14 +299,14 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
           
           <div className="space-y-4">
             {formData.items.map((item, index) => (
-              <div key={item.id} className="border border-gray-200 rounded-md p-4">
+              <div key={item.id} className="border border-gray-200 dark:border-gray-600 rounded-md p-4 bg-white dark:bg-gray-700 transition-colors duration-200">
                 <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-medium text-gray-700">Ítem {index + 1}</h4>
+                  <h4 className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Ítem {index + 1}</h4>
                   {formData.items.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeItem(item.id)}
-                      className="px-3 py-2 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg touch-manipulation min-h-[40px]"
+                      className="px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg touch-manipulation min-h-[40px] transition-colors duration-200"
                     >
                       Eliminar
                     </button>
@@ -315,7 +315,7 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1 transition-colors duration-200">
                       Descripción *
                     </label>
                     <input
@@ -323,13 +323,13 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
                       value={item.description}
                       onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
                       required
-                      className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
+                      className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
                       placeholder="Descripción del ítem"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1 transition-colors duration-200">
                       Cantidad
                     </label>
                     <input
@@ -337,12 +337,12 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
                       min="1"
                       value={item.quantity}
                       onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
-                      className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
+                      className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors duration-200"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1 transition-colors duration-200">
                       Valor Unitario
                     </label>
                     <input
@@ -351,12 +351,12 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
                       step="0.01"
                       value={item.unitPrice}
                       onChange={(e) => handleItemChange(item.id, 'unitPrice', e.target.value)}
-                      className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
+                      className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors duration-200"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-1">
+                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1 transition-colors duration-200">
                       Costo Repuesto
                     </label>
                     <input
@@ -365,13 +365,13 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
                       step="0.01"
                       value={item.partCost}
                       onChange={(e) => handleItemChange(item.id, 'partCost', e.target.value)}
-                      className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation"
+                      className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors duration-200"
                     />
                   </div>
                 </div>
                 
                 <div className="mt-2 text-right">
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">
                     Subtotal: {formatCurrency(calculateItemTotal(item))}
                   </span>
                 </div>
@@ -382,14 +382,14 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
 
         {/* Sección de Abonos - Visible cuando el estado es 'finalizado' o 'entregado' */}
         {(formData.status === 'finalizado' || formData.status === 'entregado') && (
-          <div className="bg-blue-50 p-4 rounded-md border border-blue-200">
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md border border-blue-200 dark:border-blue-700 transition-colors duration-200">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-blue-800">Gestión de Abonos</h3>
+              <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 transition-colors duration-200">Gestión de Abonos</h3>
               {formData.status === 'finalizado' && (
                 <button
                   type="button"
                   onClick={addPayment}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200"
                 >
                   + Agregar Abono
                 </button>
@@ -399,10 +399,10 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
             {formData.payments.length > 0 && (
               <div className="space-y-3 mb-4">
                 {formData.payments.map((payment) => (
-                  <div key={payment.id} className="bg-white p-3 rounded-md border border-blue-100">
+                  <div key={payment.id} className="bg-white dark:bg-gray-800 p-3 rounded-md border border-blue-100 dark:border-blue-700 transition-colors duration-200">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                        <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1 transition-colors duration-200">
                           Monto del Abono
                         </label>
                         <input
@@ -411,32 +411,32 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
                           step="0.01"
                           value={payment.amount}
                           onChange={(e) => handlePaymentChange(payment.id, 'amount', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
                           placeholder="0"
                           disabled={formData.status === 'entregado'}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                        <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1 transition-colors duration-200">
                           Fecha del Abono
                         </label>
                         <input
                           type="date"
                           value={payment.date}
                           onChange={(e) => handlePaymentChange(payment.id, 'date', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
                           disabled={formData.status === 'entregado'}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                        <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1 transition-colors duration-200">
                           Notas (Opcional)
                         </label>
                         <input
                           type="text"
                           value={payment.notes}
                           onChange={(e) => handlePaymentChange(payment.id, 'notes', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
                           placeholder="Efectivo, transferencia, etc."
                           disabled={formData.status === 'entregado'}
                         />
@@ -446,13 +446,13 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
                           <button
                             type="button"
                             onClick={() => removePayment(payment.id)}
-                            className="w-full px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                            className="w-full px-3 py-2 bg-red-600 dark:bg-red-700 text-white rounded-md hover:bg-red-700 dark:hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 transition-colors duration-200"
                           >
                             Eliminar
                           </button>
                         )}
                         {formData.status === 'entregado' && (
-                          <div className="w-full px-3 py-2 bg-gray-100 text-gray-500 rounded-md text-center">
+                          <div className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-md text-center transition-colors duration-200">
                             Orden Entregada
                           </div>
                         )}
@@ -463,18 +463,18 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
               </div>
             )}
             
-            <div className="bg-white p-3 rounded-md border border-blue-200">
+            <div className="bg-white dark:bg-gray-800 p-3 rounded-md border border-blue-200 dark:border-blue-700 transition-colors duration-200">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="font-medium text-gray-600">Total Abonado:</span>
-                  <span className="ml-2 text-lg font-bold text-green-600">
+                  <span className="font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Total Abonado:</span>
+                  <span className="ml-2 text-lg font-bold text-green-600 dark:text-green-400 transition-colors duration-200">
                     {formatCurrency(formData.totalPaid)}
                   </span>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-600">Saldo Pendiente:</span>
-                  <span className={`ml-2 text-lg font-bold ${
-                    calculatePendingBalance() > 0 ? 'text-red-600' : 'text-green-600'
+                  <span className="font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Saldo Pendiente:</span>
+                  <span className={`ml-2 text-lg font-bold transition-colors duration-200 ${
+                    calculatePendingBalance() > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'
                   }`}>
                     {formatCurrency(calculatePendingBalance())}
                   </span>
@@ -485,24 +485,24 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
         )}
 
         {/* Resumen */}
-        <div className="bg-gray-50 p-4 rounded-md">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">Resumen</h3>
+        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md transition-colors duration-200">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3 transition-colors duration-200">Resumen</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
-              <span className="font-medium text-gray-600">Total Venta:</span>
-              <span className="ml-2 text-lg font-bold text-green-600">
+              <span className="font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Total Venta:</span>
+              <span className="ml-2 text-lg font-bold text-green-600 dark:text-green-400 transition-colors duration-200">
                 {formatCurrency(calculateGrandTotal())}
               </span>
             </div>
             <div>
-              <span className="font-medium text-gray-600">Total Costos:</span>
-              <span className="ml-2 text-lg font-bold text-red-600">
+              <span className="font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Total Costos:</span>
+              <span className="ml-2 text-lg font-bold text-red-600 dark:text-red-400 transition-colors duration-200">
                 {formatCurrency(calculateTotalPartCost())}
               </span>
             </div>
             <div>
-              <span className="font-medium text-gray-600">Ganancia:</span>
-              <span className="ml-2 text-lg font-bold text-blue-600">
+              <span className="font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Ganancia:</span>
+              <span className="ml-2 text-lg font-bold text-blue-600 dark:text-blue-400 transition-colors duration-200">
                 {formatCurrency(calculateProfit())}
               </span>
             </div>
@@ -514,13 +514,13 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
           <button
             type="button"
             onClick={onCancel}
-            className="w-full sm:w-auto px-8 py-4 text-base border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 touch-manipulation min-h-[48px]"
+            className="w-full sm:w-auto px-8 py-4 text-base border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 touch-manipulation min-h-[48px] transition-colors duration-200"
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className="w-full sm:w-auto px-8 py-4 text-base bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation min-h-[48px] font-medium"
+            className="w-full sm:w-auto px-8 py-4 text-base bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation min-h-[48px] font-medium transition-colors duration-200"
           >
             Guardar Orden
           </button>

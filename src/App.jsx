@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import LoginForm from './components/LoginForm'
 import DataMigration from './components/DataMigration'
+import ThemeToggle from './components/ThemeToggle'
 import ServiceOrderForm from './components/ServiceOrderForm'
 import ServiceOrdersTable from './components/ServiceOrdersTable'
 import OrderDetailsModal from './components/OrderDetailsModal'
@@ -131,15 +133,15 @@ function MainApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="lg:hidden p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   {mobileMenuOpen ? (
@@ -150,12 +152,12 @@ function MainApp() {
                 </svg>
               </button>
               <div className="ml-2 lg:ml-0">
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">NexBoard</h1>
-                <p className="text-sm lg:text-base text-gray-600 hidden sm:block">Sistema de Gestión Empresarial</p>
+                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white transition-colors duration-200">NexBoard</h1>
+                <p className="text-sm lg:text-base text-gray-600 dark:text-gray-300 hidden sm:block transition-colors duration-200">Sistema de Gestión Empresarial</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="hidden sm:block text-sm text-gray-600">
+              <div className="hidden sm:block text-sm text-gray-600 dark:text-gray-300 transition-colors duration-200">
                 {user?.email}
               </div>
               {activeTab === 'orders' && (
@@ -167,9 +169,10 @@ function MainApp() {
                   <span className="sm:hidden">+</span>
                 </button>
               )}
+              <ThemeToggle />
               <button
                 onClick={signOut}
-                className="px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-sm"
+                className="px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-sm transition-colors duration-200"
                 title="Cerrar Sesión"
               >
                 <span className="hidden sm:inline">Cerrar Sesión</span>
@@ -181,7 +184,7 @@ function MainApp() {
       </header>
 
       {/* Navigation Tabs */}
-      <nav className="bg-white border-b">
+      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Desktop Navigation */}
           <div className="hidden lg:flex space-x-8">
@@ -192,10 +195,10 @@ function MainApp() {
                 setEditingOrder(null)
                 setMobileMenuOpen(false)
               }}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
                 activeTab === 'orders'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
               }`}
             >
               📋 Órdenes de Servicio
@@ -207,10 +210,10 @@ function MainApp() {
                 setEditingOrder(null)
                 setMobileMenuOpen(false)
               }}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
                 activeTab === 'budget'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
               }`}
             >
               💰 Presupuesto Personal
@@ -222,10 +225,10 @@ function MainApp() {
                 setEditingOrder(null)
                 setMobileMenuOpen(false)
               }}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
                 activeTab === 'casual-expenses'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
               }`}
             >
               🍽️ Gastos Casuales
@@ -237,10 +240,10 @@ function MainApp() {
                 setEditingOrder(null)
                 setMobileMenuOpen(false)
               }}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
                 activeTab === 'passwords'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
               }`}
             >
               🔐 Gestor de Contraseñas
@@ -252,10 +255,10 @@ function MainApp() {
                 setEditingOrder(null)
                 setMobileMenuOpen(false)
               }}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
                 activeTab === 'servers'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
               }`}
             >
               🖥️ Credenciales de Servidores
@@ -267,10 +270,10 @@ function MainApp() {
                 setEditingOrder(null)
                 setMobileMenuOpen(false)
               }}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
                 activeTab === 'licenses'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
               }`}
             >
               📄 Gestión de Licencias
@@ -283,10 +286,10 @@ function MainApp() {
                 setFinancialView('dashboard')
                 setMobileMenuOpen(false)
               }}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
                 activeTab === 'financial'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
               }`}
             >
               📊 Informes Financieros
@@ -303,10 +306,10 @@ function MainApp() {
                   setEditingOrder(null)
                   setMobileMenuOpen(false)
                 }}
-                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
+                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors duration-200 ${
                   activeTab === 'orders'
-                    ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-500'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-500'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
                 📋 Órdenes de Servicio
@@ -318,10 +321,10 @@ function MainApp() {
                   setEditingOrder(null)
                   setMobileMenuOpen(false)
                 }}
-                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
+                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors duration-200 ${
                   activeTab === 'budget'
-                    ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-500'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-500'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
                 💰 Presupuesto Personal
@@ -333,10 +336,10 @@ function MainApp() {
                   setEditingOrder(null)
                   setMobileMenuOpen(false)
                 }}
-                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
+                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors duration-200 ${
                   activeTab === 'casual-expenses'
-                    ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-500'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-500'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
                 🍽️ Gastos Casuales
@@ -348,10 +351,10 @@ function MainApp() {
                   setEditingOrder(null)
                   setMobileMenuOpen(false)
                 }}
-                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
+                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors duration-200 ${
                   activeTab === 'passwords'
-                    ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-500'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-500'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
                 🔐 Gestor de Contraseñas
@@ -363,10 +366,10 @@ function MainApp() {
                   setEditingOrder(null)
                   setMobileMenuOpen(false)
                 }}
-                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
+                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors duration-200 ${
                   activeTab === 'servers'
-                    ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-500'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-500'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
                 🖥️ Credenciales de Servidores
@@ -378,10 +381,10 @@ function MainApp() {
                   setEditingOrder(null)
                   setMobileMenuOpen(false)
                 }}
-                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
+                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors duration-200 ${
                   activeTab === 'licenses'
-                    ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-500'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-500'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
                 📄 Gestión de Licencias
@@ -394,10 +397,10 @@ function MainApp() {
                   setFinancialView('dashboard')
                   setMobileMenuOpen(false)
                 }}
-                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
+                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors duration-200 ${
                   activeTab === 'financial'
-                    ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-500'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-500'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
                 📊 Informes Financieros
@@ -509,9 +512,11 @@ function MainApp() {
 // Componente App principal que maneja la autenticación
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
 

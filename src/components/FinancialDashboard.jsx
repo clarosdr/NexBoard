@@ -138,16 +138,16 @@ const FinancialDashboard = ({ orders, expenses }) => {
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border dark:border-gray-700 transition-colors duration-200">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4 md:mb-0">Dashboard Financiero</h2>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4 md:mb-0 transition-colors duration-200">Dashboard Financiero</h2>
         
         {/* Selector de período */}
         <select
           value={selectedPeriod}
           onChange={(e) => setSelectedPeriod(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
         >
           {periodOptions.map(option => (
             <option key={option.value} value={option.value}>
@@ -160,57 +160,57 @@ const FinancialDashboard = ({ orders, expenses }) => {
       {/* Métricas principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {/* Ingresos Totales */}
-        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+        <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg border border-green-200 dark:border-green-800 transition-colors duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-green-600">Ingresos Totales</p>
-              <p className="text-2xl font-bold text-green-900">
+              <p className="text-sm font-medium text-green-600 dark:text-green-400 transition-colors duration-200">Ingresos Totales</p>
+              <p className="text-2xl font-bold text-green-900 dark:text-green-300 transition-colors duration-200">
                 {formatCurrency(dashboardData.totalRevenue)}
               </p>
             </div>
-            <div className="text-3xl text-green-600">💰</div>
+            <div className="text-3xl text-green-600 dark:text-green-400 transition-colors duration-200">💰</div>
           </div>
         </div>
 
         {/* Ganancia Bruta */}
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+        <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800 transition-colors duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-blue-600">Ganancia Bruta</p>
-              <p className="text-2xl font-bold text-blue-900">
+              <p className="text-sm font-medium text-blue-600 dark:text-blue-400 transition-colors duration-200">Ganancia Bruta</p>
+              <p className="text-2xl font-bold text-blue-900 dark:text-blue-300 transition-colors duration-200">
                 {formatCurrency(dashboardData.totalProfit)}
               </p>
-              <p className="text-xs text-blue-600">Margen: {getProfitMargin()}%</p>
+              <p className="text-xs text-blue-600 dark:text-blue-400 transition-colors duration-200">Margen: {getProfitMargin()}%</p>
             </div>
-            <div className="text-3xl text-blue-600">📈</div>
+            <div className="text-3xl text-blue-600 dark:text-blue-400 transition-colors duration-200">📈</div>
           </div>
         </div>
 
         {/* Ganancia Neta */}
-        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+        <div className="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg border border-purple-200 dark:border-purple-800 transition-colors duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-purple-600">Ganancia Neta</p>
+              <p className="text-sm font-medium text-purple-600 dark:text-purple-400 transition-colors duration-200">Ganancia Neta</p>
               <p className={`text-2xl font-bold ${getIndicatorColor(dashboardData.netProfit)}`}>
                 {formatCurrency(dashboardData.netProfit)}
               </p>
-              <p className="text-xs text-purple-600">Después de gastos</p>
+              <p className="text-xs text-purple-600 dark:text-purple-400 transition-colors duration-200">Después de gastos</p>
             </div>
-            <div className="text-3xl text-purple-600">🎯</div>
+            <div className="text-3xl text-purple-600 dark:text-purple-400 transition-colors duration-200">🎯</div>
           </div>
         </div>
 
         {/* Por Cobrar */}
-        <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+        <div className="bg-orange-50 dark:bg-orange-900/30 p-4 rounded-lg border border-orange-200 dark:border-orange-800 transition-colors duration-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-orange-600">Por Cobrar</p>
-              <p className="text-2xl font-bold text-orange-900">
+              <p className="text-sm font-medium text-orange-600 dark:text-orange-400 transition-colors duration-200">Por Cobrar</p>
+              <p className="text-2xl font-bold text-orange-900 dark:text-orange-300 transition-colors duration-200">
                 {formatCurrency(dashboardData.totalPending)}
               </p>
-              <p className="text-xs text-orange-600">Cobrado: {getCollectionRate()}%</p>
+              <p className="text-xs text-orange-600 dark:text-orange-400 transition-colors duration-200">Cobrado: {getCollectionRate()}%</p>
             </div>
-            <div className="text-3xl text-orange-600">⏳</div>
+            <div className="text-3xl text-orange-600 dark:text-orange-400 transition-colors duration-200">⏳</div>
           </div>
         </div>
       </div>
@@ -218,79 +218,79 @@ const FinancialDashboard = ({ orders, expenses }) => {
       {/* Métricas secundarias */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         {/* Órdenes Completadas */}
-        <div className="bg-gray-50 p-4 rounded-lg">
+        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border dark:border-gray-600 transition-colors duration-200">
           <div className="text-center">
-            <p className="text-sm font-medium text-gray-600">Órdenes Completadas</p>
-            <p className="text-3xl font-bold text-gray-900">{dashboardData.completedOrders}</p>
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Órdenes Completadas</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white transition-colors duration-200">{dashboardData.completedOrders}</p>
           </div>
         </div>
 
         {/* Valor Promedio por Orden */}
-        <div className="bg-gray-50 p-4 rounded-lg">
+        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border dark:border-gray-600 transition-colors duration-200">
           <div className="text-center">
-            <p className="text-sm font-medium text-gray-600">Valor Promedio/Orden</p>
-            <p className="text-3xl font-bold text-gray-900">
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Valor Promedio/Orden</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white transition-colors duration-200">
               {formatCurrency(dashboardData.averageOrderValue)}
             </p>
           </div>
         </div>
 
         {/* Gastos de Presupuesto */}
-        <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+        <div className="bg-red-50 dark:bg-red-900/30 p-4 rounded-lg border border-red-200 dark:border-red-800 transition-colors duration-200">
           <div className="text-center">
-            <p className="text-sm font-medium text-red-600">Gastos Presupuesto</p>
-            <p className="text-2xl font-bold text-red-700">
+            <p className="text-sm font-medium text-red-600 dark:text-red-400 transition-colors duration-200">Gastos Presupuesto</p>
+            <p className="text-2xl font-bold text-red-700 dark:text-red-300 transition-colors duration-200">
               {formatCurrency(dashboardData.totalBudgetExpenses)}
             </p>
-            <p className="text-xs text-red-600">Gastos fijos</p>
+            <p className="text-xs text-red-600 dark:text-red-400 transition-colors duration-200">Gastos fijos</p>
           </div>
         </div>
 
         {/* Gastos Casuales */}
-        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+        <div className="bg-yellow-50 dark:bg-yellow-900/30 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800 transition-colors duration-200">
           <div className="text-center">
-            <p className="text-sm font-medium text-yellow-600">Gastos Casuales</p>
-            <p className="text-2xl font-bold text-yellow-700">
+            <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400 transition-colors duration-200">Gastos Casuales</p>
+            <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-300 transition-colors duration-200">
               {formatCurrency(dashboardData.totalCasualExpenses)}
             </p>
-            <p className="text-xs text-yellow-600">Variables</p>
+            <p className="text-xs text-yellow-600 dark:text-yellow-400 transition-colors duration-200">Variables</p>
           </div>
         </div>
 
         {/* Total Gastos */}
-        <div className="bg-red-50 p-4 rounded-lg border border-red-300">
+        <div className="bg-red-50 dark:bg-red-900/30 p-4 rounded-lg border border-red-300 dark:border-red-800 transition-colors duration-200">
           <div className="text-center">
-            <p className="text-sm font-medium text-red-700">Total Gastos</p>
-            <p className="text-2xl font-bold text-red-800">
+            <p className="text-sm font-medium text-red-700 dark:text-red-400 transition-colors duration-200">Total Gastos</p>
+            <p className="text-2xl font-bold text-red-800 dark:text-red-300 transition-colors duration-200">
               {formatCurrency(dashboardData.totalExpenses)}
             </p>
-            <p className="text-xs text-red-700">Presupuesto + Casuales</p>
+            <p className="text-xs text-red-700 dark:text-red-400 transition-colors duration-200">Presupuesto + Casuales</p>
           </div>
         </div>
       </div>
 
       {/* Resumen de flujo de caja */}
-      <div className="bg-gray-50 p-6 rounded-lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Resumen de Flujo de Caja</h3>
+      <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg border dark:border-gray-600 transition-colors duration-200">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 transition-colors duration-200">Resumen de Flujo de Caja</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h4 className="text-md font-medium text-gray-700 mb-3">Ingresos</h4>
+            <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3 transition-colors duration-200">Ingresos</h4>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-600">Total Facturado:</span>
-                <span className="font-medium text-green-600">
+                <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Total Facturado:</span>
+                <span className="font-medium text-green-600 dark:text-green-400 transition-colors duration-200">
                   {formatCurrency(dashboardData.totalRevenue)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Total Cobrado:</span>
-                <span className="font-medium text-teal-600">
+                <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Total Cobrado:</span>
+                <span className="font-medium text-teal-600 dark:text-teal-400 transition-colors duration-200">
                   {formatCurrency(dashboardData.totalPaid)}
                 </span>
               </div>
-              <div className="flex justify-between border-t pt-2">
-                <span className="text-gray-600">Pendiente por Cobrar:</span>
-                <span className="font-medium text-orange-600">
+              <div className="flex justify-between border-t dark:border-gray-600 pt-2 transition-colors duration-200">
+                <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Pendiente por Cobrar:</span>
+                <span className="font-medium text-orange-600 dark:text-orange-400 transition-colors duration-200">
                   {formatCurrency(dashboardData.totalPending)}
                 </span>
               </div>
@@ -298,23 +298,23 @@ const FinancialDashboard = ({ orders, expenses }) => {
           </div>
           
           <div>
-            <h4 className="text-md font-medium text-gray-700 mb-3">Egresos</h4>
+            <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3 transition-colors duration-200">Egresos</h4>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-600">Costos de Servicios:</span>
-                <span className="font-medium text-red-600">
+                <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Costos de Servicios:</span>
+                <span className="font-medium text-red-600 dark:text-red-400 transition-colors duration-200">
                   {formatCurrency(dashboardData.totalCosts)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Gastos Operativos:</span>
-                <span className="font-medium text-red-600">
+                <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Gastos Operativos:</span>
+                <span className="font-medium text-red-600 dark:text-red-400 transition-colors duration-200">
                   {formatCurrency(dashboardData.totalExpenses)}
                 </span>
               </div>
-              <div className="flex justify-between border-t pt-2">
-                <span className="text-gray-600">Total Egresos:</span>
-                <span className="font-medium text-red-600">
+              <div className="flex justify-between border-t dark:border-gray-600 pt-2 transition-colors duration-200">
+                <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Total Egresos:</span>
+                <span className="font-medium text-red-600 dark:text-red-400 transition-colors duration-200">
                   {formatCurrency(dashboardData.totalCosts + dashboardData.totalExpenses)}
                 </span>
               </div>
@@ -323,12 +323,12 @@ const FinancialDashboard = ({ orders, expenses }) => {
         </div>
         
         {/* Resultado final */}
-        <div className="mt-6 pt-4 border-t border-gray-200">
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600 transition-colors duration-200">
           <div className="flex justify-between items-center">
-            <span className="text-lg font-semibold text-gray-800">Resultado Neto:</span>
+            <span className="text-lg font-semibold text-gray-800 dark:text-white transition-colors duration-200">Resultado Neto:</span>
             <span className={`text-2xl font-bold ${
-              dashboardData.netProfit >= 0 ? 'text-green-600' : 'text-red-600'
-            }`}>
+              dashboardData.netProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+            } transition-colors duration-200`}>
               {formatCurrency(dashboardData.netProfit)}
             </span>
           </div>

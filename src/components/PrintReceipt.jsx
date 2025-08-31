@@ -36,20 +36,20 @@ const PrintReceipt = ({ order, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto transition-colors duration-200">
         {/* Header con botones - Solo visible en pantalla */}
-        <div className="flex justify-between items-center p-4 border-b border-gray-200 print:hidden">
-          <h2 className="text-xl font-bold text-gray-800">Comprobante de Servicio</h2>
+        <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 print:hidden transition-colors duration-200">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white transition-colors duration-200">Comprobante de Servicio</h2>
           <div className="flex space-x-2">
             <button
               onClick={handlePrint}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors duration-200"
             >
               🖨️ Imprimir
             </button>
             <button
               onClick={onClose}
-              className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+              className="bg-gray-500 dark:bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-600 dark:hover:bg-gray-700 transition-colors duration-200"
             >
               Cerrar
             </button>
@@ -60,16 +60,16 @@ const PrintReceipt = ({ order, onClose }) => {
         <div className="p-8 print:p-4">
           {/* Encabezado de la empresa */}
           <div className="text-center mb-8 print:mb-6">
-            <h1 className="text-3xl font-bold text-gray-800 print:text-2xl">NexBoard</h1>
-            <p className="text-gray-600 mt-2">Sistema de Gestión de Órdenes de Servicio</p>
-            <div className="border-b-2 border-gray-300 mt-4"></div>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white print:text-2xl transition-colors duration-200">NexBoard</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2 transition-colors duration-200">Sistema de Gestión de Órdenes de Servicio</p>
+            <div className="border-b-2 border-gray-300 dark:border-gray-600 mt-4 transition-colors duration-200"></div>
           </div>
 
           {/* Información del comprobante */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 print:mb-6">
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Información de la Orden</h3>
-              <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3 transition-colors duration-200">Información de la Orden</h3>
+              <div className="space-y-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
                 <p><span className="font-medium">Orden N°:</span> {order.id}</p>
                 <p><span className="font-medium">Fecha:</span> {formatDate(order.date)}</p>
                 <p><span className="font-medium">Estado:</span> 
@@ -86,44 +86,44 @@ const PrintReceipt = ({ order, onClose }) => {
             </div>
             
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Cliente</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3 transition-colors duration-200">Cliente</h3>
               <div className="space-y-2">
-                <p className="text-lg font-medium text-gray-700">{order.customerName}</p>
+                <p className="text-lg font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">{order.customerName}</p>
               </div>
             </div>
           </div>
 
           {/* Descripción del servicio */}
           <div className="mb-8 print:mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Descripción del Servicio</h3>
-            <div className="bg-gray-50 p-4 rounded-lg print:bg-white print:border">
-              <p className="text-gray-700">{order.description}</p>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3 transition-colors duration-200">Descripción del Servicio</h3>
+            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg print:bg-white print:border transition-colors duration-200">
+              <p className="text-gray-700 dark:text-gray-300 transition-colors duration-200">{order.description}</p>
             </div>
           </div>
 
           {/* Tabla de items */}
           {order.items && order.items.length > 0 && (
             <div className="mb-8 print:mb-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Detalle de Items</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3 transition-colors duration-200">Detalle de Items</h3>
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse border border-gray-300">
+                <table className="w-full border-collapse border border-gray-300 dark:border-gray-600 transition-colors duration-200">
                   <thead>
-                    <tr className="bg-gray-50 print:bg-gray-100">
-                      <th className="border border-gray-300 px-4 py-2 text-left">Descripción</th>
-                      <th className="border border-gray-300 px-4 py-2 text-center">Cantidad</th>
-                      <th className="border border-gray-300 px-4 py-2 text-right">Precio Unit.</th>
-                      <th className="border border-gray-300 px-4 py-2 text-right">Subtotal</th>
+                    <tr className="bg-gray-50 dark:bg-gray-700 print:bg-gray-100 transition-colors duration-200">
+                      <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left text-gray-800 dark:text-white transition-colors duration-200">Descripción</th>
+                      <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-800 dark:text-white transition-colors duration-200">Cantidad</th>
+                      <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-right text-gray-800 dark:text-white transition-colors duration-200">Precio Unit.</th>
+                      <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-right text-gray-800 dark:text-white transition-colors duration-200">Subtotal</th>
                     </tr>
                   </thead>
                   <tbody>
                     {order.items.map((item, index) => {
                       const subtotal = item.quantity * item.unitPrice;
                       return (
-                        <tr key={index}>
-                          <td className="border border-gray-300 px-4 py-2">{item.description}</td>
-                          <td className="border border-gray-300 px-4 py-2 text-center">{item.quantity}</td>
-                          <td className="border border-gray-300 px-4 py-2 text-right">{formatCurrency(item.unitPrice)}</td>
-                          <td className="border border-gray-300 px-4 py-2 text-right">{formatCurrency(subtotal)}</td>
+                        <tr key={index} className="bg-white dark:bg-gray-800 transition-colors duration-200">
+                          <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">{item.description}</td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-700 dark:text-gray-300 transition-colors duration-200">{item.quantity}</td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-right text-gray-700 dark:text-gray-300 transition-colors duration-200">{formatCurrency(item.unitPrice)}</td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-right text-gray-700 dark:text-gray-300 transition-colors duration-200">{formatCurrency(subtotal)}</td>
                         </tr>
                       );
                     })}
@@ -134,13 +134,13 @@ const PrintReceipt = ({ order, onClose }) => {
           )}
 
           {/* Resumen financiero */}
-          <div className="border-t-2 border-gray-300 pt-6">
+          <div className="border-t-2 border-gray-300 dark:border-gray-600 pt-6 transition-colors duration-200">
             <div className="flex justify-end">
               <div className="w-full max-w-sm">
                 <div className="space-y-2">
-                  <div className="flex justify-between py-2 border-t border-gray-200 pt-4">
-                    <span className="font-bold text-lg">TOTAL A PAGAR:</span>
-                    <span className="font-bold text-xl text-blue-600">{formatCurrency(order.total)}</span>
+                  <div className="flex justify-between py-2 border-t border-gray-200 dark:border-gray-600 pt-4 transition-colors duration-200">
+                    <span className="font-bold text-lg text-gray-800 dark:text-white transition-colors duration-200">TOTAL A PAGAR:</span>
+                    <span className="font-bold text-xl text-blue-600 dark:text-blue-400 transition-colors duration-200">{formatCurrency(order.total)}</span>
                   </div>
                 </div>
               </div>
@@ -148,7 +148,7 @@ const PrintReceipt = ({ order, onClose }) => {
           </div>
 
           {/* Pie del comprobante */}
-          <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-600 print:mt-6">
+          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-600 text-center text-sm text-gray-600 dark:text-gray-400 print:mt-6 transition-colors duration-200">
             <p>Gracias por confiar en nuestros servicios</p>
             <p className="mt-2">Este comprobante fue generado el {new Date().toLocaleDateString('es-CO')} a las {new Date().toLocaleTimeString('es-CO')}</p>
           </div>

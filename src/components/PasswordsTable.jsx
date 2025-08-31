@@ -96,30 +96,30 @@ const PasswordsTable = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestor de Contraseñas</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white transition-colors duration-200">Gestor de Contraseñas</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1 transition-colors duration-200">
             Total: {passwords.length} contraseña{passwords.length !== 1 ? 's' : ''}
           </p>
         </div>
         <button
           onClick={handleAddPassword}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="bg-blue-600 dark:bg-blue-700 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200"
         >
           + Nueva Contraseña
         </button>
       </div>
 
       {/* Barra de búsqueda */}
-      <div className="bg-white p-4 rounded-lg shadow-sm">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border dark:border-gray-700 transition-colors duration-200">
         <div className="relative">
           <input
             type="text"
             placeholder="Buscar por sitio web o usuario..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
           />
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500">
             🔍
           </div>
         </div>
@@ -127,12 +127,12 @@ const PasswordsTable = () => {
 
       {/* Tabla de contraseñas */}
       {filteredPasswords.length === 0 ? (
-        <div className="bg-white p-8 rounded-lg shadow-sm text-center">
-          <div className="text-gray-400 text-6xl mb-4">🔐</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-sm border dark:border-gray-700 text-center transition-colors duration-200">
+          <div className="text-gray-400 dark:text-gray-500 text-6xl mb-4">🔐</div>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2 transition-colors duration-200">
             {passwords.length === 0 ? 'No hay contraseñas guardadas' : 'No se encontraron resultados'}
           </h3>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400 transition-colors duration-200">
             {passwords.length === 0 
               ? 'Comienza agregando tu primera contraseña'
               : 'Intenta con otros términos de búsqueda'
@@ -140,39 +140,39 @@ const PasswordsTable = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 overflow-hidden transition-colors duration-200">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700 transition-colors duration-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                     Sitio Web
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                     Usuario
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                     Contraseña
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                     Última Actualización
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                     Acciones
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 transition-colors duration-200">
                 {filteredPasswords.map((password) => (
-                  <tr key={password.id} className="hover:bg-gray-50">
+                  <tr key={password.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">
                           {password.website}
                         </div>
                         <button
                           onClick={() => copyToClipboard(password.website, 'Sitio web')}
-                          className="ml-2 text-gray-400 hover:text-gray-600"
+                          className="ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
                           title="Copiar sitio web"
                         >
                           📋
@@ -181,12 +181,12 @@ const PasswordsTable = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="text-sm text-gray-900">
+                        <div className="text-sm text-gray-900 dark:text-white transition-colors duration-200">
                           {password.username}
                         </div>
                         <button
                           onClick={() => copyToClipboard(password.username, 'Usuario')}
-                          className="ml-2 text-gray-400 hover:text-gray-600"
+                          className="ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
                           title="Copiar usuario"
                         >
                           📋
@@ -195,7 +195,7 @@ const PasswordsTable = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="text-sm text-gray-900 font-mono">
+                        <div className="text-sm text-gray-900 dark:text-white font-mono transition-colors duration-200">
                           {visiblePasswords.has(password.id) 
                             ? password.password 
                             : '••••••••'
@@ -203,21 +203,21 @@ const PasswordsTable = () => {
                         </div>
                         <button
                           onClick={() => togglePasswordVisibility(password.id)}
-                          className="ml-2 text-gray-400 hover:text-gray-600"
+                          className="ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
                           title={visiblePasswords.has(password.id) ? 'Ocultar' : 'Mostrar'}
                         >
                           {visiblePasswords.has(password.id) ? '👁️' : '👁️‍🗨️'}
                         </button>
                         <button
                           onClick={() => copyToClipboard(password.password, 'Contraseña')}
-                          className="ml-2 text-gray-400 hover:text-gray-600"
+                          className="ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
                           title="Copiar contraseña"
                         >
                           📋
                         </button>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
                       {new Date(password.updatedAt).toLocaleDateString('es-CO', {
                         year: 'numeric',
                         month: 'short',
@@ -227,14 +227,14 @@ const PasswordsTable = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
                         onClick={() => handleEditPassword(password)}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 mr-3 transition-colors duration-200"
                         title="Editar"
                       >
                         ✏️
                       </button>
                       <button
                         onClick={() => handleDeletePassword(password.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors duration-200"
                         title="Eliminar"
                       >
                         🗑️

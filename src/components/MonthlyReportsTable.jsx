@@ -372,17 +372,17 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 transition-colors duration-200">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4 md:mb-0">Informes Mensuales</h2>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4 md:mb-0 transition-colors duration-200">Informes Mensuales</h2>
         
         <div className="flex flex-col md:flex-row gap-4">
           {/* Selector de año */}
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
           >
             {availableYears.map(year => (
               <option key={year} value={year}>{year}</option>
@@ -392,10 +392,10 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
           {/* Toggle comparación */}
           <button
             onClick={() => setShowComparison(!showComparison)}
-            className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
               showComparison 
                 ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500'
             }`}
           >
             {showComparison ? 'Ocultar Comparación' : 'Comparar Meses'}
@@ -405,16 +405,16 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
 
       {/* Sección de comparación */}
       {showComparison && (
-        <div className="bg-blue-50 p-4 rounded-lg mb-6 border border-blue-200">
-          <h3 className="text-lg font-semibold text-blue-800 mb-4">Comparación de Meses</h3>
+        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-6 border border-blue-200 dark:border-blue-700 transition-colors duration-200">
+          <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-4 transition-colors duration-200">Comparación de Meses</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Primer Mes</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">Primer Mes</label>
               <select
                 value={comparisonMonths.month1}
                 onChange={(e) => setComparisonMonths({...comparisonMonths, month1: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
               >
                 <option value="">Seleccionar mes...</option>
                 {monthlyReports.map(report => (
@@ -426,11 +426,11 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Segundo Mes</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">Segundo Mes</label>
               <select
                 value={comparisonMonths.month2}
                 onChange={(e) => setComparisonMonths({...comparisonMonths, month2: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
               >
                 <option value="">Seleccionar mes...</option>
                 {monthlyReports.map(report => (
@@ -445,30 +445,30 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
           {/* Resultados de comparación */}
           {comparisonData && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white p-3 rounded-md border">
-                <div className="text-sm font-medium text-gray-600">Ingresos</div>
-                <div className="text-lg font-bold text-green-600">
+              <div className="bg-white dark:bg-gray-700 p-3 rounded-md border border-gray-200 dark:border-gray-600 transition-colors duration-200">
+                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Ingresos</div>
+                <div className="text-lg font-bold text-green-600 dark:text-green-400 transition-colors duration-200">
                   {comparisonData.changes.revenue > 0 ? '+' : ''}{comparisonData.changes.revenue}%
                 </div>
               </div>
-              <div className="bg-white p-3 rounded-md border">
-                <div className="text-sm font-medium text-gray-600">Ganancia Neta</div>
-                <div className={`text-lg font-bold ${
-                  comparisonData.changes.profit >= 0 ? 'text-green-600' : 'text-red-600'
+              <div className="bg-white dark:bg-gray-700 p-3 rounded-md border border-gray-200 dark:border-gray-600 transition-colors duration-200">
+                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Ganancia Neta</div>
+                <div className={`text-lg font-bold transition-colors duration-200 ${
+                  comparisonData.changes.profit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                 }`}>
                   {comparisonData.changes.profit > 0 ? '+' : ''}{comparisonData.changes.profit}%
                 </div>
               </div>
-              <div className="bg-white p-3 rounded-md border">
-                <div className="text-sm font-medium text-gray-600">Órdenes</div>
-                <div className="text-lg font-bold text-blue-600">
+              <div className="bg-white dark:bg-gray-700 p-3 rounded-md border border-gray-200 dark:border-gray-600 transition-colors duration-200">
+                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Órdenes</div>
+                <div className="text-lg font-bold text-blue-600 dark:text-blue-400 transition-colors duration-200">
                   {comparisonData.changes.orders > 0 ? '+' : ''}{comparisonData.changes.orders}%
                 </div>
               </div>
-              <div className="bg-white p-3 rounded-md border">
-                <div className="text-sm font-medium text-gray-600">Gastos</div>
-                <div className={`text-lg font-bold ${
-                  comparisonData.changes.expenses <= 0 ? 'text-green-600' : 'text-red-600'
+              <div className="bg-white dark:bg-gray-700 p-3 rounded-md border border-gray-200 dark:border-gray-600 transition-colors duration-200">
+                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Gastos</div>
+                <div className={`text-lg font-bold transition-colors duration-200 ${
+                  comparisonData.changes.expenses <= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                 }`}>
                   {comparisonData.changes.expenses > 0 ? '+' : ''}{comparisonData.changes.expenses}%
                 </div>
@@ -479,76 +479,76 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
       )}
 
       {/* Tabla de informes mensuales */}
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors duration-200">
         {/* Vista Desktop - Tabla */}
         <div className="hidden lg:block overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700 transition-colors duration-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider transition-colors duration-200">
                   Mes
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider transition-colors duration-200">
                   Órdenes
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider transition-colors duration-200">
                   Ingresos
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider transition-colors duration-200">
                   Ganancia Bruta
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider transition-colors duration-200">
                   Gastos
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider transition-colors duration-200">
                   Ganancia Neta
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider transition-colors duration-200">
                   Por Cobrar
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider transition-colors duration-200">
                   Estado
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider transition-colors duration-200">
                   Acciones
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 transition-colors duration-200">
               {monthlyReports.map((report) => (
-                <tr key={`${report.year}-${report.month}`} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <tr key={`${report.year}-${report.month}`} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">
                     {report.monthName}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
                     {report.completedOrders} / {report.totalOrders}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600 dark:text-green-400 transition-colors duration-200">
                     {formatCurrency(report.totalRevenue)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400 transition-colors duration-200">
                     {formatCurrency(report.grossProfit)}
-                    <div className="text-xs text-gray-500">Margen: {report.profitMargin}%</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200">Margen: {report.profitMargin}%</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600 dark:text-red-400 transition-colors duration-200">
                     {formatCurrency(report.totalExpenses)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <span className={report.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}>
+                    <span className={`transition-colors duration-200 ${report.netProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                       {formatCurrency(report.netProfit)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-orange-600">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-orange-600 dark:text-orange-400 transition-colors duration-200">
                     {formatCurrency(report.totalPending)}
-                    <div className="text-xs text-gray-500">Cobrado: {report.collectionRate}%</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200">Cobrado: {report.collectionRate}%</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {report.isClosed ? (
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 transition-colors duration-200">
                         Cerrado
                       </span>
                     ) : (
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 transition-colors duration-200">
                         Abierto
                       </span>
                     )}
@@ -557,7 +557,7 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
                     {!report.isClosed && (
                       <button
                         onClick={() => closeMonth(report.year, report.month)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 transition-colors duration-200"
                         title="Cerrar mes"
                       >
                         🔒 Cerrar
@@ -573,26 +573,26 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
         {/* Vista Mobile - Cards */}
         <div className="lg:hidden">
           {monthlyReports.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400 transition-colors duration-200">
               No hay datos disponibles para el año seleccionado.
             </div>
           ) : (
             <div className="space-y-4 p-4">
               {monthlyReports.map((report) => (
-                <div key={`${report.year}-${report.month}`} className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 space-y-4">
+                <div key={`${report.year}-${report.month}`} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-4 space-y-4 transition-colors duration-200">
                   {/* Header del Card */}
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{report.monthName}</h3>
-                      <p className="text-sm text-gray-500">{report.completedOrders} / {report.totalOrders} órdenes</p>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white transition-colors duration-200">{report.monthName}</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">{report.completedOrders} / {report.totalOrders} órdenes</p>
                     </div>
                     <div className="text-right">
                       {report.isClosed ? (
-                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 transition-colors duration-200">
                           Cerrado
                         </span>
                       ) : (
-                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 transition-colors duration-200">
                           Abierto
                         </span>
                       )}
@@ -602,39 +602,39 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
                   {/* Información Financiera */}
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="font-medium text-gray-700">Ingresos:</p>
-                      <p className="text-lg font-semibold text-green-600">{formatCurrency(report.totalRevenue)}</p>
+                      <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Ingresos:</p>
+                      <p className="text-lg font-semibold text-green-600 dark:text-green-400 transition-colors duration-200">{formatCurrency(report.totalRevenue)}</p>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-700">Ganancia Neta:</p>
-                      <p className={`text-lg font-semibold ${
-                        report.netProfit >= 0 ? 'text-green-600' : 'text-red-600'
+                      <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Ganancia Neta:</p>
+                      <p className={`text-lg font-semibold transition-colors duration-200 ${
+                        report.netProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                       }`}>
                         {formatCurrency(report.netProfit)}
                       </p>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-700">Ganancia Bruta:</p>
-                      <p className="text-blue-600 font-medium">{formatCurrency(report.grossProfit)}</p>
-                      <p className="text-xs text-gray-500">Margen: {report.profitMargin}%</p>
+                      <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Ganancia Bruta:</p>
+                      <p className="text-blue-600 dark:text-blue-400 font-medium transition-colors duration-200">{formatCurrency(report.grossProfit)}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200">Margen: {report.profitMargin}%</p>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-700">Gastos:</p>
-                      <p className="text-red-600 font-medium">{formatCurrency(report.totalExpenses)}</p>
+                      <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Gastos:</p>
+                      <p className="text-red-600 dark:text-red-400 font-medium transition-colors duration-200">{formatCurrency(report.totalExpenses)}</p>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-700">Por Cobrar:</p>
-                      <p className="text-orange-600 font-medium">{formatCurrency(report.totalPending)}</p>
-                      <p className="text-xs text-gray-500">Cobrado: {report.collectionRate}%</p>
+                      <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Por Cobrar:</p>
+                      <p className="text-orange-600 dark:text-orange-400 font-medium transition-colors duration-200">{formatCurrency(report.totalPending)}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200">Cobrado: {report.collectionRate}%</p>
                     </div>
                   </div>
                   
                   {/* Acciones */}
                   {!report.isClosed && (
-                    <div className="pt-3 border-t border-gray-100">
+                    <div className="pt-3 border-t border-gray-100 dark:border-gray-700 transition-colors duration-200">
                       <button
                         onClick={() => closeMonth(report.year, report.month)}
-                        className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 touch-manipulation"
+                        className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/50 touch-manipulation transition-colors duration-200"
                       >
                         <span>🔒</span>
                         <span className="text-sm font-medium">Cerrar Mes</span>

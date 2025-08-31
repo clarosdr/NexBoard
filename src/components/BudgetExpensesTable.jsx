@@ -128,17 +128,17 @@ const BudgetExpensesTable = () => {
 
   const getStatusBadge = (expense) => {
     if (expense.isPaid) {
-      return <span className="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">Pagado</span>;
+      return <span className="px-2 py-1 text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full transition-colors duration-200">Pagado</span>;
     }
     
     const daysUntilDue = getDaysUntilDue(expense.dueDate);
     
     if (daysUntilDue < 0) {
-      return <span className="px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded-full">Vencido</span>;
+      return <span className="px-2 py-1 text-xs font-semibold bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-full transition-colors duration-200">Vencido</span>;
     } else if (daysUntilDue <= 7) {
-      return <span className="px-2 py-1 text-xs font-semibold bg-yellow-100 text-yellow-800 rounded-full">Próximo a vencer</span>;
+      return <span className="px-2 py-1 text-xs font-semibold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded-full transition-colors duration-200">Próximo a vencer</span>;
     } else {
-      return <span className="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full">Pendiente</span>;
+      return <span className="px-2 py-1 text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full transition-colors duration-200">Pendiente</span>;
     }
   };
 
@@ -223,12 +223,12 @@ const BudgetExpensesTable = () => {
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md dark:border dark:border-gray-700 transition-colors duration-200">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Presupuesto Personal</h2>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white transition-colors duration-200">Presupuesto Personal</h2>
         <button
           onClick={() => setShowForm(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
         >
           + Nuevo Gasto
         </button>
@@ -236,17 +236,17 @@ const BudgetExpensesTable = () => {
 
       {/* Resumen de totales */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h3 className="text-sm font-medium text-blue-800">Total Gastos</h3>
-          <p className="text-2xl font-bold text-blue-900">{formatCurrency(totals.total)}</p>
+        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border dark:border-blue-800 transition-colors duration-200">
+          <h3 className="text-sm font-medium text-blue-800 dark:text-blue-300 transition-colors duration-200">Total Gastos</h3>
+          <p className="text-2xl font-bold text-blue-900 dark:text-blue-200 transition-colors duration-200">{formatCurrency(totals.total)}</p>
         </div>
-        <div className="bg-green-50 p-4 rounded-lg">
-          <h3 className="text-sm font-medium text-green-800">Pagados</h3>
-          <p className="text-2xl font-bold text-green-900">{formatCurrency(totals.paid)}</p>
+        <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border dark:border-green-800 transition-colors duration-200">
+          <h3 className="text-sm font-medium text-green-800 dark:text-green-300 transition-colors duration-200">Pagados</h3>
+          <p className="text-2xl font-bold text-green-900 dark:text-green-200 transition-colors duration-200">{formatCurrency(totals.paid)}</p>
         </div>
-        <div className="bg-red-50 p-4 rounded-lg">
-          <h3 className="text-sm font-medium text-red-800">Pendientes</h3>
-          <p className="text-2xl font-bold text-red-900">{formatCurrency(totals.unpaid)}</p>
+        <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border dark:border-red-800 transition-colors duration-200">
+          <h3 className="text-sm font-medium text-red-800 dark:text-red-300 transition-colors duration-200">Pendientes</h3>
+          <p className="text-2xl font-bold text-red-900 dark:text-red-200 transition-colors duration-200">{formatCurrency(totals.unpaid)}</p>
         </div>
       </div>
 
@@ -263,10 +263,20 @@ const BudgetExpensesTable = () => {
             <button
               key={status.key}
               onClick={() => setFilterStatus(status.key)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
                 filterStatus === status.key
-                  ? `bg-${status.color}-600 text-white`
-                  : `bg-${status.color}-100 text-${status.color}-800 hover:bg-${status.color}-200`
+                  ? status.color === 'gray' ? 'bg-gray-600 dark:bg-gray-500 text-white'
+                  : status.color === 'blue' ? 'bg-blue-600 dark:bg-blue-500 text-white'
+                  : status.color === 'green' ? 'bg-green-600 dark:bg-green-500 text-white'
+                  : status.color === 'yellow' ? 'bg-yellow-600 dark:bg-yellow-500 text-white'
+                  : status.color === 'red' ? 'bg-red-600 dark:bg-red-500 text-white'
+                  : 'bg-gray-600 text-white'
+                  : status.color === 'gray' ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  : status.color === 'blue' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50'
+                  : status.color === 'green' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50'
+                  : status.color === 'yellow' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-900/50'
+                  : status.color === 'red' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
               {status.label} ({getExpenseCountByStatus(status.key)})
@@ -277,21 +287,21 @@ const BudgetExpensesTable = () => {
         {/* Filtros adicionales */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">Buscar</label>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por descripción o notas..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Categoría</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">Categoría</label>
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
             >
               {categoryOptions.map(option => (
                 <option key={option.value} value={option.value}>
@@ -306,59 +316,59 @@ const BudgetExpensesTable = () => {
       {/* Tabla de gastos */}
       {filteredExpenses.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">No hay gastos que coincidan con los filtros seleccionados.</p>
+          <p className="text-gray-500 dark:text-gray-400 transition-colors duration-200">No hay gastos que coincidan con los filtros seleccionados.</p>
         </div>
       ) : (
         <>
           {/* Vista Desktop - Tabla */}
           <div className="hidden lg:block overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700 transition-colors duration-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                     Descripción
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                     Monto
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                     Categoría
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                     Frecuencia
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                     Vencimiento
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                     Estado
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                     Acciones
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 transition-colors duration-200">
                 {filteredExpenses.map((expense) => (
-                  <tr key={expense.id} className="hover:bg-gray-50">
+                  <tr key={expense.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{expense.description}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">{expense.description}</div>
                         {expense.notes && (
-                          <div className="text-sm text-gray-500">{expense.notes}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">{expense.notes}</div>
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">
                       {formatCurrency(expense.amount)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
                       {getCategoryLabel(expense.category)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
                       {getFrequencyLabel(expense.frequency)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
                       <div>
                         {new Date(expense.dueDate).toLocaleDateString('es-CO')}
                         {!expense.isPaid && (
@@ -377,23 +387,23 @@ const BudgetExpensesTable = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
                         onClick={() => togglePaidStatus(expense.id)}
-                        className={`px-3 py-1 rounded text-xs font-medium ${
+                        className={`px-3 py-1 rounded text-xs font-medium transition-colors duration-200 ${
                           expense.isPaid
-                            ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                            : 'bg-green-100 text-green-800 hover:bg-green-200'
+                            ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-900/50'
+                            : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50'
                         }`}
                       >
                         {expense.isPaid ? 'Marcar pendiente' : 'Marcar pagado'}
                       </button>
                       <button
                         onClick={() => handleEdit(expense)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 transition-colors duration-200"
                       >
                         Editar
                       </button>
                       <button
                         onClick={() => handleDelete(expense.id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors duration-200"
                       >
                         Eliminar
                       </button>
@@ -455,13 +465,13 @@ const BudgetExpensesTable = () => {
                   onSwipeLeft={() => handleDelete(expense.id)}
                   onSwipeRight={() => handleEdit(expense)}
                 >
-                  <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 space-y-3">
+                  <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-4 space-y-3 transition-colors duration-200">
                 {/* Header del Card */}
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900">{expense.description}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white transition-colors duration-200">{expense.description}</h3>
                     {expense.notes && (
-                      <p className="text-sm text-gray-500 mt-1">{expense.notes}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 transition-colors duration-200">{expense.notes}</p>
                     )}
                   </div>
                   <div className="ml-3">
@@ -472,23 +482,23 @@ const BudgetExpensesTable = () => {
                 {/* Información Principal */}
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <p className="font-medium text-gray-700">Monto:</p>
-                    <p className="text-lg font-semibold text-gray-900">{formatCurrency(expense.amount)}</p>
+                    <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Monto:</p>
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white transition-colors duration-200">{formatCurrency(expense.amount)}</p>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-700">Categoría:</p>
-                    <p className="text-gray-900">{getCategoryLabel(expense.category)}</p>
+                    <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Categoría:</p>
+                    <p className="text-gray-900 dark:text-gray-200 transition-colors duration-200">{getCategoryLabel(expense.category)}</p>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-700">Frecuencia:</p>
-                    <p className="text-gray-900">{getFrequencyLabel(expense.frequency)}</p>
+                    <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Frecuencia:</p>
+                    <p className="text-gray-900 dark:text-gray-200 transition-colors duration-200">{getFrequencyLabel(expense.frequency)}</p>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-700">Vencimiento:</p>
-                    <p className="text-gray-900">{new Date(expense.dueDate).toLocaleDateString('es-CO')}</p>
+                    <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Vencimiento:</p>
+                    <p className="text-gray-900 dark:text-gray-200 transition-colors duration-200">{new Date(expense.dueDate).toLocaleDateString('es-CO')}</p>
                     {!expense.isPaid && (
-                      <p className={`text-xs mt-1 ${
-                        getDaysUntilDue(expense.dueDate) >= 0 ? 'text-blue-600' : 'text-red-600'
+                      <p className={`text-xs mt-1 transition-colors duration-200 ${
+                        getDaysUntilDue(expense.dueDate) >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
                       }`}>
                         {getDaysUntilDue(expense.dueDate) >= 0 
                           ? `${getDaysUntilDue(expense.dueDate)} días restantes`
@@ -500,26 +510,26 @@ const BudgetExpensesTable = () => {
                 </div>
                 
                 {/* Acciones */}
-                <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-gray-100">
+                <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-gray-100 dark:border-gray-700 transition-colors duration-200">
                   <button
                     onClick={() => togglePaidStatus(expense.id)}
-                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium touch-manipulation ${
+                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium touch-manipulation transition-colors duration-200 ${
                       expense.isPaid
-                        ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                        : 'bg-green-100 text-green-800 hover:bg-green-200'
+                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-900/50'
+                        : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50'
                     }`}
                   >
                     {expense.isPaid ? 'Marcar pendiente' : 'Marcar pagado'}
                   </button>
                   <button
                     onClick={() => handleEdit(expense)}
-                    className="flex-1 px-4 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 text-sm font-medium touch-manipulation"
+                    className="flex-1 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/50 text-sm font-medium touch-manipulation transition-colors duration-200"
                   >
                     Editar
                   </button>
                   <button
                     onClick={() => handleDelete(expense.id)}
-                    className="flex-1 px-4 py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100 text-sm font-medium touch-manipulation"
+                    className="flex-1 px-4 py-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-md hover:bg-red-100 dark:hover:bg-red-900/50 text-sm font-medium touch-manipulation transition-colors duration-200"
                   >
                     Eliminar
                   </button>
