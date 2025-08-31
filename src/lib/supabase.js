@@ -18,115 +18,62 @@ export const supabaseHelpers = {
     
     if (error) throw error
     
-    // Mapear los datos de la base de datos al formato esperado por la aplicación
-    const mappedData = (data || []).map(order => ({
-      id: order.id,
-      customerName: order.client_name,
-      description: order.problem_description,
-      date: order.estimated_delivery,
-      status: order.status,
-      items: order.items || [],
-      payments: order.payments || [],
-      total: order.total_cost,
-      totalPaid: order.total_paid,
-      pendingBalance: order.pending_balance,
-      profit: order.profit,
-      createdAt: order.created_at,
-      totalPartCost: order.total_cost - order.profit // Calcular costo de partes
-    }))
-    
-    return mappedData
+    return data || []
   },
 
   async createServiceOrder(order, userId) {
-    // Mapear los campos del formulario a los campos de la base de datos
-    const mappedOrder = {
+    // Map form fields to database fields
+    const dbOrder = {
+      id: order.id,
       user_id: userId,
-      order_number: `ORD-${Date.now()}`,
-      client_name: order.customerName || '',
-      problem_description: order.description || '',
-      device_type: 'General', // Valor por defecto
-      items: order.items || [],
-      payments: order.payments || [],
-      total_cost: order.total || 0,
-      total_paid: order.totalPaid || 0,
-      pending_balance: order.pendingBalance || 0,
-      profit: order.profit || 0,
-      status: order.status || 'pendiente',
-      estimated_delivery: order.date ? new Date(order.date).toISOString().split('T')[0] : null,
-      notes: order.notes || ''
-    }
+      customer_name: order.customerName,
+      description: order.description,
+      date: order.date,
+      status: order.status,
+      items: order.items,
+      payments: order.payments,
+      total_paid: order.totalPaid,
+      total: order.total,
+      total_part_cost: order.totalPartCost,
+      profit: order.profit,
+      pending_balance: order.pendingBalance,
+      created_at: order.createdAt
+    };
     
     const { data, error } = await supabase
       .from('service_orders')
-      .insert([mappedOrder])
+      .insert([dbOrder])
       .select()
     
     if (error) throw error
-    
-    // Mapear la respuesta de vuelta al formato esperado por la aplicación
-    const mappedResponse = {
-      id: data[0].id,
-      customerName: data[0].client_name,
-      description: data[0].problem_description,
-      date: data[0].estimated_delivery,
-      status: data[0].status,
-      items: data[0].items,
-      payments: data[0].payments,
-      total: data[0].total_cost,
-      totalPaid: data[0].total_paid,
-      pendingBalance: data[0].pending_balance,
-      profit: data[0].profit,
-      createdAt: data[0].created_at
-    }
-    
-    return mappedResponse
+    return data[0]
   },
 
   async updateServiceOrder(id, order, userId) {
-    // Mapear los campos del formulario a los campos de la base de datos
-    const mappedOrder = {
-      client_name: order.customerName || '',
-      problem_description: order.description || '',
-      items: order.items || [],
-      payments: order.payments || [],
-      total_cost: order.total || 0,
-      total_paid: order.totalPaid || 0,
-      pending_balance: order.pendingBalance || 0,
-      profit: order.profit || 0,
-      status: order.status || 'pendiente',
-      estimated_delivery: order.date ? new Date(order.date).toISOString().split('T')[0] : null,
-      notes: order.notes || '',
-      updated_at: new Date().toISOString()
-    }
+    // Map form fields to database fields
+    const dbOrder = {
+      customer_name: order.customerName,
+      description: order.description,
+      date: order.date,
+      status: order.status,
+      items: order.items,
+      payments: order.payments,
+      total_paid: order.totalPaid,
+      total: order.total,
+      total_part_cost: order.totalPartCost,
+      profit: order.profit,
+      pending_balance: order.pendingBalance
+    };
     
     const { data, error } = await supabase
       .from('service_orders')
-      .update(mappedOrder)
+      .update(dbOrder)
       .eq('id', id)
       .eq('user_id', userId)
       .select()
     
     if (error) throw error
-    
-    // Mapear la respuesta de vuelta al formato esperado por la aplicación
-    const mappedResponse = {
-      id: data[0].id,
-      customerName: data[0].client_name,
-      description: data[0].problem_description,
-      date: data[0].estimated_delivery,
-      status: data[0].status,
-      items: data[0].items,
-      payments: data[0].payments,
-      total: data[0].total_cost,
-      totalPaid: data[0].total_paid,
-      pendingBalance: data[0].pending_balance,
-      profit: data[0].profit,
-      createdAt: data[0].created_at,
-      totalPartCost: data[0].total_cost - data[0].profit
-    }
-    
-    return mappedResponse
+    return data[0]
   },
 
   async deleteServiceOrder(id, userId) {
