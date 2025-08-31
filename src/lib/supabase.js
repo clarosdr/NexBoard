@@ -18,7 +18,23 @@ export const supabaseHelpers = {
     
     if (error) throw error
     
-    return data || []
+    // Map database fields back to application fields
+    return (data || []).map(order => ({
+      id: order.id,
+      customerName: order.customer_name,
+      description: order.description,
+      date: order.date,
+      status: order.status,
+      items: order.items,
+      payments: order.payments,
+      totalPaid: order.total_paid,
+      total: order.total,
+      totalPartCost: order.total_part_cost,
+      profit: order.profit,
+      pendingBalance: order.pending_balance,
+      createdAt: order.created_at,
+      updatedAt: order.updated_at
+    }))
   },
 
   async createServiceOrder(order, userId) {
@@ -46,7 +62,25 @@ export const supabaseHelpers = {
       .select()
     
     if (error) throw error
-    return data[0]
+    
+    // Map database fields back to application fields
+    const createdOrder = data[0]
+    return {
+      id: createdOrder.id,
+      customerName: createdOrder.customer_name,
+      description: createdOrder.description,
+      date: createdOrder.date,
+      status: createdOrder.status,
+      items: createdOrder.items,
+      payments: createdOrder.payments,
+      totalPaid: createdOrder.total_paid,
+      total: createdOrder.total,
+      totalPartCost: createdOrder.total_part_cost,
+      profit: createdOrder.profit,
+      pendingBalance: createdOrder.pending_balance,
+      createdAt: createdOrder.created_at,
+      updatedAt: createdOrder.updated_at
+    }
   },
 
   async updateServiceOrder(id, order, userId) {
@@ -73,7 +107,25 @@ export const supabaseHelpers = {
       .select()
     
     if (error) throw error
-    return data[0]
+    
+    // Map database fields back to application fields
+    const updatedOrder = data[0]
+    return {
+      id: updatedOrder.id,
+      customerName: updatedOrder.customer_name,
+      description: updatedOrder.description,
+      date: updatedOrder.date,
+      status: updatedOrder.status,
+      items: updatedOrder.items,
+      payments: updatedOrder.payments,
+      totalPaid: updatedOrder.total_paid,
+      total: updatedOrder.total,
+      totalPartCost: updatedOrder.total_part_cost,
+      profit: updatedOrder.profit,
+      pendingBalance: updatedOrder.pending_balance,
+      createdAt: updatedOrder.created_at,
+      updatedAt: updatedOrder.updated_at
+    }
   },
 
   async deleteServiceOrder(id, userId) {
