@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
-import { supabaseService } from './lib/supabase'
+import { supabaseService, isSupabaseConfigured } from './lib/supabase'
 import LoginForm from './components/LoginForm'
 import DataMigration from './components/DataMigration'
 import ThemeToggle from './components/ThemeToggle'
@@ -21,7 +21,6 @@ import MonthlyReportsTable from './components/MonthlyReportsTable'
 function MainApp() {
   const [activeTab, setActiveTab] = useState('orders')
   const [orders, setOrders] = useState([])
-  const [expenses, setExpenses] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingOrder, setEditingOrder] = useState(null)
   const [selectedOrder, setSelectedOrder] = useState(null)
@@ -31,7 +30,7 @@ function MainApp() {
   const [showDataMigration, setShowDataMigration] = useState(false)
   const { user, signOut } = useAuth()
 
-  // Cargar órdenes desde Supabase al iniciar
+  // Cargar órdenes al iniciar
   useEffect(() => {
     const loadOrders = async () => {
       if (user) {
@@ -39,28 +38,30 @@ function MainApp() {
           const ordersData = await supabaseService.getServiceOrders(user.id)
           setOrders(ordersData)
         } catch (error) {
-          console.error('Error loading orders from Supabase:', error)
+          console.error('Error loading orders:', error)
         }
       }
     }
     loadOrders()
   }, [user])
 
-  // Limpiar datos de localStorage problemáticos al iniciar
+  // Limpiar datos de localStorage obsoletos al iniciar (solo si se usa Supabase)
   useEffect(() => {
-    // Remover datos locales obsoletos que pueden causar conflictos
-    const obsoleteKeys = ['nexboard-expenses', 'orders', 'casualExpenses', 'budgetExpenses'];
-    obsoleteKeys.forEach(key => {
-      if (localStorage.getItem(key)) {
-        console.log(`Removing obsolete localStorage key: ${key}`);
-        localStorage.removeItem(key);
-      }
-    });
+    if (isSupabaseConfigured()) {
+      // Remover datos locales obsoletos que pueden causar conflictos
+      const obsoleteKeys = ['nexboard-expenses', 'orders', 'casualExpenses', 'budgetExpenses'];
+      obsoleteKeys.forEach(key => {
+        if (localStorage.getItem(key)) {
+          console.log(`Removing obsolete localStorage key: ${key}`);
+          localStorage.removeItem(key);
+        }
+      });
+    }
   }, []);
 
-  // Verificar si hay datos locales para migrar cuando el usuario se autentica
+  // Verificar si hay datos locales para migrar cuando el usuario se autentica (solo para Supabase)
   useEffect(() => {
-    if (user) {
+    if (user && isSupabaseConfigured()) {
       const hasLocalData = () => {
         const localData = {
           orders: JSON.parse(localStorage.getItem('orders') || '[]'),
@@ -75,7 +76,7 @@ function MainApp() {
 
       // Verificar si ya se mostró el modal de migración para este usuario
       const migrationShown = localStorage.getItem(`migration_shown_${user.id}`);
-
+      
       if (hasLocalData() && !migrationShown) {
         setShowDataMigration(true);
       }
@@ -101,7 +102,7 @@ function MainApp() {
   const handleUpdateOrder = async (updatedOrder) => {
     try {
       const updated = await supabaseService.updateServiceOrder(updatedOrder.id, updatedOrder, user.id)
-      setOrders(prev => prev.map(order =>
+      setOrders(prev => prev.map(order => 
         order.id === updatedOrder.id ? updated : order
       ))
       setEditingOrder(null)
@@ -170,8 +171,22 @@ function MainApp() {
                 </svg>
               </button>
               <div className="ml-2 lg:ml-0">
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white transition-colors duration-200">NexBoard</h1>
-                <p className="text-sm lg:text-base text-gray-600 dark:text-gray-300 hidden sm:block transition-colors duration-200">Sistema de Gestión Empresarial</p>
+                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white transition-colors duration-200">
+                  NexBoard
+                  {!isSupabaseConfigured() && (
+                    <span className="ml-2 text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full">
+                      Demo
+                    </span>
+                  )}
+                </h1>
+                <p className="text-sm lg:text-base text-gray-600 dark:text-gray-300 hidden sm:block transition-colors duration-200">
+                  Sistema de Gestión Empresarial
+                  {!isSupabaseConfigured() && (
+                    <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
+                      (Datos guardados localmente)
+                    </span>
+                  )}
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -202,333 +217,121 @@ function MainApp() {
         </div>
       </header>
 
-      {/* Navigation Tabs */}
-      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-200">
+      {/* Navigation */}
+      <nav className={`bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-200 ${mobileMenuOpen ? 'block' : 'hidden lg:block'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex space-x-8">
-            <button
-              onClick={() => {
-                setActiveTab('orders')
-                setShowForm(false)
-                setEditingOrder(null)
-                setMobileMenuOpen(false)
-              }}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                activeTab === 'orders'
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
-              }`}
-            >
-              📋 Órdenes de Servicio
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('budget')
-                setShowForm(false)
-                setEditingOrder(null)
-                setMobileMenuOpen(false)
-              }}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                activeTab === 'budget'
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
-              }`}
-            >
-              💰 Presupuesto Personal
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('casual-expenses')
-                setShowForm(false)
-                setEditingOrder(null)
-                setMobileMenuOpen(false)
-              }}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                activeTab === 'casual-expenses'
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
-              }`}
-            >
-              🍽️ Gastos Casuales
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('passwords')
-                setShowForm(false)
-                setEditingOrder(null)
-                setMobileMenuOpen(false)
-              }}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                activeTab === 'passwords'
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
-              }`}
-            >
-              🔐 Gestor de Contraseñas
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('servers')
-                setShowForm(false)
-                setEditingOrder(null)
-                setMobileMenuOpen(false)
-              }}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                activeTab === 'servers'
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
-              }`}
-            >
-              🖥️ Credenciales de Servidores
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('licenses')
-                setShowForm(false)
-                setEditingOrder(null)
-                setMobileMenuOpen(false)
-              }}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                activeTab === 'licenses'
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
-              }`}
-            >
-              📄 Gestión de Licencias
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('financial')
-                setShowForm(false)
-                setEditingOrder(null)
-                setFinancialView('dashboard')
-                setMobileMenuOpen(false)
-              }}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                activeTab === 'financial'
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
-              }`}
-            >
-              📊 Informes Financieros
-            </button>
+          <div className="flex flex-col lg:flex-row lg:space-x-8 py-4">
+            {[
+              { id: 'orders', label: '📋 Órdenes', icon: '📋' },
+              { id: 'financial', label: '💰 Financiero', icon: '💰' },
+              { id: 'casual-expenses', label: '💸 Gastos Casuales', icon: '💸' },
+              { id: 'budget-expenses', label: '📊 Gastos Presupuesto', icon: '📊' },
+              { id: 'licenses', label: '🔑 Licencias', icon: '🔑' },
+              { id: 'passwords', label: '🔒 Contraseñas', icon: '🔒' },
+              { id: 'servers', label: '🖥️ Servidores', icon: '🖥️' }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveTab(tab.id)
+                  setMobileMenuOpen(false)
+                }}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                  activeTab === tab.id
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <span className="lg:hidden">{tab.icon}</span>
+                <span>{tab.label}</span>
+              </button>
+            ))}
           </div>
-
-          {/* Mobile Navigation Menu */}
-          {mobileMenuOpen && (
-            <div className="lg:hidden py-4 space-y-2">
-              <button
-                onClick={() => {
-                  setActiveTab('orders')
-                  setShowForm(false)
-                  setEditingOrder(null)
-                  setMobileMenuOpen(false)
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'orders'
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-500'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                📋 Órdenes de Servicio
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab('budget')
-                  setShowForm(false)
-                  setEditingOrder(null)
-                  setMobileMenuOpen(false)
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'budget'
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-500'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                💰 Presupuesto Personal
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab('casual-expenses')
-                  setShowForm(false)
-                  setEditingOrder(null)
-                  setMobileMenuOpen(false)
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'casual-expenses'
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-500'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                🍽️ Gastos Casuales
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab('passwords')
-                  setShowForm(false)
-                  setEditingOrder(null)
-                  setMobileMenuOpen(false)
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'passwords'
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-500'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                🔐 Gestor de Contraseñas
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab('servers')
-                  setShowForm(false)
-                  setEditingOrder(null)
-                  setMobileMenuOpen(false)
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'servers'
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-500'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                🖥️ Credenciales de Servidores
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab('licenses')
-                  setShowForm(false)
-                  setEditingOrder(null)
-                  setMobileMenuOpen(false)
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'licenses'
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-500'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                📄 Gestión de Licencias
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab('financial')
-                  setShowForm(false)
-                  setEditingOrder(null)
-                  setFinancialView('dashboard')
-                  setMobileMenuOpen(false)
-                }}
-                className={`w-full text-left px-4 py-3 rounded-lg font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'financial'
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-l-4 border-blue-500'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                📊 Informes Financieros
-              </button>
-            </div>
-          )}
         </div>
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 lg:py-8">
-        {activeTab === 'orders' && (
-          <>
-            {showForm ? (
+      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        {/* Formulario de Orden */}
+        {showForm && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+            <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <ServiceOrderForm
                 order={editingOrder}
                 onSubmit={handleFormSubmit}
                 onCancel={handleCancelForm}
               />
-            ) : (
-              <ServiceOrdersTable
-                orders={orders}
-                onEdit={handleEditOrder}
-                onDelete={handleDeleteOrder}
-                onViewDetails={handleViewDetails}
-              />
-            )}
-          </>
+            </div>
+          </div>
         )}
-        
-        {activeTab === 'budget' && (
-          <BudgetExpensesTable />
+
+        {/* Modal de Detalles */}
+        {showDetailsModal && selectedOrder && (
+          <OrderDetailsModal
+            order={selectedOrder}
+            onClose={() => setShowDetailsModal(false)}
+          />
         )}
-        
-        {activeTab === 'casual-expenses' && (
-          <CasualExpensesTable />
+
+        {/* Modal de Migración de Datos */}
+        {showDataMigration && isSupabaseConfigured() && (
+          <DataMigration onClose={handleCloseMigration} />
         )}
-        
-        {activeTab === 'passwords' && (
-          <PasswordsTable />
+
+        {/* Contenido por Tab */}
+        {activeTab === 'orders' && (
+          <ServiceOrdersTable
+            orders={orders}
+            onEdit={handleEditOrder}
+            onDelete={handleDeleteOrder}
+            onViewDetails={handleViewDetails}
+          />
         )}
-        
-        {activeTab === 'servers' && (
-          <ServerCredentialsTable />
-        )}
-        
-        {activeTab === 'licenses' && (
-          <LicensesTable />
-        )}
-        
+
         {activeTab === 'financial' && (
-          <div className="space-y-6">
-            {/* Navegación interna de informes financieros */}
-            <div className="border-b border-gray-200">
-              <nav className="-mb-px flex space-x-8">
-                <button
-                  onClick={() => setFinancialView('dashboard')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    financialView === 'dashboard'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  📈 Dashboard Financiero
-                </button>
-                <button
-                  onClick={() => setFinancialView('reports')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    financialView === 'reports'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  📋 Informes Mensuales
-                </button>
-              </nav>
+          <div>
+            <div className="mb-6 flex space-x-4">
+              <button
+                onClick={() => setFinancialView('dashboard')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                  financialView === 'dashboard'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                📊 Dashboard
+              </button>
+              <button
+                onClick={() => setFinancialView('reports')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                  financialView === 'reports'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                📈 Reportes
+              </button>
             </div>
             
-            {/* Contenido de informes financieros */}
-            {financialView === 'dashboard' && (
-              <FinancialDashboard orders={orders} expenses={expenses} />
-            )}
-            
-            {financialView === 'reports' && (
-              <MonthlyReportsTable orders={orders} expenses={expenses} />
+            {financialView === 'dashboard' ? (
+              <FinancialDashboard orders={orders} />
+            ) : (
+              <MonthlyReportsTable orders={orders} />
             )}
           </div>
         )}
+
+        {activeTab === 'casual-expenses' && <CasualExpensesTable />}
+        {activeTab === 'budget-expenses' && <BudgetExpensesTable />}
+        {activeTab === 'licenses' && <LicensesTable />}
+        {activeTab === 'passwords' && <PasswordsTable />}
+        {activeTab === 'servers' && <ServerCredentialsTable />}
       </main>
-
-      {/* Modal de detalles */}
-      <OrderDetailsModal
-        order={selectedOrder}
-        isOpen={showDetailsModal}
-        onClose={() => {
-          setShowDetailsModal(false)
-          setSelectedOrder(null)
-        }}
-      />
-
-      {/* Modal de migración de datos */}
-      {showDataMigration && (
-        <DataMigration onClose={handleCloseMigration} />
-      )}
     </div>
   )
 }
 
-// Componente App principal que maneja la autenticación
+// Componente raíz de la aplicación
 function App() {
   return (
     <ThemeProvider>
@@ -539,26 +342,22 @@ function App() {
   )
 }
 
-// Componente que decide qué mostrar basado en el estado de autenticación
+// Componente que maneja la lógica de autenticación
 function AppContent() {
   const { user, loading } = useAuth()
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center transition-colors duration-200">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando...</p>
+          <p className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Cargando...</p>
         </div>
       </div>
     )
   }
 
-  if (!user) {
-    return <LoginForm />
-  }
-
-  return <MainApp />
+  return user ? <MainApp /> : <LoginForm />
 }
 
 export default App

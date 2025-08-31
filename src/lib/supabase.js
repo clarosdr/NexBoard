@@ -1,8 +1,15 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Estas variables se configurarán más adelante con las credenciales reales
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'your-supabase-url'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-supabase-anon-key'
+// Configuración de Supabase - usar valores por defecto si no están configurados
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key'
+
+// Verificar si Supabase está configurado correctamente
+const isSupabaseConfigured = () => {
+  return supabaseUrl !== 'https://placeholder.supabase.co' && 
+         supabaseAnonKey !== 'placeholder-key' &&
+         supabaseUrl.includes('supabase.co')
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
@@ -43,8 +50,238 @@ class SimpleCache {
 
 const cache = new SimpleCache();
 
-// Funciones helper para manejo de datos
-export const supabaseHelpers = {
+// Funciones helper para localStorage como fallback
+const localStorageHelpers = {
+  // Órdenes de servicio
+  async getServiceOrders(userId) {
+    const key = `service_orders_${userId}`;
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : [];
+  },
+
+  async createServiceOrder(order, userId) {
+    const key = `service_orders_${userId}`;
+    const orders = await this.getServiceOrders(userId);
+    const newOrder = { ...order, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    orders.push(newOrder);
+    localStorage.setItem(key, JSON.stringify(orders));
+    return newOrder;
+  },
+
+  async updateServiceOrder(id, order, userId) {
+    const key = `service_orders_${userId}`;
+    const orders = await this.getServiceOrders(userId);
+    const index = orders.findIndex(o => o.id === id);
+    if (index !== -1) {
+      orders[index] = { ...orders[index], ...order, updatedAt: new Date().toISOString() };
+      localStorage.setItem(key, JSON.stringify(orders));
+      return orders[index];
+    }
+    throw new Error('Order not found');
+  },
+
+  async deleteServiceOrder(id, userId) {
+    const key = `service_orders_${userId}`;
+    const orders = await this.getServiceOrders(userId);
+    const filtered = orders.filter(o => o.id !== id);
+    localStorage.setItem(key, JSON.stringify(filtered));
+  },
+
+  // Gastos casuales
+  async getCasualExpenses(userId) {
+    const key = `casual_expenses_${userId}`;
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : [];
+  },
+
+  async createCasualExpense(expense, userId) {
+    const key = `casual_expenses_${userId}`;
+    const expenses = await this.getCasualExpenses(userId);
+    const newExpense = { ...expense, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    expenses.push(newExpense);
+    localStorage.setItem(key, JSON.stringify(expenses));
+    return newExpense;
+  },
+
+  async updateCasualExpense(id, expense, userId) {
+    const key = `casual_expenses_${userId}`;
+    const expenses = await this.getCasualExpenses(userId);
+    const index = expenses.findIndex(e => e.id === id);
+    if (index !== -1) {
+      expenses[index] = { ...expenses[index], ...expense, updatedAt: new Date().toISOString() };
+      localStorage.setItem(key, JSON.stringify(expenses));
+      return expenses[index];
+    }
+    throw new Error('Expense not found');
+  },
+
+  async deleteCasualExpense(id, userId) {
+    const key = `casual_expenses_${userId}`;
+    const expenses = await this.getCasualExpenses(userId);
+    const filtered = expenses.filter(e => e.id !== id);
+    localStorage.setItem(key, JSON.stringify(filtered));
+  },
+
+  // Gastos presupuestarios
+  async getBudgetExpenses(userId) {
+    const key = `budget_expenses_${userId}`;
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : [];
+  },
+
+  async createBudgetExpense(expense, userId) {
+    const key = `budget_expenses_${userId}`;
+    const expenses = await this.getBudgetExpenses(userId);
+    const newExpense = { ...expense, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    expenses.push(newExpense);
+    localStorage.setItem(key, JSON.stringify(expenses));
+    return newExpense;
+  },
+
+  async updateBudgetExpense(id, expense, userId) {
+    const key = `budget_expenses_${userId}`;
+    const expenses = await this.getBudgetExpenses(userId);
+    const index = expenses.findIndex(e => e.id === id);
+    if (index !== -1) {
+      expenses[index] = { ...expenses[index], ...expense, updatedAt: new Date().toISOString() };
+      localStorage.setItem(key, JSON.stringify(expenses));
+      return expenses[index];
+    }
+    throw new Error('Expense not found');
+  },
+
+  async deleteBudgetExpense(id, userId) {
+    const key = `budget_expenses_${userId}`;
+    const expenses = await this.getBudgetExpenses(userId);
+    const filtered = expenses.filter(e => e.id !== id);
+    localStorage.setItem(key, JSON.stringify(filtered));
+  },
+
+  // Licencias
+  async getLicenses(userId) {
+    const key = `licenses_${userId}`;
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : [];
+  },
+
+  async createLicense(license, userId) {
+    const key = `licenses_${userId}`;
+    const licenses = await this.getLicenses(userId);
+    const newLicense = { ...license, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    licenses.push(newLicense);
+    localStorage.setItem(key, JSON.stringify(licenses));
+    return newLicense;
+  },
+
+  async updateLicense(id, license, userId) {
+    const key = `licenses_${userId}`;
+    const licenses = await this.getLicenses(userId);
+    const index = licenses.findIndex(l => l.id === id);
+    if (index !== -1) {
+      licenses[index] = { ...licenses[index], ...license, updatedAt: new Date().toISOString() };
+      localStorage.setItem(key, JSON.stringify(licenses));
+      return licenses[index];
+    }
+    throw new Error('License not found');
+  },
+
+  async deleteLicense(id, userId) {
+    const key = `licenses_${userId}`;
+    const licenses = await this.getLicenses(userId);
+    const filtered = licenses.filter(l => l.id !== id);
+    localStorage.setItem(key, JSON.stringify(filtered));
+  },
+
+  // Contraseñas
+  async getPasswords(userId) {
+    const key = `passwords_${userId}`;
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : [];
+  },
+
+  async createPassword(password, userId) {
+    const key = `passwords_${userId}`;
+    const passwords = await this.getPasswords(userId);
+    const newPassword = { ...password, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    passwords.push(newPassword);
+    localStorage.setItem(key, JSON.stringify(passwords));
+    return newPassword;
+  },
+
+  async updatePassword(id, password, userId) {
+    const key = `passwords_${userId}`;
+    const passwords = await this.getPasswords(userId);
+    const index = passwords.findIndex(p => p.id === id);
+    if (index !== -1) {
+      passwords[index] = { ...passwords[index], ...password, updatedAt: new Date().toISOString() };
+      localStorage.setItem(key, JSON.stringify(passwords));
+      return passwords[index];
+    }
+    throw new Error('Password not found');
+  },
+
+  async deletePassword(id, userId) {
+    const key = `passwords_${userId}`;
+    const passwords = await this.getPasswords(userId);
+    const filtered = passwords.filter(p => p.id !== id);
+    localStorage.setItem(key, JSON.stringify(filtered));
+  },
+
+  // Credenciales de servidor
+  async getServerCredentials(userId) {
+    const key = `server_credentials_${userId}`;
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : [];
+  },
+
+  async createServerCredential(credential, userId) {
+    const key = `server_credentials_${userId}`;
+    const credentials = await this.getServerCredentials(userId);
+    const newCredential = { ...credential, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+    credentials.push(newCredential);
+    localStorage.setItem(key, JSON.stringify(credentials));
+    return newCredential;
+  },
+
+  async updateServerCredential(id, credential, userId) {
+    const key = `server_credentials_${userId}`;
+    const credentials = await this.getServerCredentials(userId);
+    const index = credentials.findIndex(c => c.id === id);
+    if (index !== -1) {
+      credentials[index] = { ...credentials[index], ...credential, updatedAt: new Date().toISOString() };
+      localStorage.setItem(key, JSON.stringify(credentials));
+      return credentials[index];
+    }
+    throw new Error('Credential not found');
+  },
+
+  async deleteServerCredential(id, userId) {
+    const key = `server_credentials_${userId}`;
+    const credentials = await this.getServerCredentials(userId);
+    const filtered = credentials.filter(c => c.id !== id);
+    localStorage.setItem(key, JSON.stringify(filtered));
+  },
+
+  clearCache() {
+    // No-op para localStorage
+  },
+
+  clearUserCache(userId) {
+    const keys = [
+      `service_orders_${userId}`,
+      `casual_expenses_${userId}`,
+      `budget_expenses_${userId}`,
+      `licenses_${userId}`,
+      `passwords_${userId}`,
+      `server_credentials_${userId}`
+    ];
+    
+    keys.forEach(key => localStorage.removeItem(key));
+  }
+};
+
+// Funciones helper para Supabase
+const supabaseHelpers = {
   // Órdenes de servicio
   async getServiceOrders(userId) {
     const cacheKey = `service_orders_${userId}`;
@@ -521,5 +758,8 @@ export const supabaseHelpers = {
   }
 }
 
-// Exportar el servicio principal
-export const supabaseService = supabaseHelpers
+// Exportar el servicio que usa Supabase si está configurado, localStorage como fallback
+export const supabaseService = isSupabaseConfigured() ? supabaseHelpers : localStorageHelpers
+
+// Exportar función para verificar configuración
+export { isSupabaseConfigured }

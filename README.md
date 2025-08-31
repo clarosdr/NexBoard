@@ -13,217 +13,135 @@ NexBoard es una aplicación web completa para la gestión empresarial que incluy
 - **Modo Oscuro**: Interfaz adaptable con tema claro/oscuro
 - **PWA**: Funciona como aplicación nativa
 - **Responsive**: Optimizado para móviles y desktop
+- **Modo Demo**: Funciona sin configuración usando localStorage
 
 ## 🛠️ Tecnologías
 
 - **Frontend**: React 19.1.1 + Vite 7.1.2
 - **Estilos**: Tailwind CSS 4.1.12
-- **Backend**: Supabase (PostgreSQL + Auth)
-- **Autenticación**: Supabase Auth
+- **Backend**: Supabase (PostgreSQL + Auth) o localStorage (modo demo)
+- **Autenticación**: Supabase Auth o demo local
 - **PWA**: Service Worker integrado
-- **TypeScript**: Para type checking
 
-## 📋 Correcciones Implementadas
+## 📋 Problemas Solucionados
 
-### ✅ Problemas Solucionados
+### ✅ **Correcciones Implementadas:**
 
 1. **Tema no se aplicaba correctamente**
-   - Corregido el ThemeContext para aplicar tema inmediatamente
-   - Mejorada la sincronización con localStorage
-   - Agregada preferencia explícita del usuario
+   - ✅ Corregido el ThemeContext para aplicar tema inmediatamente
+   - ✅ Mejorada la sincronización con localStorage
+   - ✅ Agregada preferencia explícita del usuario
 
 2. **Errores en gastos casuales**
-   - Reemplazado `Date.now()` por UUID para IDs únicos
-   - Mejorado manejo de errores y validaciones
-   - Agregado estado de carga para prevenir doble envío
+   - ✅ Reemplazado `Date.now()` por UUID para IDs únicos
+   - ✅ Mejorado manejo de errores y validaciones
+   - ✅ Agregado estado de carga para prevenir doble envío
 
 3. **Problemas de cache**
-   - Implementado sistema de cache inteligente (5 min TTL)
-   - Agregado componente CacheManager para limpieza manual
-   - Invalidación automática de cache en operaciones CRUD
+   - ✅ Implementado sistema de cache inteligente (5 min TTL)
+   - ✅ Agregado componente CacheManager para limpieza manual
+   - ✅ Invalidación automática de cache en operaciones CRUD
 
 4. **Pérdida de nombre del cliente**
-   - Corregido ServiceOrderForm para preservar datos
-   - Mejoradas validaciones de formulario
-   - Agregado UUID para IDs consistentes
+   - ✅ Corregido ServiceOrderForm para preservar datos
+   - ✅ Mejoradas validaciones de formulario
+   - ✅ Agregado UUID para IDs consistentes
 
-5. **Optimizaciones generales**
-   - Limpieza automática de localStorage obsoleto
-   - Mejor manejo de estados de carga
-   - Validaciones mejoradas en formularios
+5. **Sistema híbrido localStorage/Supabase**
+   - ✅ Funciona sin configuración (modo demo)
+   - ✅ Migración automática a Supabase cuando se configure
+   - ✅ Fallback inteligente a localStorage
 
 ## 🚀 Instalación y Configuración
 
-### Prerrequisitos
+### Opción 1: Modo Demo (Sin configuración)
 
+```bash
+# Clonar el repositorio
+git clone <repository-url>
+cd nexboard
+
+# Instalar dependencias
+npm install
+
+# Ejecutar en modo demo
+npm run dev
+```
+
+**¡Listo!** La aplicación funcionará inmediatamente en modo demo usando localStorage.
+
+### Opción 2: Configuración con Supabase (Producción)
+
+#### Prerrequisitos
 - Node.js 18+ 
 - npm o yarn
 - Cuenta de Supabase
 
-### Pasos de Instalación
+#### Pasos:
 
-1. **Clonar el repositorio**
-   ```bash
-   git clone <repository-url>
-   cd nexboard
-   ```
-
-2. **Instalar dependencias**
+1. **Instalar dependencias**
    ```bash
    npm install
    ```
+
+2. **Crear proyecto en Supabase**
+   - Ve a [supabase.com](https://supabase.com)
+   - Crea un nuevo proyecto
+   - Anota la URL y la clave anónima
 
 3. **Configurar variables de entorno**
    ```bash
    cp .env.example .env
    ```
    
-   Editar `.env` con tus credenciales de Supabase:
+   Editar `.env`:
    ```env
    VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
    VITE_SUPABASE_ANON_KEY=tu-clave-anonima
    ```
 
-4. **Configurar base de datos en Supabase**
-   
-   Crear las siguientes tablas en tu proyecto de Supabase:
+4. **Configurar base de datos**
+   - Ve al SQL Editor en tu proyecto de Supabase
+   - Copia y ejecuta el contenido de `supabase-setup.sql`
+   - Esto creará todas las tablas, índices y políticas de seguridad
 
-   ```sql
-   -- Tabla de órdenes de servicio
-   CREATE TABLE service_orders (
-     id TEXT PRIMARY KEY,
-     user_id UUID REFERENCES auth.users(id),
-     customer_name TEXT NOT NULL,
-     description TEXT NOT NULL,
-     date DATE NOT NULL,
-     status TEXT NOT NULL DEFAULT 'pendiente',
-     items JSONB NOT NULL DEFAULT '[]',
-     payments JSONB NOT NULL DEFAULT '[]',
-     total_paid DECIMAL DEFAULT 0,
-     total DECIMAL DEFAULT 0,
-     total_part_cost DECIMAL DEFAULT 0,
-     profit DECIMAL DEFAULT 0,
-     pending_balance DECIMAL DEFAULT 0,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-   );
-
-   -- Tabla de gastos casuales
-   CREATE TABLE casual_expenses (
-     id TEXT PRIMARY KEY,
-     user_id UUID REFERENCES auth.users(id),
-     description TEXT NOT NULL,
-     amount DECIMAL NOT NULL,
-     date DATE NOT NULL,
-     category TEXT NOT NULL,
-     notes TEXT,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-   );
-
-   -- Tabla de gastos presupuestarios
-   CREATE TABLE budget_expenses (
-     id TEXT PRIMARY KEY,
-     user_id UUID REFERENCES auth.users(id),
-     description TEXT NOT NULL,
-     amount DECIMAL NOT NULL,
-     date DATE NOT NULL,
-     category TEXT NOT NULL,
-     notes TEXT,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-   );
-
-   -- Tabla de licencias
-   CREATE TABLE licenses (
-     id TEXT PRIMARY KEY,
-     user_id UUID REFERENCES auth.users(id),
-     name TEXT NOT NULL,
-     license_key TEXT NOT NULL,
-     expiry_date DATE,
-     status TEXT NOT NULL DEFAULT 'active',
-     notes TEXT,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-   );
-
-   -- Tabla de contraseñas
-   CREATE TABLE passwords (
-     id TEXT PRIMARY KEY,
-     user_id UUID REFERENCES auth.users(id),
-     service_name TEXT NOT NULL,
-     username TEXT NOT NULL,
-     password TEXT NOT NULL,
-     url TEXT,
-     notes TEXT,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-   );
-
-   -- Tabla de credenciales de servidor
-   CREATE TABLE server_credentials (
-     id TEXT PRIMARY KEY,
-     user_id UUID REFERENCES auth.users(id),
-     server_name TEXT NOT NULL,
-     ip_address TEXT,
-     username TEXT NOT NULL,
-     password TEXT NOT NULL,
-     port INTEGER DEFAULT 22,
-     notes TEXT,
-     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-   );
-
-   -- Habilitar RLS (Row Level Security)
-   ALTER TABLE service_orders ENABLE ROW LEVEL SECURITY;
-   ALTER TABLE casual_expenses ENABLE ROW LEVEL SECURITY;
-   ALTER TABLE budget_expenses ENABLE ROW LEVEL SECURITY;
-   ALTER TABLE licenses ENABLE ROW LEVEL SECURITY;
-   ALTER TABLE passwords ENABLE ROW LEVEL SECURITY;
-   ALTER TABLE server_credentials ENABLE ROW LEVEL SECURITY;
-
-   -- Políticas de seguridad
-   CREATE POLICY "Users can only access their own data" ON service_orders
-     FOR ALL USING (auth.uid() = user_id);
-   
-   CREATE POLICY "Users can only access their own data" ON casual_expenses
-     FOR ALL USING (auth.uid() = user_id);
-   
-   CREATE POLICY "Users can only access their own data" ON budget_expenses
-     FOR ALL USING (auth.uid() = user_id);
-   
-   CREATE POLICY "Users can only access their own data" ON licenses
-     FOR ALL USING (auth.uid() = user_id);
-   
-   CREATE POLICY "Users can only access their own data" ON passwords
-     FOR ALL USING (auth.uid() = user_id);
-   
-   CREATE POLICY "Users can only access their own data" ON server_credentials
-     FOR ALL USING (auth.uid() = user_id);
-   ```
-
-5. **Ejecutar en desarrollo**
+5. **Ejecutar la aplicación**
    ```bash
    npm run dev
    ```
 
-6. **Construir para producción**
-   ```bash
-   npm run build
-   ```
+## 🔧 Características del Sistema
 
-## 🔧 Gestión de Cache
+### Modo Demo vs Producción
 
-La aplicación incluye un sistema de cache inteligente para optimizar el rendimiento:
+| Característica | Modo Demo | Modo Producción |
+|---|---|---|
+| **Almacenamiento** | localStorage | Supabase PostgreSQL |
+| **Autenticación** | Simulada | Supabase Auth real |
+| **Datos** | Locales al navegador | Sincronizados en la nube |
+| **Usuarios múltiples** | No | Sí |
+| **Backup automático** | No | Sí |
+| **Configuración** | Ninguna | Variables de entorno |
+
+### Gestión de Cache
+
+La aplicación incluye un sistema de cache inteligente:
 
 - **Cache automático**: 5 minutos TTL por defecto
 - **Invalidación inteligente**: Se limpia automáticamente en operaciones CRUD
-- **Gestión manual**: Botones para limpiar cache cuando sea necesario
+- **Gestión manual**: Botones en el header para limpiar cache
 
-### Limpiar Cache
+#### Botones de Cache:
+- **🔄 Cache**: Limpiar cache del usuario actual
+- **🗑️ Datos**: Eliminar todos los datos locales (solo modo demo)
+- **🔄 Todo**: Limpiar todo el cache y recargar
 
-1. **Cache del usuario actual**: Botón "🔄 Cache Usuario"
-2. **Cache completo**: Botón "🗑️ Limpiar Todo" (recarga la página)
+### Migración de Datos
+
+Si tienes datos en localStorage y configuras Supabase:
+1. La aplicación detectará automáticamente los datos locales
+2. Mostrará un modal de migración
+3. Podrás migrar todos los datos a Supabase con un clic
 
 ## 📱 PWA (Progressive Web App)
 
@@ -238,17 +156,26 @@ La aplicación funciona como PWA con:
 - Modo claro/oscuro automático
 - Persistencia de preferencias
 - Transiciones suaves
+- Detección de preferencia del sistema
 
 ### Responsive Design
 - Optimizado para móviles
 - Pull-to-refresh en tablas
 - Gestos táctiles (swipe)
+- Menú hamburguesa en móviles
 
 ## 🚀 Despliegue
 
 ### Netlify (Recomendado)
 ```bash
-npm run deploy:netlify
+npm run build
+# Subir carpeta dist/ a Netlify
+```
+
+### Vercel
+```bash
+npm run build
+# Conectar repositorio con Vercel
 ```
 
 ### Manual
@@ -259,18 +186,84 @@ npm run build
 
 ## 🐛 Solución de Problemas
 
-### Cache no se actualiza
-- Usar el botón "🗑️ Limpiar Todo" en el header
-- Verificar que las variables de entorno estén configuradas
+### La aplicación no carga
+- Verificar que Node.js esté instalado
+- Ejecutar `npm install` para instalar dependencias
+- Verificar que el puerto 5173 esté disponible
+
+### Errores de Supabase
+- Verificar que las variables de entorno estén configuradas correctamente
+- Ejecutar el script `supabase-setup.sql` en Supabase
+- Verificar que RLS esté habilitado en las tablas
 
 ### Tema no cambia
 - Limpiar localStorage: `localStorage.clear()`
 - Verificar que no haya errores en consola
+- Usar el botón "🔄 Todo" para limpiar cache
 
 ### Datos no se guardan
+**Modo Demo:**
+- Los datos se guardan en localStorage del navegador
+- Limpiar el navegador eliminará los datos
+
+**Modo Producción:**
 - Verificar conexión a Supabase
 - Revisar configuración de RLS en Supabase
 - Verificar que el usuario esté autenticado
+
+### Cache no se actualiza
+- Usar el botón "🔄 Cache" en el header
+- Si persiste, usar "🔄 Todo" para recargar completamente
+
+## 📊 Estructura de Datos
+
+### Órdenes de Servicio
+```json
+{
+  "id": "uuid",
+  "customerName": "string",
+  "description": "string",
+  "date": "YYYY-MM-DD",
+  "status": "pendiente|en_proceso|finalizado|entregado",
+  "items": [
+    {
+      "id": "number",
+      "description": "string",
+      "quantity": "number",
+      "unitPrice": "number",
+      "partCost": "number"
+    }
+  ],
+  "payments": [
+    {
+      "id": "number",
+      "date": "YYYY-MM-DD",
+      "amount": "number",
+      "method": "efectivo|transferencia|tarjeta|cheque",
+      "description": "string"
+    }
+  ]
+}
+```
+
+### Gastos Casuales
+```json
+{
+  "id": "uuid",
+  "description": "string",
+  "amount": "number",
+  "date": "YYYY-MM-DD",
+  "category": "alimentacion|transporte|entretenimiento|salud|compras|servicios|educacion|otros",
+  "notes": "string"
+}
+```
+
+## 🔒 Seguridad
+
+- **RLS (Row Level Security)**: Cada usuario solo ve sus datos
+- **Autenticación**: Supabase Auth con JWT
+- **Validación**: Validación en frontend y backend
+- **HTTPS**: Comunicación encriptada con Supabase
 
 ## 📄 Licencia
 
@@ -278,14 +271,26 @@ Este proyecto está bajo la Licencia MIT.
 
 ## 🤝 Contribuciones
 
-Las contribuciones son bienvenidas. Por favor:
+Las contribuciones son bienvenidas:
 
 1. Fork el proyecto
-2. Crea una rama para tu feature
-3. Commit tus cambios
-4. Push a la rama
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
 
 ## 📞 Soporte
 
-Para soporte técnico o preguntas, por favor abre un issue en el repositorio.
+Para soporte técnico:
+1. Revisa la sección de solución de problemas
+2. Verifica que tengas la última versión
+3. Abre un issue en el repositorio con detalles del problema
+
+## 🎯 Roadmap
+
+- [ ] Exportación de datos a Excel/PDF
+- [ ] Notificaciones push
+- [ ] API REST para integraciones
+- [ ] Dashboard de analytics avanzado
+- [ ] Modo offline completo
+- [ ] Integración con sistemas de facturación
