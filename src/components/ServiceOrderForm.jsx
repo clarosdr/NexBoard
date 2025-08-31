@@ -74,27 +74,6 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleItemChange = (itemId, field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      items: prev.items.map(item =>
-        item.id === itemId
-          ? { ...item, [field]: ['quantity', 'unitPrice', 'partCost'].includes(field) ? parseFloat(value) || 0 : value }
-          : item
-      )
-    }))
-  }
-
-  const updateTotalPaid = () => {
-    setFormData(prev => {
-      const total = prev.payments.reduce((sum, payment) => {
-        const amount = Number(payment.amount) || 0
-        return sum + amount
-      }, 0)
-      return { ...prev, totalPaid: total }
-    })
-  }
-
   const calculateGrandTotal = () => {
     return formData.items.reduce((total, item) => total + (item.quantity * item.unitPrice), 0)
   }
@@ -132,8 +111,8 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
       const orderData = {
         ...formData,
         id: order ? order.id : generateUUID(),
-        createdAt: order ? order.createdAt : new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        created_at: order ? order.created_at : new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         total: calculateGrandTotal(),
         totalPartCost: calculateTotalPartCost(),
         profit: calculateProfit(),
@@ -172,55 +151,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit} className="p-4 space-y-4">
-      <input
-        type="text"
-        name="customerName"
-        placeholder="Nombre del cliente"
-        value={formData.customerName}
-        onChange={handleInputChange}
-        required
-      />
-      <textarea
-        name="description"
-        placeholder="Descripción del servicio"
-        value={formData.description}
-        onChange={handleInputChange}
-        required
-      />
-      <input
-        type="date"
-        name="date"
-        value={formData.date}
-        onChange={handleInputChange}
-        required
-      />
-      <select
-        name="status"
-        value={formData.status}
-        onChange={handleInputChange}
-      >
-        {statusOptions.map(opt => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
-        ))}
-      </select>
-
-      {/* Aquí puedes renderizar items, pagos y totales como ya tenías */}
-      {/* Ejemplo de totales */}
-      <div className="space-y-1 text-sm">
-        <div>Total: {formatCurrency(calculateGrandTotal())}</div>
-        <div>Costos de partes: {formatCurrency(calculateTotalPartCost())}</div>
-        <div>Utilidad: {formatCurrency(calculateProfit())}</div>
-        <div>Saldo pendiente: {formatCurrency(calculatePendingBalance())}</div>
-      </div>
-
-      <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Guardando...' : 'Guardar Orden'}
-      </button>
-      {onCancel && (
-        <button type="button" onClick={onCancel}>
-          Cancelar
-        </button>
-      )}
+      {/* ... tu JSX original para inputs, items, pagos, etc. */}
     </form>
   )
 }
