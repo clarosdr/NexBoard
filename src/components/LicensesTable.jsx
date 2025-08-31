@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import LicenseForm from './LicenseForm';
+import { useAuth } from '../contexts/AuthContext';
+import { supabaseService } from '../lib/supabase';
 
 const LicensesTable = () => {
   const [licenses, setLicenses] = useState([]);
@@ -9,19 +11,22 @@ const LicensesTable = () => {
   const [filterStatus, setFilterStatus] = useState('all'); // all, active, expiring, expired
   const [sortBy, setSortBy] = useState('expirationDate'); // expirationDate, client, licenseName, profit
   const [sortOrder, setSortOrder] = useState('asc');
+  const { user } = useAuth();
 
-  // Cargar licencias desde localStorage al montar el componente
+  // Cargar licencias desde Supabase al montar el componente
   useEffect(() => {
-    const savedLicenses = localStorage.getItem('nexboard_licenses');
-    if (savedLicenses) {
-      setLicenses(JSON.parse(savedLicenses));
-    }
-  }, []);
-
-  // Guardar licencias en localStorage cuando cambie el estado
-  useEffect(() => {
-    localStorage.setItem('nexboard_licenses', JSON.stringify(licenses));
-  }, [licenses]);
+    const loadLicenses = async () => {
+      if (user) {
+        try {
+          const licensesData = await supabaseService.getLicenses(user.id);
+          setLicenses(licensesData);
+        } catch (error) {
+          console.error('Error loading licenses from Supabase:', error);
+        }
+      }
+    };
+    loadLicenses();
+  }, [user]);
 
   const handleAddLicense = () => {
     setEditingLicense(null);
@@ -33,24 +38,37 @@ const LicensesTable = () => {
     setShowForm(true);
   };
 
-  const handleDeleteLicense = (id) => {
+  const handleDeleteLicense = async (id) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta licencia?')) {
-      setLicenses(licenses.filter(l => l.id !== id));
+      try {
+        await supabaseService.deleteLicense(id, user.id);
+        setLicenses(licenses.filter(l => l.id !== id));
+      } catch (error) {
+        console.error('Error deleting license:', error);
+        alert('Error al eliminar la licencia');
+      }
     }
   };
 
-  const handleFormSubmit = (licenseData) => {
-    if (editingLicense) {
-      // Actualizar licencia existente
-      setLicenses(licenses.map(l => 
-        l.id === editingLicense.id ? licenseData : l
-      ));
-    } else {
-      // Agregar nueva licencia
-      setLicenses([...licenses, licenseData]);
+  const handleFormSubmit = async (licenseData) => {
+    try {
+      if (editingLicense) {
+        // Actualizar licencia existente
+        const updatedLicense = await supabaseService.updateLicense(editingLicense.id, licenseData, user.id);
+        setLicenses(licenses.map(l => 
+          l.id === editingLicense.id ? updatedLicense : l
+        ));
+      } else {
+        // Agregar nueva licencia
+        const newLicense = await supabaseService.createLicense(licenseData, user.id);
+        setLicenses([...licenses, newLicense]);
+      }
+      setShowForm(false);
+      setEditingLicense(null);
+    } catch (error) {
+      console.error('Error saving license:', error);
+      alert('Error al guardar la licencia');
     }
-    setShowForm(false);
-    setEditingLicense(null);
   };
 
   const handleFormCancel = () => {

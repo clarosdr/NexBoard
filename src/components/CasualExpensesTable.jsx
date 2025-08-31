@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import CasualExpensesForm from './CasualExpensesForm';
 import PullToRefresh from './PullToRefresh';
 import { useSwipeCard } from '../hooks/useTouchGestures';
+import { useAuth } from '../contexts/AuthContext';
+import { supabaseService } from '../lib/supabase';
 
 // Función para formatear valores en pesos colombianos
 const formatCurrency = (value) => {
@@ -21,6 +23,7 @@ const CasualExpensesTable = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedMonth, setSelectedMonth] = useState('');
   const [showArchived, setShowArchived] = useState(false);
+  const { user } = useAuth();
 
   // Categorías para filtros
   const categories = [
@@ -35,22 +38,22 @@ const CasualExpensesTable = () => {
     { value: 'otros', label: '📦 Otros' }
   ];
 
-  // Cargar gastos desde localStorage
+  // Cargar gastos desde Supabase
   useEffect(() => {
-    const savedExpenses = localStorage.getItem('nexboard-casual-expenses');
-    if (savedExpenses) {
-      try {
-        setExpenses(JSON.parse(savedExpenses));
-      } catch (error) {
-        console.error('Error loading casual expenses:', error);
+    const loadExpenses = async () => {
+      if (user) {
+        try {
+          const expensesData = await supabaseService.getCasualExpenses(user.id);
+          setExpenses(expensesData);
+        } catch (error) {
+          console.error('Error loading casual expenses from Supabase:', error);
+        }
       }
-    }
-  }, []);
+    };
+    loadExpenses();
+  }, [user]);
 
-  // Guardar gastos en localStorage
-  useEffect(() => {
-    localStorage.setItem('nexboard-casual-expenses', JSON.stringify(expenses));
-  }, [expenses]);
+  // Los gastos ahora se guardan directamente en Supabase, no necesitamos este useEffect
 
   const handleAddExpense = () => {
     setEditingExpense(null);
@@ -62,24 +65,37 @@ const CasualExpensesTable = () => {
     setShowForm(true);
   };
 
-  const handleDeleteExpense = (expenseId) => {
+  const handleDeleteExpense = async (expenseId) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este gasto?')) {
-      setExpenses(prev => prev.filter(expense => expense.id !== expenseId));
+      try {
+        await supabaseService.deleteCasualExpense(expenseId, user.id);
+        setExpenses(prev => prev.filter(expense => expense.id !== expenseId));
+      } catch (error) {
+        console.error('Error deleting expense:', error);
+        alert('Error al eliminar el gasto. Por favor, intenta de nuevo.');
+      }
     }
   };
 
-  const handleFormSubmit = (expenseData) => {
-    if (editingExpense) {
-      // Actualizar gasto existente
-      setExpenses(prev => prev.map(expense => 
-        expense.id === editingExpense.id ? expenseData : expense
-      ));
-    } else {
-      // Agregar nuevo gasto
-      setExpenses(prev => [...prev, expenseData]);
+  const handleFormSubmit = async (expenseData) => {
+    try {
+      if (editingExpense) {
+        // Actualizar gasto existente
+        const updatedExpense = await supabaseService.updateCasualExpense(editingExpense.id, expenseData, user.id);
+        setExpenses(prev => prev.map(expense => 
+          expense.id === editingExpense.id ? updatedExpense : expense
+        ));
+      } else {
+        // Agregar nuevo gasto
+        const newExpense = await supabaseService.createCasualExpense(expenseData, user.id);
+        setExpenses(prev => [...prev, newExpense]);
+      }
+      setShowForm(false);
+      setEditingExpense(null);
+    } catch (error) {
+      console.error('Error saving expense:', error);
+      alert('Error al guardar el gasto. Por favor, intenta de nuevo.');
     }
-    setShowForm(false);
-    setEditingExpense(null);
   };
 
   const handleCancelForm = () => {
@@ -130,19 +146,19 @@ const CasualExpensesTable = () => {
     return category ? category.label : categoryValue;
   };
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     // Limpiar filtros
     setSearchTerm('');
     setSelectedCategory('all');
     setSelectedMonth('');
     
-    // Recargar datos desde localStorage
-    const savedExpenses = localStorage.getItem('nexboard-casual-expenses');
-    if (savedExpenses) {
+    // Recargar datos desde Supabase
+    if (user) {
       try {
-        setExpenses(JSON.parse(savedExpenses));
+        const expensesData = await supabaseService.getCasualExpenses(user.id);
+        setExpenses(expensesData);
       } catch (error) {
-        console.error('Error loading expenses:', error);
+        console.error('Error loading expenses from Supabase:', error);
       }
     }
     

@@ -272,3 +272,6 @@ export const supabaseHelpers = {
     if (error) throw error
   }
 }
+
+// Exportar también como supabaseService para compatibilidad
+export const supabaseService = supabaseHelpers

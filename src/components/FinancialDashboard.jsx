@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import PullToRefresh from './PullToRefresh';
+import { useAuth } from '../contexts/AuthContext';
+import { supabaseService } from '../lib/supabase';
 
-// Función para formatear valores en pesos colombianos
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('es-CO', {
     style: 'currency',
     currency: 'COP',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
-  }).format(value);
+  }).format(value || 0);
 };
 
 const FinancialDashboard = ({ orders, expenses }) => {
+  const { user } = useAuth();
   const [selectedPeriod, setSelectedPeriod] = useState('current_month');
   const [casualExpenses, setCasualExpenses] = useState([]);
   const [dashboardData, setDashboardData] = useState({
@@ -28,17 +31,20 @@ const FinancialDashboard = ({ orders, expenses }) => {
     averageOrderValue: 0
   });
 
-  // Cargar gastos casuales desde localStorage
+  // Cargar gastos casuales desde Supabase
   useEffect(() => {
-    const savedCasualExpenses = localStorage.getItem('nexboard-casual-expenses');
-    if (savedCasualExpenses) {
-      try {
-        setCasualExpenses(JSON.parse(savedCasualExpenses));
-      } catch (error) {
-        console.error('Error loading casual expenses:', error);
+    const loadCasualExpenses = async () => {
+      if (user) {
+        try {
+          const data = await supabaseService.getCasualExpenses(user.id);
+          setCasualExpenses(data);
+        } catch (error) {
+          console.error('Error loading casual expenses:', error);
+        }
       }
-    }
-  }, []);
+    };
+    loadCasualExpenses();
+  }, [user]);
 
   // Función para filtrar datos por período
   const filterDataByPeriod = (data, period) => {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { supabaseService } from './lib/supabase'
 import LoginForm from './components/LoginForm'
 import DataMigration from './components/DataMigration'
 import ThemeToggle from './components/ThemeToggle'
@@ -29,17 +30,20 @@ function MainApp() {
   const [showDataMigration, setShowDataMigration] = useState(false)
   const { user, signOut } = useAuth()
 
-  // Cargar órdenes desde localStorage al iniciar
+  // Cargar órdenes desde Supabase al iniciar
   useEffect(() => {
-    const savedOrders = localStorage.getItem('nexboard-orders')
-    if (savedOrders) {
-      try {
-        setOrders(JSON.parse(savedOrders))
-      } catch (error) {
-        console.error('Error loading orders from localStorage:', error)
+    const loadOrders = async () => {
+      if (user) {
+        try {
+          const ordersData = await supabaseService.getServiceOrders(user.id)
+          setOrders(ordersData)
+        } catch (error) {
+          console.error('Error loading orders from Supabase:', error)
+        }
       }
     }
-  }, [])
+    loadOrders()
+  }, [user])
 
   // Cargar gastos desde localStorage al iniciar
   useEffect(() => {
@@ -53,10 +57,7 @@ function MainApp() {
     }
   }, [])
 
-  // Guardar órdenes en localStorage cuando cambien
-  useEffect(() => {
-    localStorage.setItem('nexboard-orders', JSON.stringify(orders))
-  }, [orders])
+  // Las órdenes ahora se guardan directamente en Supabase, no necesitamos este useEffect
 
   // Verificar si hay datos locales para migrar cuando el usuario se autentica
   useEffect(() => {
@@ -82,9 +83,15 @@ function MainApp() {
     }
   }, [user])
 
-  const handleCreateOrder = (orderData) => {
-    setOrders(prev => [...prev, orderData])
-    setShowForm(false)
+  const handleCreateOrder = async (orderData) => {
+    try {
+      const newOrder = await supabaseService.createServiceOrder(orderData, user.id)
+      setOrders(prev => [...prev, newOrder])
+      setShowForm(false)
+    } catch (error) {
+      console.error('Error creating order:', error)
+      alert('Error al crear la orden. Por favor, intenta de nuevo.')
+    }
   }
 
   const handleEditOrder = (order) => {
@@ -92,12 +99,18 @@ function MainApp() {
     setShowForm(true)
   }
 
-  const handleUpdateOrder = (updatedOrder) => {
-    setOrders(prev => prev.map(order => 
-      order.id === updatedOrder.id ? updatedOrder : order
-    ))
-    setEditingOrder(null)
-    setShowForm(false)
+  const handleUpdateOrder = async (updatedOrder) => {
+    try {
+      const updated = await supabaseService.updateServiceOrder(updatedOrder.id, updatedOrder, user.id)
+      setOrders(prev => prev.map(order => 
+        order.id === updatedOrder.id ? updated : order
+      ))
+      setEditingOrder(null)
+      setShowForm(false)
+    } catch (error) {
+      console.error('Error updating order:', error)
+      alert('Error al actualizar la orden. Por favor, intenta de nuevo.')
+    }
   }
 
   const handleCloseMigration = () => {
@@ -108,9 +121,15 @@ function MainApp() {
     }
   }
 
-  const handleDeleteOrder = (orderId) => {
+  const handleDeleteOrder = async (orderId) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar esta orden?')) {
-      setOrders(prev => prev.filter(order => order.id !== orderId))
+      try {
+        await supabaseService.deleteServiceOrder(orderId, user.id)
+        setOrders(prev => prev.filter(order => order.id !== orderId))
+      } catch (error) {
+        console.error('Error deleting order:', error)
+        alert('Error al eliminar la orden. Por favor, intenta de nuevo.')
+      }
     }
   }
 
@@ -124,11 +143,11 @@ function MainApp() {
     setEditingOrder(null)
   }
 
-  const handleFormSubmit = (orderData) => {
+  const handleFormSubmit = async (orderData) => {
     if (editingOrder) {
-      handleUpdateOrder({ ...orderData, id: editingOrder.id, createdAt: editingOrder.createdAt })
+      await handleUpdateOrder({ ...orderData, id: editingOrder.id, createdAt: editingOrder.createdAt })
     } else {
-      handleCreateOrder(orderData)
+      await handleCreateOrder(orderData)
     }
   }
 

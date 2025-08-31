@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PasswordForm from './PasswordForm';
+import { useAuth } from '../contexts/AuthContext';
+import { supabaseService } from '../lib/supabase';
 
 const PasswordsTable = () => {
   const [passwords, setPasswords] = useState([]);
@@ -7,19 +9,22 @@ const PasswordsTable = () => {
   const [editingPassword, setEditingPassword] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [visiblePasswords, setVisiblePasswords] = useState(new Set());
+  const { user } = useAuth();
 
-  // Cargar contraseñas desde localStorage al montar el componente
+  // Cargar contraseñas desde Supabase al montar el componente
   useEffect(() => {
-    const savedPasswords = localStorage.getItem('nexboard_passwords');
-    if (savedPasswords) {
-      setPasswords(JSON.parse(savedPasswords));
-    }
-  }, []);
-
-  // Guardar contraseñas en localStorage cuando cambie el estado
-  useEffect(() => {
-    localStorage.setItem('nexboard_passwords', JSON.stringify(passwords));
-  }, [passwords]);
+    const loadPasswords = async () => {
+      if (user) {
+        try {
+          const passwordsData = await supabaseService.getPasswords(user.id);
+          setPasswords(passwordsData);
+        } catch (error) {
+          console.error('Error loading passwords from Supabase:', error);
+        }
+      }
+    };
+    loadPasswords();
+  }, [user]);
 
   const handleAddPassword = () => {
     setEditingPassword(null);
@@ -31,24 +36,37 @@ const PasswordsTable = () => {
     setShowForm(true);
   };
 
-  const handleDeletePassword = (id) => {
+  const handleDeletePassword = async (id) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar esta contraseña?')) {
-      setPasswords(passwords.filter(p => p.id !== id));
+      try {
+        await supabaseService.deletePassword(id, user.id);
+        setPasswords(passwords.filter(p => p.id !== id));
+      } catch (error) {
+        console.error('Error deleting password:', error);
+        alert('Error al eliminar la contraseña');
+      }
     }
   };
 
-  const handleFormSubmit = (passwordData) => {
-    if (editingPassword) {
-      // Actualizar contraseña existente
-      setPasswords(passwords.map(p => 
-        p.id === editingPassword.id ? passwordData : p
-      ));
-    } else {
-      // Agregar nueva contraseña
-      setPasswords([...passwords, passwordData]);
+  const handleFormSubmit = async (passwordData) => {
+    try {
+      if (editingPassword) {
+        // Actualizar contraseña existente
+        const updatedPassword = await supabaseService.updatePassword(editingPassword.id, passwordData, user.id);
+        setPasswords(passwords.map(p => 
+          p.id === editingPassword.id ? updatedPassword : p
+        ));
+      } else {
+        // Agregar nueva contraseña
+        const newPassword = await supabaseService.createPassword(passwordData, user.id);
+        setPasswords([...passwords, newPassword]);
+      }
+      setShowForm(false);
+      setEditingPassword(null);
+    } catch (error) {
+      console.error('Error saving password:', error);
+      alert('Error al guardar la contraseña');
     }
-    setShowForm(false);
-    setEditingPassword(null);
   };
 
   const handleFormCancel = () => {

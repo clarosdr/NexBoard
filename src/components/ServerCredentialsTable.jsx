@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ServerCredentialsForm from './ServerCredentialsForm';
+import { useAuth } from '../contexts/AuthContext';
+import { supabaseService } from '../lib/supabase';
 
 const ServerCredentialsTable = () => {
   const [credentials, setCredentials] = useState([]);
@@ -8,19 +10,22 @@ const ServerCredentialsTable = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [visiblePasswords, setVisiblePasswords] = useState(new Set());
   const [expandedRows, setExpandedRows] = useState(new Set());
+  const { user } = useAuth();
 
-  // Cargar credenciales desde localStorage al montar el componente
+  // Cargar credenciales desde Supabase al montar el componente
   useEffect(() => {
-    const savedCredentials = localStorage.getItem('nexboard_server_credentials');
-    if (savedCredentials) {
-      setCredentials(JSON.parse(savedCredentials));
-    }
-  }, []);
-
-  // Guardar credenciales en localStorage cuando cambie el estado
-  useEffect(() => {
-    localStorage.setItem('nexboard_server_credentials', JSON.stringify(credentials));
-  }, [credentials]);
+    const loadCredentials = async () => {
+      if (user) {
+        try {
+          const credentialsData = await supabaseService.getServerCredentials(user.id);
+          setCredentials(credentialsData);
+        } catch (error) {
+          console.error('Error loading server credentials from Supabase:', error);
+        }
+      }
+    };
+    loadCredentials();
+  }, [user]);
 
   const handleAddCredential = () => {
     setEditingCredential(null);
@@ -32,24 +37,37 @@ const ServerCredentialsTable = () => {
     setShowForm(true);
   };
 
-  const handleDeleteCredential = (id) => {
+  const handleDeleteCredential = async (id) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar estas credenciales?')) {
-      setCredentials(credentials.filter(c => c.id !== id));
+      try {
+        await supabaseService.deleteServerCredential(id, user.id);
+        setCredentials(credentials.filter(c => c.id !== id));
+      } catch (error) {
+        console.error('Error deleting server credential:', error);
+        alert('Error al eliminar las credenciales');
+      }
     }
   };
 
-  const handleFormSubmit = (credentialData) => {
-    if (editingCredential) {
-      // Actualizar credencial existente
-      setCredentials(credentials.map(c => 
-        c.id === editingCredential.id ? credentialData : c
-      ));
-    } else {
-      // Agregar nueva credencial
-      setCredentials([...credentials, credentialData]);
+  const handleFormSubmit = async (credentialData) => {
+    try {
+      if (editingCredential) {
+        // Actualizar credencial existente
+        const updatedCredential = await supabaseService.updateServerCredential(editingCredential.id, credentialData, user.id);
+        setCredentials(credentials.map(c => 
+          c.id === editingCredential.id ? updatedCredential : c
+        ));
+      } else {
+        // Agregar nueva credencial
+        const newCredential = await supabaseService.createServerCredential(credentialData, user.id);
+        setCredentials([...credentials, newCredential]);
+      }
+      setShowForm(false);
+      setEditingCredential(null);
+    } catch (error) {
+      console.error('Error saving server credential:', error);
+      alert('Error al guardar las credenciales');
     }
-    setShowForm(false);
-    setEditingCredential(null);
   };
 
   const handleFormCancel = () => {

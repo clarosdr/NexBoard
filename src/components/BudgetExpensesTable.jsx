@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import BudgetExpenseForm from './BudgetExpenseForm';
 import PullToRefresh from './PullToRefresh';
 import { useSwipeCard } from '../hooks/useTouchGestures';
+import { useAuth } from '../contexts/AuthContext';
+import { supabaseService } from '../lib/supabase';
 
 // Función para formatear valores en pesos colombianos
 const formatCurrency = (value) => {
@@ -14,6 +16,7 @@ const formatCurrency = (value) => {
 };
 
 const BudgetExpensesTable = () => {
+  const { user } = useAuth();
   const [expenses, setExpenses] = useState([]);
   const [filteredExpenses, setFilteredExpenses] = useState([]);
   const [filterStatus, setFilterStatus] = useState('all');
@@ -22,20 +25,21 @@ const BudgetExpensesTable = () => {
   const [editingExpense, setEditingExpense] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Cargar gastos del localStorage
+  // Cargar gastos desde Supabase
   useEffect(() => {
-    const savedExpenses = localStorage.getItem('budgetExpenses');
-    if (savedExpenses) {
-      const parsedExpenses = JSON.parse(savedExpenses);
-      setExpenses(parsedExpenses);
-      setFilteredExpenses(parsedExpenses);
-    }
-  }, []);
-
-  // Guardar gastos en localStorage
-  useEffect(() => {
-    localStorage.setItem('budgetExpenses', JSON.stringify(expenses));
-  }, [expenses]);
+    const loadExpenses = async () => {
+      if (user) {
+        try {
+          const data = await supabaseService.getBudgetExpenses(user.id);
+          setExpenses(data);
+          setFilteredExpenses(data);
+        } catch (error) {
+          console.error('Error loading budget expenses:', error);
+        }
+      }
+    };
+    loadExpenses();
+  }, [user]);
 
   // Filtrar gastos
   useEffect(() => {
@@ -142,16 +146,26 @@ const BudgetExpensesTable = () => {
     }
   };
 
-  const handleSubmit = (expenseData) => {
-    if (editingExpense) {
-      setExpenses(prev => prev.map(expense => 
-        expense.id === editingExpense.id ? expenseData : expense
-      ));
-    } else {
-      setExpenses(prev => [...prev, expenseData]);
+  const handleSubmit = async (expenseData) => {
+    try {
+      if (editingExpense) {
+        const updatedExpense = await supabaseService.updateBudgetExpense(editingExpense.id, expenseData);
+        setExpenses(prev => prev.map(expense => 
+          expense.id === editingExpense.id ? updatedExpense : expense
+        ));
+      } else {
+        const newExpense = await supabaseService.createBudgetExpense({
+          ...expenseData,
+          user_id: user.id
+        });
+        setExpenses(prev => [...prev, newExpense]);
+      }
+      setShowForm(false);
+      setEditingExpense(null);
+    } catch (error) {
+      console.error('Error saving budget expense:', error);
+      alert('Error al guardar el gasto. Por favor, intenta de nuevo.');
     }
-    setShowForm(false);
-    setEditingExpense(null);
   };
 
   const handleEdit = (expense) => {
@@ -159,18 +173,33 @@ const BudgetExpensesTable = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (expenseId) => {
+  const handleDelete = async (expenseId) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este gasto?')) {
-      setExpenses(prev => prev.filter(expense => expense.id !== expenseId));
+      try {
+        await supabaseService.deleteBudgetExpense(expenseId);
+        setExpenses(prev => prev.filter(expense => expense.id !== expenseId));
+      } catch (error) {
+        console.error('Error deleting budget expense:', error);
+        alert('Error al eliminar el gasto. Por favor, intenta de nuevo.');
+      }
     }
   };
 
-  const togglePaidStatus = (expenseId) => {
-    setExpenses(prev => prev.map(expense => 
-      expense.id === expenseId 
-        ? { ...expense, isPaid: !expense.isPaid, updatedAt: new Date().toISOString() }
-        : expense
-    ));
+  const togglePaidStatus = async (expenseId) => {
+    try {
+      const expense = expenses.find(e => e.id === expenseId);
+      const updatedExpense = await supabaseService.updateBudgetExpense(expenseId, {
+        ...expense,
+        isPaid: !expense.isPaid,
+        updatedAt: new Date().toISOString()
+      });
+      setExpenses(prev => prev.map(exp => 
+        exp.id === expenseId ? updatedExpense : exp
+      ));
+    } catch (error) {
+      console.error('Error updating expense status:', error);
+      alert('Error al actualizar el estado del gasto. Por favor, intenta de nuevo.');
+    }
   };
 
   const calculateTotalByStatus = () => {
@@ -182,21 +211,20 @@ const BudgetExpensesTable = () => {
 
   const totals = calculateTotalByStatus();
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     // Actualizar filtros y búsqueda
     setSearchTerm('');
     setFilterCategory('all');
     setFilterStatus('all');
     
-    // Recargar datos desde localStorage
-    const savedExpenses = localStorage.getItem('budgetExpenses');
-    if (savedExpenses) {
+    // Recargar datos desde Supabase
+    if (user) {
       try {
-        const parsedExpenses = JSON.parse(savedExpenses);
-        setExpenses(parsedExpenses);
-        setFilteredExpenses(parsedExpenses);
+        const data = await supabaseService.getBudgetExpenses(user.id);
+        setExpenses(data);
+        setFilteredExpenses(data);
       } catch (error) {
-        console.error('Error loading expenses:', error);
+        console.error('Error loading budget expenses:', error);
       }
     }
     
