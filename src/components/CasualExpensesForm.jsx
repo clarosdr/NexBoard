@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react';
 
+// Función para generar UUID
+const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
+
 // Función para formatear valores en pesos colombianos
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('es-CO', {
@@ -20,6 +29,7 @@ const CasualExpensesForm = ({ expense, onSubmit, onCancel }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Categorías predefinidas para gastos casuales
   const categories = [
@@ -42,7 +52,18 @@ const CasualExpensesForm = ({ expense, onSubmit, onCancel }) => {
         category: expense.category || 'alimentacion',
         notes: expense.notes || ''
       });
+    } else {
+      // Reset form for new expense
+      setFormData({
+        description: '',
+        amount: '',
+        date: new Date().toISOString().split('T')[0],
+        category: 'alimentacion',
+        notes: ''
+      });
     }
+    setErrors({});
+    setIsSubmitting(false);
   }, [expense]);
 
   const handleChange = (e) => {
@@ -77,19 +98,29 @@ const CasualExpensesForm = ({ expense, onSubmit, onCancel }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (isSubmitting) return;
+    
     if (validateForm()) {
-      const expenseData = {
-        ...formData,
-        id: expense ? expense.id : Date.now(),
-        amount: parseFloat(formData.amount),
-        type: 'casual', // Identificador para distinguir de gastos de presupuesto
-        createdAt: expense ? expense.createdAt : new Date().toISOString()
-      };
+      setIsSubmitting(true);
       
-      onSubmit(expenseData);
+      try {
+        const expenseData = {
+          ...formData,
+          id: expense ? expense.id : generateUUID(),
+          amount: parseFloat(formData.amount),
+          type: 'casual', // Identificador para distinguir de gastos de presupuesto
+          createdAt: expense ? expense.createdAt : new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        
+        await onSubmit(expenseData);
+      } catch (error) {
+        console.error('Error submitting expense:', error);
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -101,7 +132,8 @@ const CasualExpensesForm = ({ expense, onSubmit, onCancel }) => {
         </h2>
         <button
           onClick={onCancel}
-          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 text-xl font-bold transition-colors duration-200"
+          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200"
+          disabled={isSubmitting}
         >
           ✕
         </button>
@@ -110,80 +142,98 @@ const CasualExpensesForm = ({ expense, onSubmit, onCancel }) => {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Descripción */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
+          <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
             Descripción *
           </label>
           <input
             type="text"
+            id="description"
             name="description"
             value={formData.description}
             onChange={handleChange}
-            className={`w-full px-4 py-3 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200 ${
-              errors.description ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-            }`}
-            placeholder="Ej: Almuerzo en restaurante, Gasolina, etc."
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
+              errors.description 
+                ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' 
+                : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700'
+            } text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400`}
+            placeholder="Ej: Almuerzo en restaurante"
+            disabled={isSubmitting}
           />
           {errors.description && (
-            <p className="text-red-500 dark:text-red-400 text-sm mt-1 transition-colors duration-200">{errors.description}</p>
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.description}</p>
           )}
         </div>
 
-        {/* Monto y Fecha */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
-              Monto *
-            </label>
-            <input
-              type="number"
-              name="amount"
-              value={formData.amount}
-              onChange={handleChange}
-              min="0"
-              step="1"
-              className={`w-full px-4 py-3 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200 ${
-                errors.amount ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-              }`}
-              placeholder="0"
-            />
-            {errors.amount && (
-              <p className="text-red-500 dark:text-red-400 text-sm mt-1 transition-colors duration-200">{errors.amount}</p>
-            )}
-          </div>
+        {/* Monto */}
+        <div>
+          <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
+            Monto (COP) *
+          </label>
+          <input
+            type="number"
+            id="amount"
+            name="amount"
+            value={formData.amount}
+            onChange={handleChange}
+            min="0"
+            step="100"
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
+              errors.amount 
+                ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' 
+                : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700'
+            } text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400`}
+            placeholder="0"
+            disabled={isSubmitting}
+          />
+          {errors.amount && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.amount}</p>
+          )}
+          {formData.amount && !errors.amount && (
+            <p className="mt-1 text-sm text-green-600 dark:text-green-400">
+              {formatCurrency(parseFloat(formData.amount) || 0)}
+            </p>
+          )}
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
-              Fecha *
-            </label>
-            <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200 ${
-                errors.date ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
-              }`}
-            />
-            {errors.date && (
-              <p className="text-red-500 dark:text-red-400 text-sm mt-1 transition-colors duration-200">{errors.date}</p>
-            )}
-          </div>
+        {/* Fecha */}
+        <div>
+          <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
+            Fecha *
+          </label>
+          <input
+            type="date"
+            id="date"
+            name="date"
+            value={formData.date}
+            onChange={handleChange}
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 ${
+              errors.date 
+                ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' 
+                : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700'
+            } text-gray-900 dark:text-white`}
+            disabled={isSubmitting}
+          />
+          {errors.date && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.date}</p>
+          )}
         </div>
 
         {/* Categoría */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
+          <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
             Categoría
           </label>
           <select
+            id="category"
             name="category"
             value={formData.category}
             onChange={handleChange}
-            className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+            disabled={isSubmitting}
           >
-            {categories.map(cat => (
-              <option key={cat.value} value={cat.value}>
-                {cat.label}
+            {categories.map(category => (
+              <option key={category.value} value={category.value}>
+                {category.label}
               </option>
             ))}
           </select>
@@ -191,45 +241,37 @@ const CasualExpensesForm = ({ expense, onSubmit, onCancel }) => {
 
         {/* Notas */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
-            Notas (Opcional)
+          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
+            Notas adicionales
           </label>
           <textarea
+            id="notes"
             name="notes"
             value={formData.notes}
             onChange={handleChange}
             rows={3}
-            className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
             placeholder="Información adicional sobre el gasto..."
+            disabled={isSubmitting}
           />
         </div>
 
-        {/* Vista previa del monto */}
-        {formData.amount && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md border border-blue-200 dark:border-blue-800 transition-colors duration-200">
-            <div className="text-center">
-              <span className="text-sm text-gray-600 dark:text-gray-400 transition-colors duration-200">Monto del gasto:</span>
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 transition-colors duration-200">
-                {formatCurrency(parseFloat(formData.amount) || 0)}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Botones */}
-        <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-4">
+        <div className="flex justify-end space-x-3 pt-4">
           <button
             type="button"
             onClick={onCancel}
-            className="w-full sm:w-auto px-8 py-4 text-base border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 touch-manipulation min-h-[48px] bg-white dark:bg-gray-800 transition-colors duration-200"
+            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md hover:bg-gray-200 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+            disabled={isSubmitting}
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className="w-full sm:w-auto px-8 py-4 text-base bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation min-h-[48px] font-medium transition-colors duration-200"
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            disabled={isSubmitting}
           >
-            {expense ? 'Actualizar' : 'Registrar'} Gasto
+            {isSubmitting ? 'Guardando...' : (expense ? 'Actualizar' : 'Guardar')} Gasto
           </button>
         </div>
       </form>

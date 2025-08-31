@@ -6,10 +6,51 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-supabase
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+// Cache simple para optimizar consultas
+class SimpleCache {
+  constructor(ttl = 5 * 60 * 1000) { // 5 minutos por defecto
+    this.cache = new Map();
+    this.ttl = ttl;
+  }
+
+  set(key, value) {
+    this.cache.set(key, {
+      value,
+      timestamp: Date.now()
+    });
+  }
+
+  get(key) {
+    const item = this.cache.get(key);
+    if (!item) return null;
+    
+    if (Date.now() - item.timestamp > this.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return item.value;
+  }
+
+  clear() {
+    this.cache.clear();
+  }
+
+  delete(key) {
+    this.cache.delete(key);
+  }
+}
+
+const cache = new SimpleCache();
+
 // Funciones helper para manejo de datos
 export const supabaseHelpers = {
   // Órdenes de servicio
   async getServiceOrders(userId) {
+    const cacheKey = `service_orders_${userId}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
     const { data, error } = await supabase
       .from('service_orders')
       .select('*')
@@ -19,7 +60,7 @@ export const supabaseHelpers = {
     if (error) throw error
     
     // Map database fields back to application fields
-    return (data || []).map(order => ({
+    const orders = (data || []).map(order => ({
       id: order.id,
       customerName: order.customer_name,
       description: order.description,
@@ -34,7 +75,10 @@ export const supabaseHelpers = {
       pendingBalance: order.pending_balance,
       createdAt: order.created_at,
       updatedAt: order.updated_at
-    }))
+    }));
+
+    cache.set(cacheKey, orders);
+    return orders;
   },
 
   async createServiceOrder(order, userId) {
@@ -62,6 +106,9 @@ export const supabaseHelpers = {
       .select()
     
     if (error) throw error
+    
+    // Invalidar cache
+    cache.delete(`service_orders_${userId}`);
     
     // Map database fields back to application fields
     const createdOrder = data[0]
@@ -108,6 +155,9 @@ export const supabaseHelpers = {
     
     if (error) throw error
     
+    // Invalidar cache
+    cache.delete(`service_orders_${userId}`);
+    
     // Map database fields back to application fields
     const updatedOrder = data[0]
     return {
@@ -136,10 +186,17 @@ export const supabaseHelpers = {
       .eq('user_id', userId)
     
     if (error) throw error
+    
+    // Invalidar cache
+    cache.delete(`service_orders_${userId}`);
   },
 
   // Gastos casuales
   async getCasualExpenses(userId) {
+    const cacheKey = `casual_expenses_${userId}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
     const { data, error } = await supabase
       .from('casual_expenses')
       .select('*')
@@ -147,7 +204,10 @@ export const supabaseHelpers = {
       .order('date', { ascending: false })
     
     if (error) throw error
-    return data || []
+    
+    const expenses = data || [];
+    cache.set(cacheKey, expenses);
+    return expenses;
   },
 
   async createCasualExpense(expense, userId) {
@@ -157,6 +217,10 @@ export const supabaseHelpers = {
       .select()
     
     if (error) throw error
+    
+    // Invalidar cache
+    cache.delete(`casual_expenses_${userId}`);
+    
     return data[0]
   },
 
@@ -169,6 +233,10 @@ export const supabaseHelpers = {
       .select()
     
     if (error) throw error
+    
+    // Invalidar cache
+    cache.delete(`casual_expenses_${userId}`);
+    
     return data[0]
   },
 
@@ -180,10 +248,17 @@ export const supabaseHelpers = {
       .eq('user_id', userId)
     
     if (error) throw error
+    
+    // Invalidar cache
+    cache.delete(`casual_expenses_${userId}`);
   },
 
   // Gastos presupuestarios
   async getBudgetExpenses(userId) {
+    const cacheKey = `budget_expenses_${userId}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
     const { data, error } = await supabase
       .from('budget_expenses')
       .select('*')
@@ -191,7 +266,10 @@ export const supabaseHelpers = {
       .order('date', { ascending: false })
     
     if (error) throw error
-    return data || []
+    
+    const expenses = data || [];
+    cache.set(cacheKey, expenses);
+    return expenses;
   },
 
   async createBudgetExpense(expense, userId) {
@@ -201,6 +279,10 @@ export const supabaseHelpers = {
       .select()
     
     if (error) throw error
+    
+    // Invalidar cache
+    cache.delete(`budget_expenses_${userId}`);
+    
     return data[0]
   },
 
@@ -213,6 +295,10 @@ export const supabaseHelpers = {
       .select()
     
     if (error) throw error
+    
+    // Invalidar cache
+    cache.delete(`budget_expenses_${userId}`);
+    
     return data[0]
   },
 
@@ -224,10 +310,17 @@ export const supabaseHelpers = {
       .eq('user_id', userId)
     
     if (error) throw error
+    
+    // Invalidar cache
+    cache.delete(`budget_expenses_${userId}`);
   },
 
   // Licencias
   async getLicenses(userId) {
+    const cacheKey = `licenses_${userId}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
     const { data, error } = await supabase
       .from('licenses')
       .select('*')
@@ -236,67 +329,38 @@ export const supabaseHelpers = {
     
     if (error) throw error
     
-    // Mapear campos de DB a aplicación
-    return (data || []).map(license => ({
-      ...license,
-      client: license.software_name,
-      licenseName: license.software_name,
-      code: license.license_key,
-      installationDate: license.purchase_date,
-      expirationDate: license.expiry_date,
-      numberOfInstallations: license.max_installations,
-      saleValue: license.cost,
-      costValue: 0, // No existe en DB
-      profit: license.cost || 0,
-      provider: license.vendor
-    }))
+    const licenses = data || [];
+    cache.set(cacheKey, licenses);
+    return licenses;
   },
 
   async createLicense(license, userId) {
-    // Mapear campos de aplicación a DB
-    const dbLicense = {
-      software_name: license.licenseName || license.client,
-      license_key: license.code,
-      purchase_date: license.installationDate,
-      expiry_date: license.expirationDate,
-      vendor: license.provider,
-      cost: license.saleValue,
-      max_installations: license.numberOfInstallations,
-      current_installations: 0,
-      notes: license.notes || '',
-      user_id: userId
-    }
-    
     const { data, error } = await supabase
       .from('licenses')
-      .insert([dbLicense])
+      .insert([{ ...license, user_id: userId }])
       .select()
     
     if (error) throw error
+    
+    // Invalidar cache
+    cache.delete(`licenses_${userId}`);
+    
     return data[0]
   },
 
   async updateLicense(id, license, userId) {
-    // Mapear campos de aplicación a DB
-    const dbLicense = {
-      software_name: license.licenseName || license.client,
-      license_key: license.code,
-      purchase_date: license.installationDate,
-      expiry_date: license.expirationDate,
-      vendor: license.provider,
-      cost: license.saleValue,
-      max_installations: license.numberOfInstallations,
-      notes: license.notes || ''
-    }
-    
     const { data, error } = await supabase
       .from('licenses')
-      .update(dbLicense)
+      .update(license)
       .eq('id', id)
       .eq('user_id', userId)
       .select()
     
     if (error) throw error
+    
+    // Invalidar cache
+    cache.delete(`licenses_${userId}`);
+    
     return data[0]
   },
 
@@ -308,10 +372,17 @@ export const supabaseHelpers = {
       .eq('user_id', userId)
     
     if (error) throw error
+    
+    // Invalidar cache
+    cache.delete(`licenses_${userId}`);
   },
 
   // Contraseñas
   async getPasswords(userId) {
+    const cacheKey = `passwords_${userId}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
     const { data, error } = await supabase
       .from('passwords')
       .select('*')
@@ -320,58 +391,38 @@ export const supabaseHelpers = {
     
     if (error) throw error
     
-    // Mapear campos de DB a aplicación
-    return (data || []).map(password => ({
-      ...password,
-      website: password.service_name,
-      // username ya coincide
-      // password se mapea a password_encrypted pero lo mantenemos como password para el frontend
-      password: password.password_encrypted
-    }))
+    const passwords = data || [];
+    cache.set(cacheKey, passwords);
+    return passwords;
   },
 
   async createPassword(password, userId) {
-    // Mapear campos de aplicación a DB
-    const dbPassword = {
-      service_name: password.website,
-      username: password.username,
-      email: password.email || '',
-      password_encrypted: password.password,
-      url: password.website,
-      notes: password.notes || '',
-      category: password.category || 'general',
-      user_id: userId
-    }
-    
     const { data, error } = await supabase
       .from('passwords')
-      .insert([dbPassword])
+      .insert([{ ...password, user_id: userId }])
       .select()
     
     if (error) throw error
+    
+    // Invalidar cache
+    cache.delete(`passwords_${userId}`);
+    
     return data[0]
   },
 
   async updatePassword(id, password, userId) {
-    // Mapear campos de aplicación a DB
-    const dbPassword = {
-      service_name: password.website,
-      username: password.username,
-      email: password.email || '',
-      password_encrypted: password.password,
-      url: password.website,
-      notes: password.notes || '',
-      category: password.category || 'general'
-    }
-    
     const { data, error } = await supabase
       .from('passwords')
-      .update(dbPassword)
+      .update(password)
       .eq('id', id)
       .eq('user_id', userId)
       .select()
     
     if (error) throw error
+    
+    // Invalidar cache
+    cache.delete(`passwords_${userId}`);
+    
     return data[0]
   },
 
@@ -383,10 +434,17 @@ export const supabaseHelpers = {
       .eq('user_id', userId)
     
     if (error) throw error
+    
+    // Invalidar cache
+    cache.delete(`passwords_${userId}`);
   },
 
   // Credenciales de servidor
   async getServerCredentials(userId) {
+    const cacheKey = `server_credentials_${userId}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return cached;
+
     const { data, error } = await supabase
       .from('server_credentials')
       .select('*')
@@ -395,63 +453,38 @@ export const supabaseHelpers = {
     
     if (error) throw error
     
-    // Mapear campos de DB a aplicación
-    return (data || []).map(credential => ({
-      ...credential,
-      client: credential.description || credential.server_name,
-      vpnName: credential.server_name,
-      vpnPassword: credential.password_encrypted,
-      vpnIp: credential.ip_address,
-      localServerName: credential.hostname,
-      users: [{ username: credential.username, password: credential.password_encrypted }]
-    }))
+    const credentials = data || [];
+    cache.set(cacheKey, credentials);
+    return credentials;
   },
 
   async createServerCredential(credential, userId) {
-    // Mapear campos de aplicación a DB
-    const dbCredential = {
-      server_name: credential.vpnName,
-      ip_address: credential.vpnIp,
-      hostname: credential.localServerName,
-      username: credential.users?.[0]?.username || credential.vpnName,
-      password_encrypted: credential.vpnPassword,
-      ssh_key: '',
-      port: 22,
-      protocol: 'SSH',
-      description: credential.client,
-      notes: JSON.stringify(credential.users || []),
-      user_id: userId
-    }
-    
     const { data, error } = await supabase
       .from('server_credentials')
-      .insert([dbCredential])
+      .insert([{ ...credential, user_id: userId }])
       .select()
     
     if (error) throw error
+    
+    // Invalidar cache
+    cache.delete(`server_credentials_${userId}`);
+    
     return data[0]
   },
 
   async updateServerCredential(id, credential, userId) {
-    // Mapear campos de aplicación a DB
-    const dbCredential = {
-      server_name: credential.vpnName,
-      ip_address: credential.vpnIp,
-      hostname: credential.localServerName,
-      username: credential.users?.[0]?.username || credential.vpnName,
-      password_encrypted: credential.vpnPassword,
-      description: credential.client,
-      notes: JSON.stringify(credential.users || [])
-    }
-    
     const { data, error } = await supabase
       .from('server_credentials')
-      .update(dbCredential)
+      .update(credential)
       .eq('id', id)
       .eq('user_id', userId)
       .select()
     
     if (error) throw error
+    
+    // Invalidar cache
+    cache.delete(`server_credentials_${userId}`);
+    
     return data[0]
   },
 
@@ -463,8 +496,30 @@ export const supabaseHelpers = {
       .eq('user_id', userId)
     
     if (error) throw error
+    
+    // Invalidar cache
+    cache.delete(`server_credentials_${userId}`);
+  },
+
+  // Función para limpiar todo el cache
+  clearCache() {
+    cache.clear();
+  },
+
+  // Función para limpiar cache específico de un usuario
+  clearUserCache(userId) {
+    const keys = [
+      `service_orders_${userId}`,
+      `casual_expenses_${userId}`,
+      `budget_expenses_${userId}`,
+      `licenses_${userId}`,
+      `passwords_${userId}`,
+      `server_credentials_${userId}`
+    ];
+    
+    keys.forEach(key => cache.delete(key));
   }
 }
 
-// Exportar también como supabaseService para compatibilidad
+// Exportar el servicio principal
 export const supabaseService = supabaseHelpers

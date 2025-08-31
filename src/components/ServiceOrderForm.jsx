@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react';
 
+// Función para generar UUID
+const generateUUID = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
+
 // Función para formatear valores en pesos colombianos
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('es-CO', {
@@ -27,6 +36,8 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
     totalPaid: 0
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Cargar datos de la orden si estamos editando
   useEffect(() => {
     if (order) {
@@ -38,11 +49,17 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
       
       setFormData({
         customerName: order.customerName || '',
-        description: order.description,
-        date: order.date,
-        status: order.status,
-        items: order.items.map(item => ({ ...item })),
-        payments: payments,
+        description: order.description || '',
+        date: order.date || new Date().toISOString().split('T')[0],
+        status: order.status || 'pendiente',
+        items: order.items && order.items.length > 0 ? order.items.map(item => ({ ...item })) : [{
+          id: 1,
+          description: '',
+          quantity: 1,
+          unitPrice: 0,
+          partCost: 0
+        }],
+        payments: payments.map(payment => ({ ...payment })),
         totalPaid: calculatedTotalPaid
       });
     } else {
@@ -63,9 +80,8 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
         totalPaid: 0
       });
     }
+    setIsSubmitting(false);
   }, [order]);
-
-
 
   const statusOptions = [
     { value: 'pendiente', label: 'Pendiente' },
@@ -116,33 +132,16 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
     }
   };
 
-  const calculateItemTotal = (item) => {
-    return item.quantity * item.unitPrice;
-  };
-
-  const calculateGrandTotal = () => {
-    return formData.items.reduce((total, item) => total + calculateItemTotal(item), 0);
-  };
-
-  const calculateTotalPartCost = () => {
-    return formData.items.reduce((total, item) => total + (item.partCost * item.quantity), 0);
-  };
-
-  const calculateProfit = () => {
-    return calculateGrandTotal() - calculateTotalPartCost();
-  };
-
-  const calculatePendingBalance = () => {
-    return calculateGrandTotal() - formData.totalPaid;
-  };
-
   const addPayment = () => {
+    const newId = formData.payments.length > 0 ? Math.max(...formData.payments.map(p => p.id)) + 1 : 1;
     const newPayment = {
-      id: Date.now(),
-      amount: 0,
+      id: newId,
       date: new Date().toISOString().split('T')[0],
-      notes: ''
+      amount: 0,
+      method: 'efectivo',
+      description: ''
     };
+    
     setFormData(prev => ({
       ...prev,
       payments: [...prev.payments, newPayment]
@@ -196,25 +195,81 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const calculateGrandTotal = () => {
+    return formData.items.reduce((total, item) => {
+      return total + (item.quantity * item.unitPrice);
+    }, 0);
+  };
+
+  const calculateTotalPartCost = () => {
+    return formData.items.reduce((total, item) => {
+      return total + (item.quantity * item.partCost);
+    }, 0);
+  };
+
+  const calculateProfit = () => {
+    return calculateGrandTotal() - calculateTotalPartCost();
+  };
+
+  const calculatePendingBalance = () => {
+    const total = calculateGrandTotal();
+    const paid = formData.totalPaid;
+    return Math.max(0, total - paid);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const orderData = {
-      ...formData,
-      id: order ? order.id : Date.now(),
-      createdAt: order ? order.createdAt : new Date().toISOString(),
-      total: calculateGrandTotal(),
-      totalPartCost: calculateTotalPartCost(),
-      profit: calculateProfit(),
-      pendingBalance: calculatePendingBalance()
-    };
-    onSubmit(orderData);
+    
+    if (isSubmitting) return;
+    
+    // Validaciones básicas
+    if (!formData.customerName.trim()) {
+      alert('El nombre del cliente es requerido');
+      return;
+    }
+    
+    if (!formData.description.trim()) {
+      alert('La descripción del servicio es requerida');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      const orderData = {
+        ...formData,
+        id: order ? order.id : generateUUID(),
+        createdAt: order ? order.createdAt : new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        total: calculateGrandTotal(),
+        totalPartCost: calculateTotalPartCost(),
+        profit: calculateProfit(),
+        pendingBalance: calculatePendingBalance(),
+        // Asegurar que customerName se preserve
+        customerName: formData.customerName.trim()
+      };
+      
+      await onSubmit(orderData);
+    } catch (error) {
+      console.error('Error submitting order:', error);
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md transition-colors duration-200">
-      <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 transition-colors duration-200">
-        {order ? 'Editar Orden de Servicio' : 'Nueva Orden de Servicio'}
-      </h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white transition-colors duration-200">
+          {order ? 'Editar Orden de Servicio' : 'Nueva Orden de Servicio'}
+        </h2>
+        <button
+          onClick={onCancel}
+          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200"
+          disabled={isSubmitting}
+        >
+          ✕
+        </button>
+      </div>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Información básica */}
@@ -230,7 +285,8 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
                 value={formData.customerName}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
+                disabled={isSubmitting}
+                className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200 disabled:opacity-50"
                 placeholder="Nombre del cliente"
               />
             </div>
@@ -243,8 +299,9 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
                 value={formData.description}
                 onChange={handleInputChange}
                 required
+                disabled={isSubmitting}
                 rows={3}
-                className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
+                className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200 disabled:opacity-50"
                 placeholder="Describe el problema o servicio a realizar..."
               />
             </div>
@@ -260,10 +317,10 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
                 name="date"
                 value={formData.date}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+                disabled={isSubmitting}
+                className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200 disabled:opacity-50"
               />
             </div>
-            
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
                 Estado
@@ -272,7 +329,8 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
                 name="status"
                 value={formData.status}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+                disabled={isSubmitting}
+                className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200 disabled:opacity-50"
               >
                 {statusOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -284,95 +342,106 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
           </div>
         </div>
 
-        {/* Ítems */}
+        {/* Items/Servicios */}
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-white transition-colors duration-200">Ítems de Venta</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-white transition-colors duration-200">
+              Items/Servicios
+            </h3>
             <button
               type="button"
               onClick={addItem}
-              className="px-6 py-3 text-base bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400 touch-manipulation min-h-[44px] transition-colors duration-200"
+              disabled={isSubmitting}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200 disabled:opacity-50"
             >
-              + Agregar Ítem
+              + Agregar Item
             </button>
           </div>
           
           <div className="space-y-4">
             {formData.items.map((item, index) => (
-              <div key={item.id} className="border border-gray-200 dark:border-gray-600 rounded-md p-4 bg-white dark:bg-gray-700 transition-colors duration-200">
+              <div key={item.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 transition-colors duration-200">
                 <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Ítem {index + 1}</h4>
+                  <h4 className="font-medium text-gray-800 dark:text-white transition-colors duration-200">
+                    Item #{index + 1}
+                  </h4>
                   {formData.items.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeItem(item.id)}
-                      className="px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg touch-manipulation min-h-[40px] transition-colors duration-200"
+                      disabled={isSubmitting}
+                      className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors duration-200 disabled:opacity-50"
                     >
-                      Eliminar
+                      🗑️
                     </button>
                   )}
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1 transition-colors duration-200">
-                      Descripción *
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="md:col-span-2 lg:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
+                      Descripción
                     </label>
                     <input
                       type="text"
                       value={item.description}
                       onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
-                      required
-                      className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
-                      placeholder="Descripción del ítem"
+                      disabled={isSubmitting}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200 disabled:opacity-50"
+                      placeholder="Descripción del item"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1 transition-colors duration-200">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
                       Cantidad
                     </label>
                     <input
                       type="number"
-                      min="1"
                       value={item.quantity}
                       onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
-                      className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors duration-200"
+                      min="1"
+                      disabled={isSubmitting}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200 disabled:opacity-50"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1 transition-colors duration-200">
-                      Valor Unitario
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
+                      Precio Unitario
                     </label>
                     <input
                       type="number"
-                      min="0"
-                      step="0.01"
                       value={item.unitPrice}
                       onChange={(e) => handleItemChange(item.id, 'unitPrice', e.target.value)}
-                      className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors duration-200"
+                      min="0"
+                      step="100"
+                      disabled={isSubmitting}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200 disabled:opacity-50"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1 transition-colors duration-200">
-                      Costo Repuesto
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
+                      Costo de Partes
                     </label>
                     <input
                       type="number"
-                      min="0"
-                      step="0.01"
                       value={item.partCost}
                       onChange={(e) => handleItemChange(item.id, 'partCost', e.target.value)}
-                      className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors duration-200"
+                      min="0"
+                      step="100"
+                      disabled={isSubmitting}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200 disabled:opacity-50"
                     />
                   </div>
                 </div>
                 
-                <div className="mt-2 text-right">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">
-                    Subtotal: {formatCurrency(calculateItemTotal(item))}
+                <div className="mt-3 text-right">
+                  <span className="text-sm text-gray-600 dark:text-gray-400 transition-colors duration-200">
+                    Subtotal: <span className="font-semibold text-green-600 dark:text-green-400">
+                      {formatCurrency(item.quantity * item.unitPrice)}
+                    </span>
                   </span>
                 </div>
               </div>
@@ -380,149 +449,163 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
           </div>
         </div>
 
-        {/* Sección de Abonos - Visible cuando el estado es 'finalizado' o 'entregado' */}
+        {/* Pagos */}
         {(formData.status === 'finalizado' || formData.status === 'entregado') && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md border border-blue-200 dark:border-blue-700 transition-colors duration-200">
+          <div>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 transition-colors duration-200">Gestión de Abonos</h3>
-              {formData.status === 'finalizado' && (
-                <button
-                  type="button"
-                  onClick={addPayment}
-                  className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200"
-                >
-                  + Agregar Abono
-                </button>
-              )}
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white transition-colors duration-200">
+                Pagos Recibidos
+              </h3>
+              <button
+                type="button"
+                onClick={addPayment}
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-50"
+              >
+                + Agregar Pago
+              </button>
             </div>
             
-            {formData.payments.length > 0 && (
-              <div className="space-y-3 mb-4">
-                {formData.payments.map((payment) => (
-                  <div key={payment.id} className="bg-white dark:bg-gray-800 p-3 rounded-md border border-blue-100 dark:border-blue-700 transition-colors duration-200">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1 transition-colors duration-200">
-                          Monto del Abono
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={payment.amount}
-                          onChange={(e) => handlePaymentChange(payment.id, 'amount', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
-                          placeholder="0"
-                          disabled={formData.status === 'entregado'}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1 transition-colors duration-200">
-                          Fecha del Abono
-                        </label>
-                        <input
-                          type="date"
-                          value={payment.date}
-                          onChange={(e) => handlePaymentChange(payment.id, 'date', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
-                          disabled={formData.status === 'entregado'}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-1 transition-colors duration-200">
-                          Notas (Opcional)
-                        </label>
-                        <input
-                          type="text"
-                          value={payment.notes}
-                          onChange={(e) => handlePaymentChange(payment.id, 'notes', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
-                          placeholder="Efectivo, transferencia, etc."
-                          disabled={formData.status === 'entregado'}
-                        />
-                      </div>
-                      <div className="flex items-end">
-                        {formData.status === 'finalizado' && (
-                          <button
-                            type="button"
-                            onClick={() => removePayment(payment.id)}
-                            className="w-full px-3 py-2 bg-red-600 dark:bg-red-700 text-white rounded-md hover:bg-red-700 dark:hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 transition-colors duration-200"
-                          >
-                            Eliminar
-                          </button>
-                        )}
-                        {formData.status === 'entregado' && (
-                          <div className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-md text-center transition-colors duration-200">
-                            Orden Entregada
-                          </div>
-                        )}
-                      </div>
+            <div className="space-y-3">
+              {formData.payments.map((payment, index) => (
+                <div key={payment.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 transition-colors duration-200">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="font-medium text-gray-800 dark:text-white transition-colors duration-200">
+                      Pago #{index + 1}
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => removePayment(payment.id)}
+                      disabled={isSubmitting}
+                      className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors duration-200 disabled:opacity-50"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
+                        Fecha
+                      </label>
+                      <input
+                        type="date"
+                        value={payment.date}
+                        onChange={(e) => handlePaymentChange(payment.id, 'date', e.target.value)}
+                        disabled={isSubmitting}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200 disabled:opacity-50"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
+                        Monto
+                      </label>
+                      <input
+                        type="number"
+                        value={payment.amount}
+                        onChange={(e) => handlePaymentChange(payment.id, 'amount', e.target.value)}
+                        min="0"
+                        step="100"
+                        disabled={isSubmitting}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200 disabled:opacity-50"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
+                        Método
+                      </label>
+                      <select
+                        value={payment.method}
+                        onChange={(e) => handlePaymentChange(payment.id, 'method', e.target.value)}
+                        disabled={isSubmitting}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200 disabled:opacity-50"
+                      >
+                        <option value="efectivo">Efectivo</option>
+                        <option value="transferencia">Transferencia</option>
+                        <option value="tarjeta">Tarjeta</option>
+                        <option value="cheque">Cheque</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
+                        Descripción
+                      </label>
+                      <input
+                        type="text"
+                        value={payment.description}
+                        onChange={(e) => handlePaymentChange(payment.id, 'description', e.target.value)}
+                        disabled={isSubmitting}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200 disabled:opacity-50"
+                        placeholder="Descripción del pago"
+                      />
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-            
-            <div className="bg-white dark:bg-gray-800 p-3 rounded-md border border-blue-200 dark:border-blue-700 transition-colors duration-200">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Total Abonado:</span>
-                  <span className="ml-2 text-lg font-bold text-green-600 dark:text-green-400 transition-colors duration-200">
-                    {formatCurrency(formData.totalPaid)}
-                  </span>
                 </div>
-                <div>
-                  <span className="font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Saldo Pendiente:</span>
-                  <span className={`ml-2 text-lg font-bold transition-colors duration-200 ${
-                    calculatePendingBalance() > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'
-                  }`}>
-                    {formatCurrency(calculatePendingBalance())}
-                  </span>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         )}
 
         {/* Resumen */}
-        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md transition-colors duration-200">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3 transition-colors duration-200">Resumen</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg transition-colors duration-200">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3 transition-colors duration-200">
+            Resumen Financiero
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <span className="font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Total Venta:</span>
-              <span className="ml-2 text-lg font-bold text-green-600 dark:text-green-400 transition-colors duration-200">
+              <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Total:</span>
+              <div className="font-semibold text-green-600 dark:text-green-400 transition-colors duration-200">
                 {formatCurrency(calculateGrandTotal())}
-              </span>
+              </div>
             </div>
             <div>
-              <span className="font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Total Costos:</span>
-              <span className="ml-2 text-lg font-bold text-red-600 dark:text-red-400 transition-colors duration-200">
+              <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Costos:</span>
+              <div className="font-semibold text-red-600 dark:text-red-400 transition-colors duration-200">
                 {formatCurrency(calculateTotalPartCost())}
-              </span>
+              </div>
             </div>
             <div>
-              <span className="font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Ganancia:</span>
-              <span className="ml-2 text-lg font-bold text-blue-600 dark:text-blue-400 transition-colors duration-200">
+              <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Ganancia:</span>
+              <div className="font-semibold text-blue-600 dark:text-blue-400 transition-colors duration-200">
                 {formatCurrency(calculateProfit())}
-              </span>
+              </div>
+            </div>
+            <div>
+              <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Pagado:</span>
+              <div className="font-semibold text-teal-600 dark:text-teal-400 transition-colors duration-200">
+                {formatCurrency(formData.totalPaid)}
+              </div>
             </div>
           </div>
+          {calculatePendingBalance() > 0 && (
+            <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+              <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Saldo Pendiente:</span>
+              <div className="font-semibold text-orange-600 dark:text-orange-400 transition-colors duration-200">
+                {formatCurrency(calculatePendingBalance())}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Botones */}
-        <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
+        <div className="flex justify-end space-x-3 pt-4">
           <button
             type="button"
             onClick={onCancel}
-            className="w-full sm:w-auto px-8 py-4 text-base border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 touch-manipulation min-h-[48px] transition-colors duration-200"
+            disabled={isSubmitting}
+            className="px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-50"
           >
             Cancelar
           </button>
           <button
             type="submit"
-            className="w-full sm:w-auto px-8 py-4 text-base bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 touch-manipulation min-h-[48px] font-medium transition-colors duration-200"
+            disabled={isSubmitting}
+            className="px-6 py-3 text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
-            Guardar Orden
+            {isSubmitting ? 'Guardando...' : (order ? 'Actualizar' : 'Crear')} Orden
           </button>
         </div>
       </form>

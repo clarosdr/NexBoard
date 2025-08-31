@@ -21,13 +21,18 @@ export const ThemeProvider = ({ children }) => {
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
+  // Aplicar tema inmediatamente al cargar
   useEffect(() => {
-    // Aplicar la clase al documento
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    const applyTheme = (isDark) => {
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    };
+
+    // Aplicar tema inicial
+    applyTheme(isDarkMode);
     
     // Guardar la preferencia en localStorage
     localStorage.setItem('nexboard-theme', isDarkMode ? 'dark' : 'light');
@@ -37,9 +42,11 @@ export const ThemeProvider = ({ children }) => {
     // Escuchar cambios en la preferencia del sistema
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e) => {
-      // Solo cambiar si no hay preferencia guardada
+      // Solo cambiar si no hay preferencia guardada explícita del usuario
       const savedTheme = localStorage.getItem('nexboard-theme');
-      if (!savedTheme) {
+      const userHasExplicitPreference = localStorage.getItem('nexboard-user-preference');
+      
+      if (!savedTheme || !userHasExplicitPreference) {
         setIsDarkMode(e.matches);
       }
     };
@@ -49,11 +56,35 @@ export const ThemeProvider = ({ children }) => {
   }, []);
 
   const toggleTheme = () => {
-    setIsDarkMode(prev => !prev);
+    const newTheme = !isDarkMode;
+    setIsDarkMode(newTheme);
+    
+    // Marcar que el usuario ha hecho una selección explícita
+    localStorage.setItem('nexboard-user-preference', 'true');
+    localStorage.setItem('nexboard-theme', newTheme ? 'dark' : 'light');
+    
+    // Aplicar inmediatamente
+    if (newTheme) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   };
 
   const setTheme = (theme) => {
-    setIsDarkMode(theme === 'dark');
+    const isDark = theme === 'dark';
+    setIsDarkMode(isDark);
+    
+    // Marcar que el usuario ha hecho una selección explícita
+    localStorage.setItem('nexboard-user-preference', 'true');
+    localStorage.setItem('nexboard-theme', theme);
+    
+    // Aplicar inmediatamente
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   };
 
   const value = {

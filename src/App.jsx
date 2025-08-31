@@ -5,6 +5,7 @@ import { supabaseService } from './lib/supabase'
 import LoginForm from './components/LoginForm'
 import DataMigration from './components/DataMigration'
 import ThemeToggle from './components/ThemeToggle'
+import CacheManager from './components/CacheManager'
 import ServiceOrderForm from './components/ServiceOrderForm'
 import ServiceOrdersTable from './components/ServiceOrdersTable'
 import OrderDetailsModal from './components/OrderDetailsModal'
@@ -45,19 +46,17 @@ function MainApp() {
     loadOrders()
   }, [user])
 
-  // Cargar gastos desde localStorage al iniciar
+  // Limpiar datos de localStorage problemáticos al iniciar
   useEffect(() => {
-    const savedExpenses = localStorage.getItem('nexboard-expenses')
-    if (savedExpenses) {
-      try {
-        setExpenses(JSON.parse(savedExpenses))
-      } catch (error) {
-        console.error('Error loading expenses from localStorage:', error)
+    // Remover datos locales obsoletos que pueden causar conflictos
+    const obsoleteKeys = ['nexboard-expenses', 'orders', 'casualExpenses', 'budgetExpenses'];
+    obsoleteKeys.forEach(key => {
+      if (localStorage.getItem(key)) {
+        console.log(`Removing obsolete localStorage key: ${key}`);
+        localStorage.removeItem(key);
       }
-    }
-  }, [])
-
-  // Las órdenes ahora se guardan directamente en Supabase, no necesitamos este useEffect
+    });
+  }, []);
 
   // Verificar si hay datos locales para migrar cuando el usuario se autentica
   useEffect(() => {
@@ -76,7 +75,7 @@ function MainApp() {
 
       // Verificar si ya se mostró el modal de migración para este usuario
       const migrationShown = localStorage.getItem(`migration_shown_${user.id}`);
-      
+
       if (hasLocalData() && !migrationShown) {
         setShowDataMigration(true);
       }
@@ -102,7 +101,7 @@ function MainApp() {
   const handleUpdateOrder = async (updatedOrder) => {
     try {
       const updated = await supabaseService.updateServiceOrder(updatedOrder.id, updatedOrder, user.id)
-      setOrders(prev => prev.map(order => 
+      setOrders(prev => prev.map(order =>
         order.id === updatedOrder.id ? updated : order
       ))
       setEditingOrder(null)
@@ -188,6 +187,7 @@ function MainApp() {
                   <span className="sm:hidden">+</span>
                 </button>
               )}
+              <CacheManager className="hidden lg:flex" />
               <ThemeToggle />
               <button
                 onClick={signOut}
