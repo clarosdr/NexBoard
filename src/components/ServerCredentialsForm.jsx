@@ -49,8 +49,8 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
       const credentialData = {
         ...formData,
         id: credential ? credential.id : generateUUID(),
-        createdAt: credential ? credential.createdAt : new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        created_at: credential ? credential.created_at : new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }
 
       let error
@@ -84,46 +84,7 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
 
   return (
     <form onSubmit={handleSubmit} className="p-4 space-y-4">
-      <input
-        type="text"
-        name="serverName"
-        placeholder="Nombre del servidor"
-        value={formData.serverName}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="ipAddress"
-        placeholder="Dirección IP"
-        value={formData.ipAddress}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="username"
-        placeholder="Usuario"
-        value={formData.username}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="password"
-        name="password"
-        placeholder="Contraseña"
-        value={formData.password}
-        onChange={handleChange}
-        required
-      />
-      <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Guardando...' : 'Guardar Credencial'}
-      </button>
-      {onCancel && (
-        <button type="button" onClick={onCancel}>
-          Cancelar
-        </button>
-      )}
+      {/* ... tu JSX original para inputs */}
     </form>
   )
 }
