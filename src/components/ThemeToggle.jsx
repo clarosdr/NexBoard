@@ -19,8 +19,8 @@ const ThemeToggle = ({ className = '' }) => {
         cursor-pointer z-50
         ${className}
       `}
-      title={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-      aria-label={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+      title={isDarkMode ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
+      aria-label={isDarkMode ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
     >
       {/* Icono de sol (modo claro) */}
       <svg

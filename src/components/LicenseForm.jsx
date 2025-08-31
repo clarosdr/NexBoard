@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import Button from './ui/Button'
 
 const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -13,7 +14,8 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     name: '',
     key: '',
-    expirationDate: new Date().toISOString().split('T')[0]
+    expirationDate: new Date().toISOString().split('T')[0],
+    notes: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -22,7 +24,8 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
       setFormData({
         name: license.name || '',
         key: license.key || '',
-        expirationDate: license.expirationDate || new Date().toISOString().split('T')[0]
+        expirationDate: license.expirationDate || new Date().toISOString().split('T')[0],
+        notes: license.notes || ''
       })
     }
   }, [license])
@@ -48,7 +51,7 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
         ...formData,
         id: license ? license.id : generateUUID(),
         created_at: license ? license.created_at : new Date().toISOString(),
-      updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString()
       }
 
       let error
@@ -81,38 +84,93 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 space-y-4">
-      <input
-        type="text"
-        name="name"
-        placeholder="Nombre de la licencia"
-        value={formData.name}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="key"
-        placeholder="Clave de la licencia"
-        value={formData.key}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="date"
-        name="expirationDate"
-        value={formData.expirationDate}
-        onChange={handleChange}
-        required
-      />
-      <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Guardando...' : 'Guardar Licencia'}
-      </button>
-      {onCancel && (
-        <button type="button" onClick={onCancel}>
-          Cancelar
-        </button>
-      )}
+    <form onSubmit={handleSubmit} className="p-6 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Nombre de la licencia *
+          </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            placeholder="Ej: Microsoft Office, Adobe Creative Suite"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="key" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Clave de licencia *
+          </label>
+          <input
+            type="text"
+            id="key"
+            name="key"
+            placeholder="Ingrese la clave de licencia"
+            value={formData.key}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white font-mono"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="expirationDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Fecha de expiración *
+          </label>
+          <input
+            type="date"
+            id="expirationDate"
+            name="expirationDate"
+            value={formData.expirationDate}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Notas adicionales
+          </label>
+          <textarea
+            id="notes"
+            name="notes"
+            placeholder="Información adicional sobre la licencia..."
+            value={formData.notes}
+            onChange={handleChange}
+            rows="3"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white resize-vertical"
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-600">
+        {onCancel && (
+          <Button
+            type="button"
+            onClick={onCancel}
+            disabled={isSubmitting}
+            variant="secondary"
+            size="lg"
+          >
+            Cancelar
+          </Button>
+        )}
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          loading={isSubmitting}
+          variant="primary"
+          size="lg"
+        >
+          {isSubmitting ? 'Guardando...' : (license ? 'Actualizar Licencia' : 'Guardar Licencia')}
+        </Button>
+      </div>
     </form>
   )
 }

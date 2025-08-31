@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import Button from './ui/Button'
 
 const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -11,7 +12,7 @@ const generateUUID = () => {
 
 export default function BudgetExpenseForm({ expense, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
-    category: '',
+    description: '',
     amount: 0,
     date: new Date().toISOString().split('T')[0]
   })
@@ -20,7 +21,7 @@ export default function BudgetExpenseForm({ expense, onSubmit, onCancel }) {
   useEffect(() => {
     if (expense) {
       setFormData({
-        category: expense.category || '',
+        description: expense.description || '',
         amount: Number(expense.amount) || 0,
         date: expense.date || new Date().toISOString().split('T')[0]
       })
@@ -36,8 +37,8 @@ export default function BudgetExpenseForm({ expense, onSubmit, onCancel }) {
     e.preventDefault()
     if (isSubmitting) return
 
-    if (!formData.category.trim()) {
-      alert('La categoría es requerida')
+    if (!formData.description.trim()) {
+      alert('La descripción es requerida')
       return
     }
 
@@ -82,38 +83,80 @@ export default function BudgetExpenseForm({ expense, onSubmit, onCancel }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 space-y-4">
-      <input
-        type="text"
-        name="category"
-        placeholder="Categoría"
-        value={formData.category}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="number"
-        name="amount"
-        placeholder="Monto"
-        value={formData.amount}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="date"
-        name="date"
-        value={formData.date}
-        onChange={handleChange}
-        required
-      />
-      <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Guardando...' : 'Guardar Gasto'}
-      </button>
-      {onCancel && (
-        <button type="button" onClick={onCancel}>
-          Cancelar
-        </button>
-      )}
+    <form onSubmit={handleSubmit} className="p-6 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Descripción *
+          </label>
+          <input
+            type="text"
+            id="description"
+            name="description"
+            placeholder="Descripción del gasto presupuestado"
+            value={formData.description}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Monto *
+          </label>
+          <input
+            type="number"
+            id="amount"
+            name="amount"
+            placeholder="0.00"
+            min="0"
+            step="0.01"
+            value={formData.amount}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Fecha *
+          </label>
+          <input
+            type="date"
+            id="date"
+            name="date"
+            value={formData.date}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-600">
+        {onCancel && (
+          <Button
+            type="button"
+            onClick={onCancel}
+            disabled={isSubmitting}
+            variant="secondary"
+            size="lg"
+          >
+            Cancelar
+          </Button>
+        )}
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          loading={isSubmitting}
+          variant="primary"
+          size="lg"
+        >
+          {isSubmitting ? 'Guardando...' : (expense ? 'Actualizar Gasto' : 'Guardar Gasto')}
+        </Button>
+      </div>
     </form>
   )
 }

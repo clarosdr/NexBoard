@@ -198,7 +198,7 @@ const CasualExpensesTable = () => {
             {showArchived ? 'Ver Activos' : 'Ver Archivados'}
           </button>
           {showArchived && (
-            <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded transition-colors duration-200">
+            <span className="text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded transition-colors duration-200">
               Datos Archivados
             </span>
           )}
@@ -286,7 +286,7 @@ const CasualExpensesTable = () => {
           <div className="text-3xl font-bold text-red-600">
             {formatCurrency(totalExpenses)}
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 transition-colors duration-200">
+          <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 transition-colors duration-200">
             {filteredExpenses.length} gasto{filteredExpenses.length !== 1 ? 's' : ''} registrado{filteredExpenses.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -297,14 +297,14 @@ const CasualExpensesTable = () => {
           <div className="space-y-2 max-h-32 overflow-y-auto">
             {totalByCategory.map(cat => (
               <div key={cat.value} className="flex justify-between items-center text-sm">
-                <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">{cat.label}</span>
+                <span className="text-gray-700 dark:text-gray-300 transition-colors duration-200">{cat.label}</span>
                 <span className="font-semibold text-gray-800 dark:text-white transition-colors duration-200">
                   {formatCurrency(cat.total)}
                 </span>
               </div>
             ))}
             {totalByCategory.length === 0 && (
-              <p className="text-gray-500 dark:text-gray-400 text-sm transition-colors duration-200">No hay gastos en el período seleccionado</p>
+              <p className="text-gray-600 dark:text-gray-300 text-sm transition-colors duration-200">No hay gastos en el período seleccionado</p>
             )}
           </div>
         </div>
@@ -317,7 +317,7 @@ const CasualExpensesTable = () => {
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                   Fecha
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
@@ -337,7 +337,7 @@ const CasualExpensesTable = () => {
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 transition-colors duration-200">
               {sortedExpenses.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 transition-colors duration-200">
+                  <td colSpan="5" className="px-6 py-12 text-center text-gray-600 dark:text-gray-300 transition-colors duration-200">
                     <div className="text-4xl mb-2">📝</div>
                     <p>No hay gastos registrados</p>
                     <p className="text-sm">Haz clic en "Registrar Gasto" para agregar tu primer gasto casual</p>
@@ -353,7 +353,7 @@ const CasualExpensesTable = () => {
                       <div>
                         <div className="font-medium">{expense.description}</div>
                         {expense.notes && (
-                          <div className="text-gray-500 dark:text-gray-400 text-xs mt-1 transition-colors duration-200">{expense.notes}</div>
+                          <div className="text-gray-600 dark:text-gray-300 text-xs mt-1 transition-colors duration-200">{expense.notes}</div>
                         )}
                       </div>
                     </td>
@@ -369,15 +369,17 @@ const CasualExpensesTable = () => {
                           onClick={() => handleEditExpense(expense)}
                           className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200"
                           title="Editar"
+                          aria-label="Editar gasto casual"
                         >
-                          ✏️
+                          <span aria-hidden="true">✏️</span>
                         </button>
                         <button
                           onClick={() => handleDeleteExpense(expense.id)}
                           className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-200"
                           title="Eliminar"
+                          aria-label="Eliminar gasto casual"
                         >
-                          🗑️
+                          <span aria-hidden="true">🗑️</span>
                         </button>
                       </div>
                     </td>
@@ -391,7 +393,7 @@ const CasualExpensesTable = () => {
         {/* Vista Mobile - Cards */}
         <div className="lg:hidden">
           {sortedExpenses.length === 0 ? (
-            <div className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 transition-colors duration-200">
+            <div className="px-6 py-12 text-center text-gray-600 dark:text-gray-300 transition-colors duration-200">
               <div className="text-4xl mb-2">📝</div>
               <p>No hay gastos registrados</p>
               <p className="text-sm">Haz clic en "Registrar Gasto" para agregar tu primer gasto casual</p>
@@ -448,9 +450,9 @@ const CasualExpensesTable = () => {
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white transition-colors duration-200">{expense.description}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">{formatDate(expense.date)}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors duration-200">{formatDate(expense.date)}</p>
                       {expense.notes && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 transition-colors duration-200">{expense.notes}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 transition-colors duration-200">{expense.notes}</p>
                       )}
                     </div>
                     <div className="ml-3 text-right">

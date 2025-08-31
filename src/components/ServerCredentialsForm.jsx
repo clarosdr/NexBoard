@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import Button from './ui/Button'
 
 const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -14,7 +15,8 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
     serverName: '',
     ipAddress: '',
     username: '',
-    password: ''
+    password: '',
+    notes: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -24,7 +26,8 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
         serverName: credential.serverName || '',
         ipAddress: credential.ipAddress || '',
         username: credential.username || '',
-        password: credential.password || ''
+        password: credential.password || '',
+        notes: credential.notes || ''
       })
     }
   }, [credential])
@@ -83,8 +86,110 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 space-y-4">
-      {/* ... tu JSX original para inputs */}
+    <form onSubmit={handleSubmit} className="p-6 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+      <div className="space-y-4">
+        <div>
+          <label htmlFor="serverName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Nombre del servidor *
+          </label>
+          <input
+            type="text"
+            id="serverName"
+            name="serverName"
+            placeholder="Ej: Servidor Web Principal, Base de Datos"
+            value={formData.serverName}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="ipAddress" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Dirección IP *
+          </label>
+          <input
+            type="text"
+            id="ipAddress"
+            name="ipAddress"
+            placeholder="192.168.1.100 o servidor.ejemplo.com"
+            value={formData.ipAddress}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white font-mono"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Usuario *
+          </label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            placeholder="Nombre de usuario del servidor"
+            value={formData.username}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+        
+        <div>
+           <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+             Contraseña *
+           </label>
+           <input
+             type="password"
+             id="password"
+             name="password"
+             placeholder="Contraseña del servidor"
+             value={formData.password}
+             onChange={handleChange}
+             required
+             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white font-mono"
+           />
+         </div>
+         
+         <div>
+           <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+             Notas adicionales
+           </label>
+           <textarea
+             id="notes"
+             name="notes"
+             placeholder="Información adicional sobre el servidor..."
+             value={formData.notes}
+             onChange={handleChange}
+             rows="3"
+             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white resize-vertical"
+           />
+         </div>
+       </div>
+
+      <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-600">
+        {onCancel && (
+          <Button
+            type="button"
+            onClick={onCancel}
+            disabled={isSubmitting}
+            variant="secondary"
+            size="lg"
+          >
+            Cancelar
+          </Button>
+        )}
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          loading={isSubmitting}
+          variant="primary"
+          size="lg"
+        >
+          {isSubmitting ? 'Guardando...' : (credential ? 'Actualizar Credenciales' : 'Guardar Credenciales')}
+        </Button>
+      </div>
     </form>
   )
 }

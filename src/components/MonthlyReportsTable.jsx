@@ -452,13 +452,13 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
           {comparisonData && (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="bg-white dark:bg-gray-700 p-3 rounded-md border border-gray-200 dark:border-gray-600 transition-colors duration-200">
-                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Ingresos</div>
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Ingresos</div>
                 <div className="text-lg font-bold text-green-600 dark:text-green-400 transition-colors duration-200">
                   {comparisonData.changes.revenue > 0 ? '+' : ''}{comparisonData.changes.revenue}%
                 </div>
               </div>
               <div className="bg-white dark:bg-gray-700 p-3 rounded-md border border-gray-200 dark:border-gray-600 transition-colors duration-200">
-                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Ganancia Neta</div>
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Ganancia Neta</div>
                 <div className={`text-lg font-bold transition-colors duration-200 ${
                   comparisonData.changes.profit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                 }`}>
@@ -466,13 +466,13 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
                 </div>
               </div>
               <div className="bg-white dark:bg-gray-700 p-3 rounded-md border border-gray-200 dark:border-gray-600 transition-colors duration-200">
-                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Órdenes</div>
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Órdenes</div>
                 <div className="text-lg font-bold text-blue-600 dark:text-blue-400 transition-colors duration-200">
                   {comparisonData.changes.orders > 0 ? '+' : ''}{comparisonData.changes.orders}%
                 </div>
               </div>
               <div className="bg-white dark:bg-gray-700 p-3 rounded-md border border-gray-200 dark:border-gray-600 transition-colors duration-200">
-                <div className="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Gastos</div>
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Gastos</div>
                 <div className={`text-lg font-bold transition-colors duration-200 ${
                   comparisonData.changes.expenses <= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                 }`}>
@@ -491,7 +491,7 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700 transition-colors duration-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider transition-colors duration-200">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                   Mes
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider transition-colors duration-200">
@@ -526,7 +526,7 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">
                     {report.monthName}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 transition-colors duration-200">
                     {report.completedOrders} / {report.totalOrders}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600 dark:text-green-400 transition-colors duration-200">
@@ -534,7 +534,7 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400 transition-colors duration-200">
                     {formatCurrency(report.grossProfit)}
-                    <div className="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200">Margen: {report.profitMargin}%</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-300 transition-colors duration-200">Margen: {report.profitMargin}%</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-red-600 dark:text-red-400 transition-colors duration-200">
                     {formatCurrency(report.totalExpenses)}
@@ -546,7 +546,7 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-orange-600 dark:text-orange-400 transition-colors duration-200">
                     {formatCurrency(report.totalPending)}
-                    <div className="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200">Cobrado: {report.collectionRate}%</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-300 transition-colors duration-200">Cobrado: {report.collectionRate}%</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {report.isClosed ? (
@@ -579,7 +579,7 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
         {/* Vista Mobile - Cards */}
         <div className="lg:hidden">
           {monthlyReports.length === 0 ? (
-            <div className="p-8 text-center text-gray-500 dark:text-gray-400 transition-colors duration-200">
+            <div className="p-8 text-center text-gray-600 dark:text-gray-300 transition-colors duration-200">
               No hay datos disponibles para el año seleccionado.
             </div>
           ) : (
@@ -590,7 +590,7 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white transition-colors duration-200">{report.monthName}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">{report.completedOrders} / {report.totalOrders} órdenes</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors duration-200">{report.completedOrders} / {report.totalOrders} órdenes</p>
                     </div>
                     <div className="text-right">
                       {report.isClosed ? (

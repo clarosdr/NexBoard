@@ -226,7 +226,7 @@ const FinancialDashboard = ({ orders, expenses }) => {
         {/* Órdenes Completadas */}
         <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border dark:border-gray-600 transition-colors duration-200">
           <div className="text-center">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Órdenes Completadas</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Órdenes Completadas</p>
             <p className="text-3xl font-bold text-gray-900 dark:text-white transition-colors duration-200">{dashboardData.completedOrders}</p>
           </div>
         </div>
@@ -234,7 +234,7 @@ const FinancialDashboard = ({ orders, expenses }) => {
         {/* Valor Promedio por Orden */}
         <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border dark:border-gray-600 transition-colors duration-200">
           <div className="text-center">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Valor Promedio/Orden</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Valor Promedio/Orden</p>
             <p className="text-3xl font-bold text-gray-900 dark:text-white transition-colors duration-200">
               {formatCurrency(dashboardData.averageOrderValue)}
             </p>
@@ -283,19 +283,19 @@ const FinancialDashboard = ({ orders, expenses }) => {
             <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3 transition-colors duration-200">Ingresos</h4>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Total Facturado:</span>
+                <span className="text-gray-700 dark:text-gray-300 transition-colors duration-200">Total Facturado:</span>
                 <span className="font-medium text-green-600 dark:text-green-400 transition-colors duration-200">
                   {formatCurrency(dashboardData.totalRevenue)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Total Cobrado:</span>
+                <span className="text-gray-700 dark:text-gray-300 transition-colors duration-200">Total Cobrado:</span>
                 <span className="font-medium text-teal-600 dark:text-teal-400 transition-colors duration-200">
                   {formatCurrency(dashboardData.totalPaid)}
                 </span>
               </div>
               <div className="flex justify-between border-t dark:border-gray-600 pt-2 transition-colors duration-200">
-                <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Pendiente por Cobrar:</span>
+                <span className="text-gray-700 dark:text-gray-300 transition-colors duration-200">Pendiente por Cobrar:</span>
                 <span className="font-medium text-orange-600 dark:text-orange-400 transition-colors duration-200">
                   {formatCurrency(dashboardData.totalPending)}
                 </span>
@@ -307,19 +307,19 @@ const FinancialDashboard = ({ orders, expenses }) => {
             <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3 transition-colors duration-200">Egresos</h4>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Costos de Servicios:</span>
+                <span className="text-gray-700 dark:text-gray-300 transition-colors duration-200">Costos de Servicios:</span>
                 <span className="font-medium text-red-600 dark:text-red-400 transition-colors duration-200">
                   {formatCurrency(dashboardData.totalCosts)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Gastos Operativos:</span>
+                <span className="text-gray-700 dark:text-gray-300 transition-colors duration-200">Gastos Operativos:</span>
                 <span className="font-medium text-red-600 dark:text-red-400 transition-colors duration-200">
                   {formatCurrency(dashboardData.totalExpenses)}
                 </span>
               </div>
               <div className="flex justify-between border-t dark:border-gray-600 pt-2 transition-colors duration-200">
-                <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Total Egresos:</span>
+                <span className="text-gray-700 dark:text-gray-300 transition-colors duration-200">Total Egresos:</span>
                 <span className="font-medium text-red-600 dark:text-red-400 transition-colors duration-200">
                   {formatCurrency(dashboardData.totalCosts + dashboardData.totalExpenses)}
                 </span>

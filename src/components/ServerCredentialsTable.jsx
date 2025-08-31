@@ -128,7 +128,7 @@ const ServerCredentialsTable = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white transition-colors duration-200">Credenciales de Servidores</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1 transition-colors duration-200">
+          <p className="text-gray-700 dark:text-gray-300 mt-1 transition-colors duration-200">
             Total: {credentials.length} servidor{credentials.length !== 1 ? 'es' : ''}
           </p>
         </div>
@@ -150,7 +150,7 @@ const ServerCredentialsTable = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
           />
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">
             🔍
           </div>
         </div>
@@ -159,11 +159,11 @@ const ServerCredentialsTable = () => {
       {/* Tabla de credenciales */}
       {filteredCredentials.length === 0 ? (
         <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-sm border dark:border-gray-700 text-center transition-colors duration-200">
-          <div className="text-gray-400 dark:text-gray-500 text-6xl mb-4">🖥️</div>
+          <div className="text-gray-500 dark:text-gray-400 text-6xl mb-4">🖥️</div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2 transition-colors duration-200">
             {credentials.length === 0 ? 'No hay credenciales guardadas' : 'No se encontraron resultados'}
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 transition-colors duration-200">
+          <p className="text-gray-700 dark:text-gray-300 transition-colors duration-200">
             {credentials.length === 0 
               ? 'Comienza agregando las credenciales de tu primer servidor'
               : 'Intenta con otros términos de búsqueda'
@@ -176,7 +176,7 @@ const ServerCredentialsTable = () => {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-700 transition-colors duration-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                     Cliente / Servidor
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
@@ -202,7 +202,7 @@ const ServerCredentialsTable = () => {
                           <div className="text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">
                             🏢 {credential.client}
                           </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
+                          <div className="text-sm text-gray-600 dark:text-gray-300 transition-colors duration-200">
                             🖥️ {credential.localServerName}
                           </div>
                         </div>
@@ -212,17 +212,17 @@ const ServerCredentialsTable = () => {
                           <div className="text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">
                             {credential.vpnName}
                           </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center transition-colors duration-200">
+                          <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center transition-colors duration-200">
                             📍 {credential.vpnIp}
                             <button
                               onClick={() => copyToClipboard(credential.vpnIp, 'IP VPN')}
-                              className="ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
+                              className="ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200"
                               title="Copiar IP"
                             >
                               📋
                             </button>
                           </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center mt-1 transition-colors duration-200">
+                          <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center mt-1 transition-colors duration-200">
                             🔒 {visiblePasswords.has(`vpn-${credential.id}`) 
                               ? credential.vpnPassword 
                               : '••••••••'
@@ -231,15 +231,17 @@ const ServerCredentialsTable = () => {
                               onClick={() => togglePasswordVisibility(`vpn-${credential.id}`)}
                               className="ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
                               title={visiblePasswords.has(`vpn-${credential.id}`) ? 'Ocultar' : 'Mostrar'}
+                              aria-label={visiblePasswords.has(`vpn-${credential.id}`) ? 'Ocultar contraseña VPN' : 'Mostrar contraseña VPN'}
                             >
-                              {visiblePasswords.has(`vpn-${credential.id}`) ? '👁️' : '👁️‍🗨️'}
+                              <span aria-hidden="true">{visiblePasswords.has(`vpn-${credential.id}`) ? '👁️' : '👁️‍🗨️'}</span>
                             </button>
                             <button
                               onClick={() => copyToClipboard(credential.vpnPassword, 'Contraseña VPN')}
                               className="ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
                               title="Copiar contraseña VPN"
+                              aria-label="Copiar contraseña VPN al portapapeles"
                             >
-                              📋
+                              <span aria-hidden="true">📋</span>
                             </button>
                           </div>
                         </div>
@@ -252,12 +254,13 @@ const ServerCredentialsTable = () => {
                           <button
                             onClick={() => toggleRowExpansion(credential.id)}
                             className="ml-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm transition-colors duration-200"
+                            aria-label={expandedRows.has(credential.id) ? 'Ocultar usuarios del servidor' : 'Mostrar usuarios del servidor'}
                           >
-                            {expandedRows.has(credential.id) ? '▼' : '▶'} Ver
+                            <span aria-hidden="true">{expandedRows.has(credential.id) ? '▼' : '▶'}</span> Ver
                           </button>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 transition-colors duration-200">
                         {new Date(credential.updated_at).toLocaleDateString('es-CO', {
                           year: 'numeric',
                           month: 'short',
@@ -269,15 +272,17 @@ const ServerCredentialsTable = () => {
                           onClick={() => handleEditCredential(credential)}
                           className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 mr-3 transition-colors duration-200"
                           title="Editar"
+                          aria-label="Editar credencial del servidor"
                         >
-                          ✏️
+                          <span aria-hidden="true">✏️</span>
                         </button>
                         <button
                           onClick={() => handleDeleteCredential(credential.id)}
                           className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors duration-200"
                           title="Eliminar"
+                          aria-label="Eliminar credencial del servidor"
                         >
-                          🗑️
+                          <span aria-hidden="true">🗑️</span>
                         </button>
                       </td>
                     </tr>
@@ -315,15 +320,17 @@ const ServerCredentialsTable = () => {
                                         onClick={() => togglePasswordVisibility(`user-${credential.id}-${userIndex}`)}
                                         className="ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
                                         title={visiblePasswords.has(`user-${credential.id}-${userIndex}`) ? 'Ocultar' : 'Mostrar'}
+                                        aria-label={visiblePasswords.has(`user-${credential.id}-${userIndex}`) ? 'Ocultar contraseña de usuario' : 'Mostrar contraseña de usuario'}
                                       >
-                                        {visiblePasswords.has(`user-${credential.id}-${userIndex}`) ? '👁️' : '👁️‍🗨️'}
+                                        <span aria-hidden="true">{visiblePasswords.has(`user-${credential.id}-${userIndex}`) ? '👁️' : '👁️‍🗨️'}</span>
                                       </button>
                                       <button
                                         onClick={() => copyToClipboard(user.password, 'Contraseña')}
                                         className="ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
                                         title="Copiar contraseña"
+                                        aria-label="Copiar contraseña de usuario al portapapeles"
                                       >
-                                        📋
+                                        <span aria-hidden="true">📋</span>
                                       </button>
                                     </div>
                                   </div>

@@ -3,6 +3,7 @@ import OrderDetailsModal from './OrderDetailsModal';
 import PrintReceipt from './PrintReceipt';
 import PullToRefresh from './PullToRefresh';
 import { useSwipeCard } from '../hooks/useTouchGestures';
+import Button from './ui/Button';
 
 // Función para formatear valores en pesos colombianos
 const formatCurrency = (value) => {
@@ -208,9 +209,9 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
     return (
       <PullToRefresh onRefresh={handleRefresh}>
         <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md text-center transition-colors duration-200">
-          <div className="text-gray-500 dark:text-gray-400 text-lg mb-4 transition-colors duration-200">📋</div>
+          <div className="text-gray-600 dark:text-gray-300 text-lg mb-4 transition-colors duration-200">📋</div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2 transition-colors duration-200">No hay órdenes de servicio</h3>
-          <p className="text-gray-500 dark:text-gray-400 transition-colors duration-200">Crea tu primera orden de servicio para comenzar.</p>
+          <p className="text-gray-600 dark:text-gray-300 transition-colors duration-200">Crea tu primera orden de servicio para comenzar.</p>
         </div>
       </PullToRefresh>
     );
@@ -224,18 +225,15 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
           <div className="flex items-center space-x-4">
             <h2 className="text-2xl font-bold text-gray-800 dark:text-white transition-colors duration-200">Órdenes de Servicio</h2>
-            <button
+            <Button
               onClick={() => setShowArchived(!showArchived)}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 ${
-                showArchived 
-                  ? 'bg-gray-600 dark:bg-gray-500 text-white hover:bg-gray-700 dark:hover:bg-gray-600' 
-                  : 'bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600'
-              }`}
+              variant={showArchived ? 'secondary' : 'primary'}
+              size="sm"
             >
               {showArchived ? 'Ver Activas' : 'Ver Archivadas'}
-            </button>
+            </Button>
             {showArchived && (
-              <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded transition-colors duration-200">
+              <span className="text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded transition-colors duration-200">
                 Datos Archivados
               </span>
             )}
@@ -259,16 +257,18 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
                 const count = getOrderCountByStatus(option.value);
                 const isActive = filterStatus === option.value;
                 const colorClasses = {
-                  yellow: isActive ? 'border-yellow-500 text-yellow-600 dark:text-yellow-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 hover:border-yellow-300',
-                  blue: isActive ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300',
-                  green: isActive ? 'border-green-500 text-green-600 dark:text-green-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:border-green-300',
-                  gray: isActive ? 'border-gray-500 text-gray-600 dark:text-gray-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:border-gray-300'
+                  yellow: isActive ? 'border-yellow-500 text-yellow-600 dark:text-yellow-400' : 'border-transparent text-gray-600 dark:text-gray-300 hover:text-yellow-600 dark:hover:text-yellow-400 hover:border-yellow-300',
+                  blue: isActive ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300',
+                  green: isActive ? 'border-green-500 text-green-600 dark:text-green-400' : 'border-transparent text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:border-green-300',
+                  gray: isActive ? 'border-gray-500 text-gray-600 dark:text-gray-400' : 'border-transparent text-gray-600 dark:text-gray-300 hover:text-gray-600 dark:hover:text-gray-300 hover:border-gray-300'
                 };
                 
                 return (
-                  <button
+                  <Button
                     key={option.value}
                     onClick={() => setFilterStatus(option.value)}
+                    variant="ghost"
+                    size="sm"
                     className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${colorClasses[option.color]}`}
                   >
                     {option.label}
@@ -279,7 +279,7 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
                     }`}>
                       {count}
                     </span>
-                  </button>
+                  </Button>
                 );
               })}
             </nav>
@@ -320,11 +320,11 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-700 transition-colors duration-200">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                 ID
               </th>
               <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
                 onClick={() => handleSort('date')}
               >
                 Fecha {getSortIcon('date')}
@@ -367,7 +367,7 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">
                   #{order.id}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 transition-colors duration-200">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 transition-colors duration-200">
                   {formatDate(order.date)}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900 dark:text-white transition-colors duration-200">
@@ -404,34 +404,42 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex space-x-2">
-                    <button
-                      onClick={() => onViewDetails(order)}
-                      className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 transition-colors duration-200"
-                      title="Ver detalles"
-                    >
-                      👁️
-                    </button>
-                    <button
-                      onClick={() => handlePrint(order)}
-                      className="text-purple-600 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300 transition-colors duration-200"
-                      title="Imprimir comprobante"
-                    >
-                      🖨️
-                    </button>
-                    <button
-                      onClick={() => onEdit(order)}
-                      className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 transition-colors duration-200"
-                      title="Editar"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      onClick={() => onDelete(order.id)}
-                      className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors duration-200"
-                      title="Eliminar"
-                    >
-                      🗑️
-                    </button>
+                    <Button
+                       onClick={() => onViewDetails(order)}
+                       variant="ghost"
+                       size="sm"
+                       title="Ver detalles"
+                       aria-label="Ver detalles de la orden"
+                     >
+                       👁️
+                     </Button>
+                     <Button
+                       onClick={() => handlePrint(order)}
+                       variant="ghost"
+                       size="sm"
+                       title="Imprimir comprobante"
+                       aria-label="Imprimir comprobante de la orden"
+                     >
+                       🖨️
+                     </Button>
+                     <Button
+                       onClick={() => onEdit(order)}
+                       variant="ghost"
+                       size="sm"
+                       title="Editar"
+                       aria-label="Editar orden de servicio"
+                     >
+                       ✏️
+                     </Button>
+                     <Button
+                       onClick={() => onDelete(order.id)}
+                       variant="ghost"
+                       size="sm"
+                       title="Eliminar"
+                       aria-label="Eliminar orden de servicio"
+                     >
+                       🗑️
+                     </Button>
                   </div>
                 </td>
               </tr>
@@ -535,34 +543,46 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
             
             {/* Acciones */}
             <div className="flex justify-between pt-3 border-t border-gray-100 dark:border-gray-700 transition-colors duration-200">
-              <button
-                onClick={() => onViewDetails(order)}
-                className="flex items-center space-x-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30 touch-manipulation transition-colors duration-200"
-              >
-                <span>👁️</span>
-                <span className="text-sm font-medium">Ver</span>
-              </button>
-              <button
-                onClick={() => handlePrint(order)}
-                className="flex items-center space-x-2 px-3 py-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-md hover:bg-purple-100 dark:hover:bg-purple-900/30 touch-manipulation transition-colors duration-200"
-              >
-                <span>🖨️</span>
-                <span className="text-sm font-medium">Imprimir</span>
-              </button>
-              <button
-                onClick={() => onEdit(order)}
-                className="flex items-center space-x-2 px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-md hover:bg-indigo-100 dark:hover:bg-indigo-900/30 touch-manipulation transition-colors duration-200"
-              >
-                <span>✏️</span>
-                <span className="text-sm font-medium">Editar</span>
-              </button>
-              <button
-                onClick={() => onDelete(order.id)}
-                className="flex items-center space-x-2 px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 touch-manipulation transition-colors duration-200"
-              >
-                <span>🗑️</span>
-                <span className="text-sm font-medium">Eliminar</span>
-              </button>
+              <Button
+                 onClick={() => onViewDetails(order)}
+                 variant="ghost"
+                 size="sm"
+                 className="flex items-center space-x-2 touch-manipulation"
+                 aria-label="Ver detalles de la orden"
+               >
+                 <span>👁️</span>
+                 <span className="text-sm font-medium">Ver</span>
+               </Button>
+               <Button
+                 onClick={() => handlePrint(order)}
+                 variant="ghost"
+                 size="sm"
+                 className="flex items-center space-x-2 touch-manipulation"
+                 aria-label="Imprimir comprobante de la orden"
+               >
+                 <span>🖨️</span>
+                 <span className="text-sm font-medium">Imprimir</span>
+               </Button>
+               <Button
+                 onClick={() => onEdit(order)}
+                 variant="ghost"
+                 size="sm"
+                 className="flex items-center space-x-2 touch-manipulation"
+                 aria-label="Editar orden de servicio"
+               >
+                 <span>✏️</span>
+                 <span className="text-sm font-medium">Editar</span>
+               </Button>
+               <Button
+                 onClick={() => onDelete(order.id)}
+                 variant="ghost"
+                 size="sm"
+                 className="flex items-center space-x-2 touch-manipulation"
+                 aria-label="Eliminar orden de servicio"
+               >
+                 <span>🗑️</span>
+                 <span className="text-sm font-medium">Eliminar</span>
+               </Button>
             </div>
           </div>
           </SwipeableCard>
@@ -595,29 +615,27 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
             
             {totalPages > 1 && (
               <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors duration-200"
-                >
-                  Anterior
-                </button>
+                <Button
+                   onClick={() => handlePageChange(currentPage - 1)}
+                   disabled={currentPage === 1}
+                   variant="ghost"
+                   size="sm"
+                 >
+                   Anterior
+                 </Button>
                 
                 <div className="flex space-x-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
                     if (totalPages <= 7 || page === 1 || page === totalPages || (page >= currentPage - 2 && page <= currentPage + 2)) {
                       return (
-                        <button
-                          key={page}
-                          onClick={() => handlePageChange(page)}
-                          className={`px-3 py-1 border rounded text-sm transition-colors duration-200 ${
-                            currentPage === page
-                              ? 'bg-blue-500 dark:bg-blue-600 text-white border-blue-500 dark:border-blue-600'
-                              : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
-                          }`}
-                        >
-                          {page}
-                        </button>
+                        <Button
+                           key={page}
+                           onClick={() => handlePageChange(page)}
+                           variant={currentPage === page ? 'primary' : 'ghost'}
+                           size="sm"
+                         >
+                           {page}
+                         </Button>
                       );
                     } else if (page === currentPage - 3 || page === currentPage + 3) {
                       return <span key={page} className="px-2 text-gray-500 dark:text-gray-400 transition-colors duration-200">...</span>;
@@ -626,13 +644,14 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
                   })}
                 </div>
                 
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white transition-colors duration-200"
-                >
-                  Siguiente
-                </button>
+                <Button
+                   onClick={() => handlePageChange(currentPage + 1)}
+                   disabled={currentPage === totalPages}
+                   variant="ghost"
+                   size="sm"
+                 >
+                   Siguiente
+                 </Button>
               </div>
             )}
           </div>

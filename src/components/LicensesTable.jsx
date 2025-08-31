@@ -218,7 +218,7 @@ const LicensesTable = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white transition-colors duration-200">Gestión de Licencias</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1 transition-colors duration-200">
+          <p className="text-gray-700 dark:text-gray-300 mt-1 transition-colors duration-200">
             Total: {stats.total} licencia{stats.total !== 1 ? 's' : ''}
           </p>
         </div>
@@ -240,7 +240,7 @@ const LicensesTable = () => {
               </div>
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400 transition-colors duration-200">Activas</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-300 transition-colors duration-200">Activas</p>
               <p className="text-2xl font-semibold text-gray-900 dark:text-white transition-colors duration-200">{stats.active}</p>
             </div>
           </div>
@@ -254,7 +254,7 @@ const LicensesTable = () => {
               </div>
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400 transition-colors duration-200">Por Vencer</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-300 transition-colors duration-200">Por Vencer</p>
               <p className="text-2xl font-semibold text-gray-900 dark:text-white transition-colors duration-200">{stats.expiring}</p>
             </div>
           </div>
@@ -268,7 +268,7 @@ const LicensesTable = () => {
               </div>
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400 transition-colors duration-200">Vencidas</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-300 transition-colors duration-200">Vencidas</p>
               <p className="text-2xl font-semibold text-gray-900 dark:text-white transition-colors duration-200">{stats.expired}</p>
             </div>
           </div>
@@ -282,7 +282,7 @@ const LicensesTable = () => {
               </div>
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400 transition-colors duration-200">Ganancia Total</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-300 transition-colors duration-200">Ganancia Total</p>
               <p className="text-lg font-semibold text-gray-900 dark:text-white transition-colors duration-200">{formatCurrency(stats.totalProfit)}</p>
             </div>
           </div>
@@ -448,15 +448,17 @@ const LicensesTable = () => {
                           onClick={() => handleEditLicense(license)}
                           className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 mr-3 transition-colors duration-200"
                           title="Editar"
+                          aria-label="Editar licencia"
                         >
-                          ✏️
+                          <span aria-hidden="true">✏️</span>
                         </button>
                         <button
                           onClick={() => handleDeleteLicense(license.id)}
                           className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 transition-colors duration-200"
                           title="Eliminar"
+                          aria-label="Eliminar licencia"
                         >
-                          🗑️
+                          <span aria-hidden="true">🗑️</span>
                         </button>
                       </td>
                     </tr>

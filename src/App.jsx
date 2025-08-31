@@ -6,6 +6,7 @@ import LoginForm from './components/LoginForm'
 import DataMigration from './components/DataMigration'
 import ThemeToggle from './components/ThemeToggle'
 import CacheManager from './components/CacheManager'
+import Button from './components/ui/Button'
 import ServiceOrderForm from './components/ServiceOrderForm'
 import ServiceOrdersTable from './components/ServiceOrdersTable'
 import OrderDetailsModal from './components/OrderDetailsModal'
@@ -161,8 +162,10 @@ function MainApp() {
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="lg:hidden p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                aria-label="Abrir menú de navegación"
+                aria-expanded={mobileMenuOpen}
               >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   {mobileMenuOpen ? (
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   ) : (
@@ -194,24 +197,29 @@ function MainApp() {
                 {user?.email}
               </div>
               {activeTab === 'orders' && (
-                <button
+                <Button
                   onClick={() => setShowForm(true)}
-                  className="px-3 py-2 lg:px-6 lg:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-sm lg:text-base"
+                  variant="primary"
+                  size="md"
+                  className="lg:px-6 lg:py-3 lg:text-base"
+                  aria-label="Crear nueva orden de servicio"
                 >
                   <span className="hidden sm:inline">+ Nueva Orden</span>
                   <span className="sm:hidden">+</span>
-                </button>
+                </Button>
               )}
               <CacheManager className="hidden lg:flex" />
               <ThemeToggle />
-              <button
+              <Button
                 onClick={signOut}
-                className="px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium text-sm transition-colors duration-200"
+                variant="ghost"
+                size="md"
                 title="Cerrar Sesión"
+                aria-label="Cerrar sesión de usuario"
               >
                 <span className="hidden sm:inline">Cerrar Sesión</span>
-                <span className="sm:hidden">🚪</span>
-              </button>
+                <span className="sm:hidden">⏻</span>
+              </Button>
             </div>
           </div>
         </div>
@@ -291,26 +299,20 @@ function MainApp() {
         {activeTab === 'financial' && (
           <div>
             <div className="mb-6 flex space-x-4">
-              <button
+              <Button
                 onClick={() => setFinancialView('dashboard')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                  financialView === 'dashboard'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                }`}
+                variant={financialView === 'dashboard' ? 'primary' : 'secondary'}
+                size="md"
               >
                 📊 Dashboard
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setFinancialView('reports')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                  financialView === 'reports'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                }`}
+                variant={financialView === 'reports' ? 'primary' : 'secondary'}
+                size="md"
               >
                 📈 Reportes
-              </button>
+              </Button>
             </div>
             
             {financialView === 'dashboard' ? (
