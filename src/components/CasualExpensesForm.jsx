@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase' // ✅ Cliente único
+import { supabase } from '../lib/supabase'
 
 const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -21,7 +21,7 @@ export default function CasualExpensesForm({ expense, onSubmit, onCancel }) {
     if (expense) {
       setFormData({
         description: expense.description || '',
-        amount: expense.amount || 0,
+        amount: Number(expense.amount) || 0,
         date: expense.date || new Date().toISOString().split('T')[0]
       })
     }
@@ -29,7 +29,7 @@ export default function CasualExpensesForm({ expense, onSubmit, onCancel }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData(prev => ({ ...prev, [name]: name === 'amount' ? Number(value) : value }))
   }
 
   const handleSubmit = async (e) => {
@@ -106,6 +106,7 @@ export default function CasualExpensesForm({ expense, onSubmit, onCancel }) {
         onChange={handleChange}
         required
       />
+
       <button type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Guardando...' : 'Guardar Gasto'}
       </button>
