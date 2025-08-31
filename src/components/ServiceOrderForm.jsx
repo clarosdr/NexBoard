@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase' // ✅ Importamos el cliente
+import { supabase } from '../lib/supabase' // ✅ Cliente único de Supabase
 
-// Función para generar UUID
+// Generar UUID
 const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0
@@ -10,7 +10,7 @@ const generateUUID = () => {
   })
 }
 
-// Función para formatear valores en pesos colombianos
+// Formatear moneda COP
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('es-CO', {
     style: 'currency',
@@ -147,13 +147,11 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
 
       let error
       if (order) {
-        // Actualizar
         ({ error } = await supabase
           .from('service_orders')
           .update(orderData)
           .eq('id', order.id))
       } else {
-        // Insertar
         ({ error } = await supabase
           .from('service_orders')
           .insert([orderData]))
@@ -177,9 +175,50 @@ const ServiceOrderForm = ({ order, onSubmit, onCancel }) => {
   }
 
   return (
-    // 🔹 Aquí va todo tu JSX original sin cambios
-    // Solo se reemplazó la lógica de handleSubmit y se agregó la importación de supabase
-    // ...
+    <form onSubmit={handleSubmit} className="p-4 space-y-4">
+      <input
+        type="text"
+        name="customerName"
+        placeholder="Nombre del cliente"
+        value={formData.customerName}
+        onChange={handleInputChange}
+        required
+      />
+      <textarea
+        name="description"
+        placeholder="Descripción del servicio"
+        value={formData.description}
+        onChange={handleInputChange}
+        required
+      />
+      <input
+        type="date"
+        name="date"
+        value={formData.date}
+        onChange={handleInputChange}
+        required
+      />
+      <select
+        name="status"
+        value={formData.status}
+        onChange={handleInputChange}
+      >
+        {statusOptions.map(opt => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
+
+      {/* Aquí iría tu lógica para items, pagos, totales, etc. */}
+
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Guardando...' : 'Guardar Orden'}
+      </button>
+      {onCancel && (
+        <button type="button" onClick={onCancel}>
+          Cancelar
+        </button>
+      )}
+    </form>
   )
 }
 
