@@ -5,32 +5,21 @@
 ALTER DEFAULT PRIVILEGES REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
 ALTER DEFAULT PRIVILEGES IN SCHEMA PUBLIC REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
 
--- Tabla de órdenes de servicio
+-- Tabla de órdenes de servicio (CORREGIDA - coincide con la aplicación)
 CREATE TABLE IF NOT EXISTS service_orders (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  id BIGINT PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  order_number TEXT NOT NULL,
-  client_name TEXT NOT NULL,
-  client_phone TEXT,
-  client_email TEXT,
-  device_type TEXT NOT NULL,
-  device_brand TEXT,
-  device_model TEXT,
-  device_serial TEXT,
-  problem_description TEXT NOT NULL,
-  diagnosis TEXT,
-  solution TEXT,
+  customer_name TEXT NOT NULL,
+  description TEXT NOT NULL,
+  date DATE NOT NULL,
+  status TEXT DEFAULT 'pendiente' CHECK (status IN ('pendiente', 'en_proceso', 'finalizado', 'entregado')),
   items JSONB DEFAULT '[]'::jsonb,
   payments JSONB DEFAULT '[]'::jsonb,
-  total_cost DECIMAL(10,2) DEFAULT 0,
   total_paid DECIMAL(10,2) DEFAULT 0,
-  pending_balance DECIMAL(10,2) DEFAULT 0,
+  total DECIMAL(10,2) DEFAULT 0,
+  total_part_cost DECIMAL(10,2) DEFAULT 0,
   profit DECIMAL(10,2) DEFAULT 0,
-  status TEXT DEFAULT 'pendiente' CHECK (status IN ('pendiente', 'en_proceso', 'finalizado', 'entregado')),
-  priority TEXT DEFAULT 'media' CHECK (priority IN ('baja', 'media', 'alta', 'urgente')),
-  estimated_delivery DATE,
-  actual_delivery DATE,
-  notes TEXT,
+  pending_balance DECIMAL(10,2) DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

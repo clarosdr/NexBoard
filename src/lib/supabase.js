@@ -183,13 +183,41 @@ export const supabaseHelpers = {
       .order('created_at', { ascending: false })
     
     if (error) throw error
-    return data || []
+    
+    // Mapear campos de DB a aplicación
+    return (data || []).map(license => ({
+      ...license,
+      client: license.software_name,
+      licenseName: license.software_name,
+      code: license.license_key,
+      installationDate: license.purchase_date,
+      expirationDate: license.expiry_date,
+      numberOfInstallations: license.max_installations,
+      saleValue: license.cost,
+      costValue: 0, // No existe en DB
+      profit: license.cost || 0,
+      provider: license.vendor
+    }))
   },
 
   async createLicense(license, userId) {
+    // Mapear campos de aplicación a DB
+    const dbLicense = {
+      software_name: license.licenseName || license.client,
+      license_key: license.code,
+      purchase_date: license.installationDate,
+      expiry_date: license.expirationDate,
+      vendor: license.provider,
+      cost: license.saleValue,
+      max_installations: license.numberOfInstallations,
+      current_installations: 0,
+      notes: license.notes || '',
+      user_id: userId
+    }
+    
     const { data, error } = await supabase
       .from('licenses')
-      .insert([{ ...license, user_id: userId }])
+      .insert([dbLicense])
       .select()
     
     if (error) throw error
@@ -197,9 +225,21 @@ export const supabaseHelpers = {
   },
 
   async updateLicense(id, license, userId) {
+    // Mapear campos de aplicación a DB
+    const dbLicense = {
+      software_name: license.licenseName || license.client,
+      license_key: license.code,
+      purchase_date: license.installationDate,
+      expiry_date: license.expirationDate,
+      vendor: license.provider,
+      cost: license.saleValue,
+      max_installations: license.numberOfInstallations,
+      notes: license.notes || ''
+    }
+    
     const { data, error } = await supabase
       .from('licenses')
-      .update(license)
+      .update(dbLicense)
       .eq('id', id)
       .eq('user_id', userId)
       .select()
@@ -227,13 +267,33 @@ export const supabaseHelpers = {
       .order('created_at', { ascending: false })
     
     if (error) throw error
-    return data || []
+    
+    // Mapear campos de DB a aplicación
+    return (data || []).map(password => ({
+      ...password,
+      website: password.service_name,
+      // username ya coincide
+      // password se mapea a password_encrypted pero lo mantenemos como password para el frontend
+      password: password.password_encrypted
+    }))
   },
 
   async createPassword(password, userId) {
+    // Mapear campos de aplicación a DB
+    const dbPassword = {
+      service_name: password.website,
+      username: password.username,
+      email: password.email || '',
+      password_encrypted: password.password,
+      url: password.website,
+      notes: password.notes || '',
+      category: password.category || 'general',
+      user_id: userId
+    }
+    
     const { data, error } = await supabase
       .from('passwords')
-      .insert([{ ...password, user_id: userId }])
+      .insert([dbPassword])
       .select()
     
     if (error) throw error
@@ -241,9 +301,20 @@ export const supabaseHelpers = {
   },
 
   async updatePassword(id, password, userId) {
+    // Mapear campos de aplicación a DB
+    const dbPassword = {
+      service_name: password.website,
+      username: password.username,
+      email: password.email || '',
+      password_encrypted: password.password,
+      url: password.website,
+      notes: password.notes || '',
+      category: password.category || 'general'
+    }
+    
     const { data, error } = await supabase
       .from('passwords')
-      .update(password)
+      .update(dbPassword)
       .eq('id', id)
       .eq('user_id', userId)
       .select()
@@ -271,13 +342,38 @@ export const supabaseHelpers = {
       .order('created_at', { ascending: false })
     
     if (error) throw error
-    return data || []
+    
+    // Mapear campos de DB a aplicación
+    return (data || []).map(credential => ({
+      ...credential,
+      client: credential.description || credential.server_name,
+      vpnName: credential.server_name,
+      vpnPassword: credential.password_encrypted,
+      vpnIp: credential.ip_address,
+      localServerName: credential.hostname,
+      users: [{ username: credential.username, password: credential.password_encrypted }]
+    }))
   },
 
   async createServerCredential(credential, userId) {
+    // Mapear campos de aplicación a DB
+    const dbCredential = {
+      server_name: credential.vpnName,
+      ip_address: credential.vpnIp,
+      hostname: credential.localServerName,
+      username: credential.users?.[0]?.username || credential.vpnName,
+      password_encrypted: credential.vpnPassword,
+      ssh_key: '',
+      port: 22,
+      protocol: 'SSH',
+      description: credential.client,
+      notes: JSON.stringify(credential.users || []),
+      user_id: userId
+    }
+    
     const { data, error } = await supabase
       .from('server_credentials')
-      .insert([{ ...credential, user_id: userId }])
+      .insert([dbCredential])
       .select()
     
     if (error) throw error
@@ -285,9 +381,20 @@ export const supabaseHelpers = {
   },
 
   async updateServerCredential(id, credential, userId) {
+    // Mapear campos de aplicación a DB
+    const dbCredential = {
+      server_name: credential.vpnName,
+      ip_address: credential.vpnIp,
+      hostname: credential.localServerName,
+      username: credential.users?.[0]?.username || credential.vpnName,
+      password_encrypted: credential.vpnPassword,
+      description: credential.client,
+      notes: JSON.stringify(credential.users || [])
+    }
+    
     const { data, error } = await supabase
       .from('server_credentials')
-      .update(credential)
+      .update(dbCredential)
       .eq('id', id)
       .eq('user_id', userId)
       .select()
