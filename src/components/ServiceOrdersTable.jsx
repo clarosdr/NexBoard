@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import OrderDetailsModal from './OrderDetailsModal';
 import PrintReceipt from './PrintReceipt';
 import PullToRefresh from './PullToRefresh';

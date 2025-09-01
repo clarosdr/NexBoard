@@ -70,7 +70,7 @@ export const generateSecurePassword = (length = 16, includeSymbols = true) => {
   const hasLower = /[a-z]/.test(password);
   const hasUpper = /[A-Z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
-  const hasSymbol = includeSymbols ? /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password) : true;
+  const hasSymbol = includeSymbols ? /[!@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(password) : true;
   
   if (!hasLower || !hasUpper || !hasNumber || !hasSymbol) {
     // Regenerar si no cumple los criterios
@@ -116,7 +116,7 @@ export const evaluatePasswordStrength = (password) => {
   }
   
   // Símbolos
-  if (/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password)) {
+  if (/[!@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(password)) {
     score += 1;
   } else {
     feedback.push('Incluye al menos un símbolo especial');

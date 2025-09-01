@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PullToRefresh from './PullToRefresh';
 import { useAuth } from '../hooks/useAuth';
 import { supabaseService } from '../lib/supabase';
@@ -37,16 +37,16 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
   }, [user]);
 
   // Función para obtener el nombre del mes
-  const getMonthName = (monthIndex) => {
+  const getMonthName = useCallback((monthIndex) => {
     const months = [
       'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ];
     return months[monthIndex];
-  };
+  }, []);
 
   // Función para generar reportes mensuales
-  const generateMonthlyReports = () => {
+  const generateMonthlyReports = useCallback(() => {
     const reports = [];
     
     // Obtener datos archivados
@@ -126,16 +126,16 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
     }
     
     setMonthlyReports(reports);
-  };
+}, [orders, expenses, casualExpenses, selectedYear, getMonthName, isMonthClosed]);
 
   // Función para verificar si un mes está cerrado
-  const isMonthClosed = (year, month) => {
+  const isMonthClosed = useCallback((year, month) => {
     const closedMonths = JSON.parse(localStorage.getItem('closedMonths') || '[]');
     return closedMonths.some(closed => closed.year === year && closed.month === month);
-  };
+  }, []);
 
   // Función para cerrar un mes
-  const closeMonth = (year, month) => {
+  const closeMonth = useCallback((year, month) => {
     const closedMonths = JSON.parse(localStorage.getItem('closedMonths') || '[]');
     
     // Archivar órdenes entregadas del mes
@@ -266,7 +266,7 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
     
     // Recargar la página para reflejar los cambios
     window.location.reload();
-  };
+  }, [orders, casualExpenses, monthlyReports, generateMonthlyReports, getMonthName]);
 
   // Función para obtener años disponibles
   const getAvailableYears = () => {
@@ -314,7 +314,7 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
   };
 
   // Función para cierre automático de mes anterior
-  const autoCloseLastMonth = () => {
+  const autoCloseLastMonth = useCallback(() => {
     const now = new Date();
     const lastMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
     const lastMonthYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
@@ -328,11 +328,11 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
         closeMonth(lastMonthYear, lastMonth);
       }
     }
-  };
+  }, [isMonthClosed, getMonthName, closeMonth]);
 
   useEffect(() => {
     generateMonthlyReports();
-  }, [orders, expenses, casualExpenses, selectedYear]);
+  }, [generateMonthlyReports]);
 
   useEffect(() => {
     // Verificar cierre automático al cargar el componente
@@ -345,7 +345,7 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
         localStorage.setItem('lastAutoCloseCheck', today);
       }, 1000);
     }
-  }, []);
+  }, [autoCloseLastMonth]);
 
   const availableYears = getAvailableYears();
   const comparisonData = getComparisonData();
@@ -353,14 +353,10 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
   const handleRefresh = () => {
     // Recargar datos desde localStorage
     const savedOrders = localStorage.getItem('serviceOrders');
-    const savedExpenses = localStorage.getItem('casualExpenses');
     
     if (savedOrders) {
       try {
         // Regenerar reportes con datos actualizados
-        const orders = JSON.parse(savedOrders);
-        const expenses = savedExpenses ? JSON.parse(savedExpenses) : [];
-        
         // Aquí se regenerarían los reportes mensuales
         // Por simplicidad, solo mostramos feedback visual
       } catch (error) {

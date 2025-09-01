@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { AuthProvider } from './contexts/AuthContext'
 import { useAuth } from './hooks/useAuth'
-import { ThemeProvider } from './contexts/ThemeContext'
+import { ThemeProvider } from './contexts/ThemeContextProvider'
 import { supabaseService, isSupabaseConfigured } from './lib/supabase'
 import LoginForm from './components/LoginForm'
 import DataMigration from './components/DataMigration'

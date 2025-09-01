@@ -56,17 +56,21 @@ const FinancialDashboard = ({ orders, expenses }) => {
       const itemDate = new Date(item.date);
       
       switch (period) {
-        case 'current_month':
+        case 'current_month': {
           return itemDate.getMonth() === currentMonth && itemDate.getFullYear() === currentYear;
-        case 'last_month':
+        }
+        case 'last_month': {
           const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
           const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
           return itemDate.getMonth() === lastMonth && itemDate.getFullYear() === lastMonthYear;
-        case 'current_year':
+        }
+        case 'current_year': {
           return itemDate.getFullYear() === currentYear;
+        }
         case 'all_time':
-        default:
+        default: {
           return true;
+        }
       }
     });
   };

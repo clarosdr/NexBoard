@@ -1,5 +1,5 @@
 import React from 'react';
-import { getButtonClasses, ButtonSpinner } from '../../utils/buttonStyles.jsx';
+import { getButtonClasses, ButtonSpinner } from '../../utils/buttonstyles.js';
 
 const Button = ({
   children,
