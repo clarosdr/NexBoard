@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { hashPassword, verifyPassword, sanitizeInput } from '../utils/security.js'
 
 // Configuración de Supabase desde variables de entorno
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -115,7 +116,7 @@ export const supabaseService = {
     this.clearUserCache(userId)
   },
 
-  // Passwords
+  // Passwords (with encryption)
   async getPasswords(userId) {
     const cacheKey = `passwords_${userId}`
     const cached = cache.get(cacheKey)
@@ -133,9 +134,31 @@ export const supabaseService = {
   },
 
   async createPassword(passwordData, userId) {
+    // Sanitizar datos de entrada
+    const sanitizedData = {
+      ...passwordData,
+      user_id: userId,
+      service_name: sanitizeInput(passwordData.service_name, 200),
+      username: passwordData.username ? sanitizeInput(passwordData.username, 200) : null,
+      email: passwordData.email ? sanitizeInput(passwordData.email, 200) : null,
+      url: passwordData.url ? sanitizeInput(passwordData.url, 500) : null,
+      category: passwordData.category ? sanitizeInput(passwordData.category, 100) : null,
+      notes: passwordData.notes ? sanitizeInput(passwordData.notes, 1000) : null
+    }
+    
+    // Encriptar contraseña usando las funciones de la base de datos
+    if (passwordData.password) {
+      const { data: encryptedData, error: encryptError } = await supabase
+        .rpc('encrypt_password', { password_text: passwordData.password })
+      
+      if (encryptError) throw encryptError
+      sanitizedData.password_encrypted = encryptedData
+      delete sanitizedData.password // Remover contraseña en texto plano
+    }
+
     const { data, error } = await supabase
       .from('passwords')
-      .insert({ ...passwordData, user_id: userId })
+      .insert(sanitizedData)
       .select()
       .single()
 
@@ -145,9 +168,30 @@ export const supabaseService = {
   },
 
   async updatePassword(passwordId, passwordData, userId) {
+    // Sanitizar datos de entrada
+    const sanitizedData = {
+      ...passwordData,
+      service_name: passwordData.service_name ? sanitizeInput(passwordData.service_name, 200) : undefined,
+      username: passwordData.username ? sanitizeInput(passwordData.username, 200) : undefined,
+      email: passwordData.email ? sanitizeInput(passwordData.email, 200) : undefined,
+      url: passwordData.url ? sanitizeInput(passwordData.url, 500) : undefined,
+      category: passwordData.category ? sanitizeInput(passwordData.category, 100) : undefined,
+      notes: passwordData.notes ? sanitizeInput(passwordData.notes, 1000) : undefined
+    }
+    
+    // Encriptar contraseña si se proporciona una nueva
+    if (passwordData.password) {
+      const { data: encryptedData, error: encryptError } = await supabase
+        .rpc('encrypt_password', { password_text: passwordData.password })
+      
+      if (encryptError) throw encryptError
+      sanitizedData.password_encrypted = encryptedData
+      delete sanitizedData.password // Remover contraseña en texto plano
+    }
+
     const { data, error } = await supabase
       .from('passwords')
-      .update(passwordData)
+      .update(sanitizedData)
       .eq('id', passwordId)
       .eq('user_id', userId)
       .select()
@@ -167,6 +211,27 @@ export const supabaseService = {
 
     if (error) throw error
     this.clearUserCache(userId)
+  },
+
+  // Verificar contraseña
+  async verifyPassword(passwordId, passwordText, userId) {
+    const { data: password, error: fetchError } = await supabase
+      .from('passwords')
+      .select('password_encrypted')
+      .eq('id', passwordId)
+      .eq('user_id', userId)
+      .single()
+    
+    if (fetchError) throw fetchError
+    
+    const { data: isValid, error: verifyError } = await supabase
+      .rpc('verify_password', { 
+        password_text: passwordText, 
+        encrypted_password: password.password_encrypted 
+      })
+    
+    if (verifyError) throw verifyError
+    return isValid
   },
 
   // Budget Expenses
@@ -330,7 +395,7 @@ export const supabaseService = {
     this.clearUserCache(userId)
   },
 
-  // Server Credentials
+  // Server Credentials (with encryption)
   async getServerCredentials(userId) {
     const cacheKey = `server_credentials_${userId}`
     const cached = cache.get(cacheKey)
@@ -348,9 +413,36 @@ export const supabaseService = {
   },
 
   async createServerCredential(credentialData, userId) {
+    // Sanitizar datos de entrada
+    const sanitizedData = {
+      ...credentialData,
+      user_id: userId,
+      server_name: sanitizeInput(credentialData.server_name, 200),
+      hostname: credentialData.hostname ? sanitizeInput(credentialData.hostname, 253) : null,
+      username: sanitizeInput(credentialData.username, 200),
+      protocol: credentialData.protocol ? sanitizeInput(credentialData.protocol, 10) : 'SSH',
+      description: credentialData.description ? sanitizeInput(credentialData.description, 500) : null,
+      notes: credentialData.notes ? sanitizeInput(credentialData.notes, 1000) : null
+    }
+    
+    // Encriptar contraseña si se proporciona
+    if (credentialData.password) {
+      const { data: encryptedData, error: encryptError } = await supabase
+        .rpc('encrypt_password', { password_text: credentialData.password })
+      
+      if (encryptError) throw encryptError
+      sanitizedData.password_encrypted = encryptedData
+      delete sanitizedData.password // Remover contraseña en texto plano
+    }
+    
+    // Sanitizar SSH key si se proporciona
+    if (credentialData.ssh_key) {
+      sanitizedData.ssh_key = sanitizeInput(credentialData.ssh_key, 10000)
+    }
+
     const { data, error } = await supabase
       .from('server_credentials')
-      .insert({ ...credentialData, user_id: userId })
+      .insert(sanitizedData)
       .select()
       .single()
 
@@ -360,9 +452,35 @@ export const supabaseService = {
   },
 
   async updateServerCredential(credentialId, credentialData, userId) {
+    // Sanitizar datos de entrada
+    const sanitizedData = {
+      ...credentialData,
+      server_name: credentialData.server_name ? sanitizeInput(credentialData.server_name, 200) : undefined,
+      hostname: credentialData.hostname ? sanitizeInput(credentialData.hostname, 253) : undefined,
+      username: credentialData.username ? sanitizeInput(credentialData.username, 200) : undefined,
+      protocol: credentialData.protocol ? sanitizeInput(credentialData.protocol, 10) : undefined,
+      description: credentialData.description ? sanitizeInput(credentialData.description, 500) : undefined,
+      notes: credentialData.notes ? sanitizeInput(credentialData.notes, 1000) : undefined
+    }
+    
+    // Encriptar contraseña si se proporciona una nueva
+    if (credentialData.password) {
+      const { data: encryptedData, error: encryptError } = await supabase
+        .rpc('encrypt_password', { password_text: credentialData.password })
+      
+      if (encryptError) throw encryptError
+      sanitizedData.password_encrypted = encryptedData
+      delete sanitizedData.password // Remover contraseña en texto plano
+    }
+    
+    // Sanitizar SSH key si se proporciona
+    if (credentialData.ssh_key) {
+      sanitizedData.ssh_key = sanitizeInput(credentialData.ssh_key, 10000)
+    }
+
     const { data, error } = await supabase
       .from('server_credentials')
-      .update(credentialData)
+      .update(sanitizedData)
       .eq('id', credentialId)
       .eq('user_id', userId)
       .select()
@@ -382,5 +500,30 @@ export const supabaseService = {
 
     if (error) throw error
     this.clearUserCache(userId)
+  },
+
+  // Verificar contraseña de servidor
+  async verifyServerPassword(credentialId, passwordText, userId) {
+    const { data: credential, error: fetchError } = await supabase
+      .from('server_credentials')
+      .select('password_encrypted')
+      .eq('id', credentialId)
+      .eq('user_id', userId)
+      .single()
+    
+    if (fetchError) throw fetchError
+    
+    if (!credential.password_encrypted) {
+      return false // No hay contraseña configurada
+    }
+    
+    const { data: isValid, error: verifyError } = await supabase
+      .rpc('verify_password', { 
+        password_text: passwordText, 
+        encrypted_password: credential.password_encrypted 
+      })
+    
+    if (verifyError) throw verifyError
+    return isValid
   }
 }

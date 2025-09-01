@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Button from './ui/Button';
+import { generateSecurePassword, evaluatePasswordStrength } from '../utils/security';
 
 const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,7 @@ const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(null);
 
   useEffect(() => {
     if (editingPassword) {
@@ -32,6 +34,12 @@ const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
       ...prev,
       [name]: value
     }));
+    
+    // Evaluar fortaleza de contraseña en tiempo real
+    if (name === 'password') {
+      const strength = evaluatePasswordStrength(value);
+      setPasswordStrength(strength);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -53,13 +61,26 @@ const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
     onSubmit(passwordData);
   };
 
-  const generatePassword = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-    let password = '';
-    for (let i = 0; i < 12; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
+  const generatePassword = async () => {
+    try {
+      const securePassword = await generateSecurePassword(16);
+      setFormData(prev => ({ ...prev, password: securePassword }));
+      
+      // Evaluar fortaleza de la nueva contraseña
+      const strength = evaluatePasswordStrength(securePassword);
+      setPasswordStrength(strength);
+    } catch (error) {
+      console.error('Error generating secure password:', error);
+      // Fallback a generación básica si falla la segura
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+      let password = '';
+      for (let i = 0; i < 16; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      setFormData(prev => ({ ...prev, password }));
+      const strength = evaluatePasswordStrength(password);
+      setPasswordStrength(strength);
     }
-    setFormData(prev => ({ ...prev, password }));
   };
 
   return (
@@ -138,6 +159,49 @@ const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
                 <span aria-hidden="true">🎲</span>
               </button>
             </div>
+            
+            {/* Indicador de fortaleza de contraseña */}
+            {formData.password && passwordStrength && (
+              <div className="mt-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Fortaleza:</span>
+                  <span className={`font-medium ${
+                    passwordStrength.score >= 4 ? 'text-green-600 dark:text-green-400' :
+                    passwordStrength.score >= 3 ? 'text-yellow-600 dark:text-yellow-400' :
+                    passwordStrength.score >= 2 ? 'text-orange-600 dark:text-orange-400' :
+                    'text-red-600 dark:text-red-400'
+                  }`}>
+                    {passwordStrength.score >= 4 ? 'Muy Fuerte' :
+                     passwordStrength.score >= 3 ? 'Fuerte' :
+                     passwordStrength.score >= 2 ? 'Media' :
+                     'Débil'}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1">
+                  <div 
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      passwordStrength.score >= 4 ? 'bg-green-500' :
+                      passwordStrength.score >= 3 ? 'bg-yellow-500' :
+                      passwordStrength.score >= 2 ? 'bg-orange-500' :
+                      'bg-red-500'
+                    }`}
+                    style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                  ></div>
+                </div>
+                {passwordStrength.feedback.length > 0 && (
+                  <div className="mt-2">
+                    <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                      {passwordStrength.feedback.map((tip, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="text-blue-500 mr-1">•</span>
+                          {tip}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
