@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import Button from './ui/Button'
-import { getTodayLocalDate, getCurrentTimestamp } from '../utils/dateUtils'
+import { getTodayLocalDate } from '../utils/dateUtils'
 import { useAuth } from '../hooks/useAuth'
 
-const generateUUID = () => {
+const GENERATE_UUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0
     const v = c === 'x' ? r : (r & 0x3 | 0x8)
@@ -131,29 +131,25 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
         customer_name: formData.customer_name.trim()
       }
       
-      // Solo agregar timestamps para actualizaciones
-      if (order) {
-        orderData.id = order.id
-        orderData.created_at = order.created_at
-        orderData.updated_at = getCurrentTimestamp()
-      } else {
-        orderData.id = generateUUID()
-        // No enviar created_at para nuevas órdenes, usar DEFAULT de la BD
-      }
+      // Dejar que la BD maneje id y timestamps
 
       console.log('ServiceOrderForm - orderData:', orderData)
       console.log('ServiceOrderForm - user_id:', user?.id)
 
-      let error
+      let data, error
       if (order) {
-        ({ error } = await supabase
+        ({ data, error } = await supabase
           .from('service_orders')
           .update(orderData)
-          .eq('id', order.id))
+          .eq('id', order.id)
+          .select()
+          .single())
       } else {
-        ({ error } = await supabase
+        ({ data, error } = await supabase
           .from('service_orders')
-          .insert([orderData]))
+          .insert([orderData])
+          .select()
+          .single())
       }
 
       if (error) {
@@ -164,7 +160,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
       }
 
       alert('Orden guardada correctamente ✅')
-      if (onSubmit) onSubmit(orderData)
+      if (onSubmit) onSubmit(data)
 
     } catch (err) {
       console.error('Error inesperado:', err)
@@ -218,323 +214,224 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
 
   const removePayment = (id) => {
     const payment = formData.payments.find(p => p.id === id)
-    if (payment) {
-      setFormData(prev => ({
-        ...prev,
-        payments: prev.payments.filter(p => p.id !== id),
-        totalPaid: prev.totalPaid - (Number(payment.amount) || 0)
-      }))
-    }
-  }
-
-  const updatePayment = (id, field, value) => {
-    const oldPayment = formData.payments.find(p => p.id === id)
-    const oldAmount = Number(oldPayment?.amount) || 0
-    const newAmount = field === 'amount' ? (Number(value) || 0) : oldAmount
-    
+    if (!payment) return
     setFormData(prev => ({
       ...prev,
-      payments: prev.payments.map(payment => 
-        payment.id === id ? { ...payment, [field]: value } : payment
-      ),
-      totalPaid: field === 'amount' 
-        ? prev.totalPaid - oldAmount + newAmount
-        : prev.totalPaid
+      payments: prev.payments.filter(p => p.id !== id),
+      totalPaid: prev.totalPaid - (Number(payment.amount) || 0)
     }))
   }
 
+  const updatePayment = (id, field, value) => {
+    setFormData(prev => {
+      const updatedPayments = prev.payments.map(p => 
+        p.id === id ? { ...p, [field]: field === 'amount' ? (Number(value) || 0) : value } : p
+      )
+      const totalPaid = updatedPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
+      return { ...prev, payments: updatedPayments, totalPaid }
+    })
+  }
+
+  const getItemTotal = (item) => {
+    return (item.quantity * item.unitPrice) || 0
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="p-6 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-      {/* Información básica */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="p-4">
+      <h2 className="text-xl font-semibold mb-4">{order ? 'Editar Orden de Servicio' : 'Nueva Orden de Servicio'}</h2>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre del Cliente *</label>
+            <input
+              type="text"
+              name="customer_name"
+              value={formData.customer_name}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              placeholder="Nombre del cliente"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha</label>
+            <input
+              type="date"
+              name="date"
+              value={formData.date}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            />
+          </div>
+        </div>
+
         <div>
-          <label htmlFor="customer_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Nombre del Cliente *
-          </label>
-          <input
-            type="text"
-            id="customer_name"
-            name="customer_name"
-            value={formData.customer_name}
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Descripción del Servicio *</label>
+          <textarea
+            name="description"
+            value={formData.description}
             onChange={handleInputChange}
+            rows="4"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            placeholder="Describe el servicio a realizar"
             required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-            placeholder="Ingrese el nombre del cliente"
           />
         </div>
-        
+
         <div>
-          <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Fecha
-          </label>
-          <input
-            type="date"
-            id="date"
-            name="date"
-            value={formData.date}
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Estado</label>
+          <select
+            name="status"
+            value={formData.status}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Descripción del Servicio *
-        </label>
-        <textarea
-          id="description"
-          name="description"
-          value={formData.description}
-          onChange={handleInputChange}
-          required
-          rows={3}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-          placeholder="Describa el servicio a realizar"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Estado
-        </label>
-        <select
-          id="status"
-          name="status"
-          value={formData.status}
-          onChange={handleInputChange}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-        >
-          {statusOptions.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Ítems de venta */}
-      <div>
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Ítems de Venta</h3>
-          <Button
-            type="button"
-            onClick={addItem}
-            variant="success"
-            size="sm"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           >
-            + Agregar Ítem
-          </Button>
+            {statusOptions.map(option => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
         </div>
-        
-        <div className="space-y-3">
-          {formData.items.map((item) => (
-            <div key={item.id} className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-md">
-              <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  Descripción
-                </label>
-                <input
-                  type="text"
-                  value={item.description}
-                  onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                  className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                  placeholder="Descripción del ítem"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  Cantidad
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={item.quantity}
-                  onChange={(e) => updateItem(item.id, 'quantity', e.target.value)}
-                  className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  Precio Unitario
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={item.unitPrice}
-                  onChange={(e) => updateItem(item.id, 'unitPrice', e.target.value)}
-                  className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                  Costo Parte
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={item.partCost}
-                  onChange={(e) => updateItem(item.id, 'partCost', e.target.value)}
-                  className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-              
-              <div className="flex items-end">
-                {formData.items.length > 1 && (
-                  <Button
-                    type="button"
-                    onClick={() => removeItem(item.id)}
-                    variant="danger"
-                    size="sm"
-                  >
-                    Eliminar
-                  </Button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Resumen de totales */}
-      <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-md">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">Resumen</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div>
-            <span className="text-gray-600 dark:text-gray-400">Total:</span>
-            <div className="font-semibold text-green-600 dark:text-green-400">
-              {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(calculateGrandTotal())}
-            </div>
-          </div>
-          <div>
-            <span className="text-gray-600 dark:text-gray-400">Costo Total:</span>
-            <div className="font-semibold text-red-600 dark:text-red-400">
-              {formatCurrency(calculateTotalPartCost())}
-            </div>
-          </div>
-          <div>
-            <span className="text-gray-600 dark:text-gray-400">Ganancia:</span>
-            <div className="font-semibold text-blue-600 dark:text-blue-400">
-              {formatCurrency(calculateProfit())}
-            </div>
-          </div>
-          <div>
-            <span className="text-gray-600 dark:text-gray-400">Saldo Pendiente:</span>
-            <div className="font-semibold text-orange-600 dark:text-orange-400">
-              {formatCurrency(calculatePendingBalance())}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Pagos */}
-      {(formData.status === 'finalizado' || formData.status === 'entregado') && (
         <div>
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Pagos</h3>
-            <Button
-              type="button"
-              onClick={addPayment}
-              variant="primary"
-              size="sm"
-            >
-              + Agregar Pago
-            </Button>
-          </div>
-          
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Ítems de Venta</h3>
           <div className="space-y-3">
-            {formData.payments.map((payment) => (
-              <div key={payment.id} className="grid grid-cols-1 md:grid-cols-4 gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-md">
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Monto
-                  </label>
+            {formData.items.map((item) => (
+              <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                <div className="md:col-span-5">
+                  <input
+                    type="text"
+                    placeholder="Descripción"
+                    value={item.description}
+                    onChange={(e) => updateItem(item.id, 'description', e.target.value)}
+                    className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <input
+                    type="number"
+                    min="1"
+                    value={item.quantity}
+                    onChange={(e) => updateItem(item.id, 'quantity', e.target.value)}
+                    className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <div className="md:col-span-2">
                   <input
                     type="number"
                     min="0"
-                    step="0.01"
-                    value={payment.amount}
-                    onChange={(e) => updatePayment(payment.id, 'amount', e.target.value)}
-                    className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    value={item.unitPrice}
+                    onChange={(e) => updateItem(item.id, 'unitPrice', e.target.value)}
+                    className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                 </div>
-                
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Fecha
-                  </label>
+                <div className="md:col-span-2">
+                  <input
+                    type="number"
+                    min="0"
+                    value={item.partCost}
+                    onChange={(e) => updateItem(item.id, 'partCost', e.target.value)}
+                    className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <div className="md:col-span-1 text-right font-medium text-gray-900 dark:text-white">
+                  {formatCurrency(getItemTotal(item))}
+                </div>
+                {formData.items.length > 1 && (
+                  <div className="md:col-span-12 text-right">
+                    <button
+                      type="button"
+                      onClick={() => removeItem(item.id)}
+                      className="text-red-600 hover:text-red-800 text-sm"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="mt-3">
+            <Button type="button" onClick={addItem} variant="secondary">+ Agregar Ítem</Button>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Pagos</h3>
+          <div className="space-y-3">
+            {formData.payments.map((payment) => (
+              <div key={payment.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                <div className="md:col-span-3">
+                  <input
+                    type="number"
+                    min="0"
+                    value={payment.amount}
+                    onChange={(e) => updatePayment(payment.id, 'amount', e.target.value)}
+                    className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <div className="md:col-span-4">
                   <input
                     type="date"
                     value={payment.date}
                     onChange={(e) => updatePayment(payment.id, 'date', e.target.value)}
-                    className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                 </div>
-                
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Método
-                  </label>
+                <div className="md:col-span-4">
                   <select
                     value={payment.method}
                     onChange={(e) => updatePayment(payment.id, 'method', e.target.value)}
-                    className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   >
                     <option value="efectivo">Efectivo</option>
                     <option value="transferencia">Transferencia</option>
                     <option value="tarjeta">Tarjeta</option>
                   </select>
                 </div>
-                
-                <div className="flex items-end">
-                  <Button
+                <div className="md:col-span-1 text-right">
+                  <button
                     type="button"
                     onClick={() => removePayment(payment.id)}
-                    variant="danger"
-                    size="sm"
+                    className="text-red-600 hover:text-red-800 text-sm"
                   >
                     Eliminar
-                  </Button>
+                  </button>
                 </div>
               </div>
             ))}
           </div>
-          
-          <div className="mt-3 text-right">
-            <span className="text-sm text-gray-600 dark:text-gray-400">Total Pagado: </span>
-            <span className="font-semibold text-green-600 dark:text-green-400">
-              {formatCurrency(formData.totalPaid)}
-            </span>
+          <div className="mt-3">
+            <Button type="button" onClick={addPayment} variant="secondary">+ Agregar Pago</Button>
           </div>
         </div>
-      )}
 
-      {/* Botones de acción */}
-      <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-600">
-        <Button
-          type="button"
-          onClick={onCancel}
-          disabled={isSubmitting}
-          variant="secondary"
-          size="lg"
-        >
-          Cancelar
-        </Button>
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          loading={isSubmitting}
-          variant="primary"
-          size="lg"
-        >
-          {isSubmitting ? 'Guardando...' : (order ? 'Actualizar Orden' : 'Guardar Orden')}
-        </Button>
-      </div>
-    </form>
+        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-md">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Resumen</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <p className="text-sm text-gray-600 dark:text-gray-300">Total</p>
+              <p className="text-xl font-semibold text-gray-900 dark:text-white">{formatCurrency(calculateGrandTotal())}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-gray-600 dark:text-gray-300">Costo Total</p>
+              <p className="text-xl font-semibold text-gray-900 dark:text-white">{formatCurrency(calculateTotalPartCost())}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-gray-600 dark:text-gray-300">Ganancia</p>
+              <p className="text-xl font-semibold text-gray-900 dark:text-white">{formatCurrency(calculateProfit())}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-gray-600 dark:text-gray-300">Saldo Pendiente</p>
+              <p className="text-xl font-semibold text-gray-900 dark:text-white">{formatCurrency(calculatePendingBalance())}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-3">
+          <Button type="button" onClick={onCancel} variant="secondary">Cancelar</Button>
+          <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Guardando...' : 'Guardar'}</Button>
+        </div>
+      </form>
+    </div>
   )
 }
