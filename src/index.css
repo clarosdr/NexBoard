@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @config "./tailwind.config.js";
-/* @theme {  Coloca aquí tokens si los defines en v4 } */
 
 :root {
   --primary: #000;
