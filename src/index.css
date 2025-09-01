@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
-@theme {
-  /* Your custom theme values */
+:root {
+  --primary: #000;
 }
+  /* Your custom theme values */
+/* Remove extra closing brace */
