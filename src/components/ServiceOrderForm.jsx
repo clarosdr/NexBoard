@@ -113,15 +113,17 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
     setIsSubmitting(true)
 
     try {
+      const { totalPaid, ...formDataWithoutTotalPaid } = formData
       const orderData = {
-        ...formData,
+        ...formDataWithoutTotalPaid,
         id: order ? order.id : generateUUID(),
         created_at: order ? order.created_at : getCurrentTimestamp(),
         updated_at: getCurrentTimestamp(),
         total: calculateGrandTotal(),
-        totalPartCost: calculateTotalPartCost(),
+        total_part_cost: calculateTotalPartCost(),
         profit: calculateProfit(),
-        pendingBalance: calculatePendingBalance(),
+        total_paid: formData.totalPaid,
+        pending_balance: calculatePendingBalance(),
         customer_name: formData.customer_name.trim()
       }
 
