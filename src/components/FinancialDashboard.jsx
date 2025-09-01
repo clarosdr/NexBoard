@@ -82,12 +82,12 @@ const FinancialDashboard = ({ orders, expenses }) => {
     );
     
     const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
-    const totalCosts = completedOrders.reduce((sum, order) => sum + (order.totalPartCost || 0), 0);
+    const totalCosts = completedOrders.reduce((sum, order) => sum + (order.total_part_cost || order.totalPartCost || 0), 0);
     const totalProfit = totalRevenue - totalCosts;
     
-    const totalPaid = completedOrders.reduce((sum, order) => sum + (order.totalPaid || 0), 0);
+    const totalPaid = completedOrders.reduce((sum, order) => sum + (order.total_paid || order.totalPaid || 0), 0);
     const totalPending = completedOrders.reduce((sum, order) => {
-      const pending = (order.total || 0) - (order.totalPaid || 0);
+      const pending = (order.total || 0) - (order.total_paid || order.totalPaid || 0);
       return sum + (pending > 0 ? pending : 0);
     }, 0);
     

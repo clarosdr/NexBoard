@@ -119,7 +119,7 @@ const OrderDetailsModal = ({ order, isOpen, onClose }) => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400 transition-colors duration-200">Total Costos:</span>
-                  <span className="font-semibold text-red-600 dark:text-red-400 transition-colors duration-200">{formatCurrency(order.totalPartCost)}</span>
+                  <span className="font-semibold text-red-600 dark:text-red-400 transition-colors duration-200">{formatCurrency(order.total_part_cost || order.totalPartCost || 0)}</span>
                 </div>
                 <div className="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-2 transition-colors duration-200">
                   <span className="font-medium text-gray-800 dark:text-gray-200 transition-colors duration-200">Ganancia:</span>

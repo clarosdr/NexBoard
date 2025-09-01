@@ -122,16 +122,23 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
       const { totalPaid: _totalPaid, ...formDataWithoutTotalPaid } = formData
       const orderData = {
         ...formDataWithoutTotalPaid,
-        id: order ? order.id : generateUUID(),
         user_id: user?.id,
-        created_at: order ? order.created_at : getCurrentTimestamp(),
-        updated_at: getCurrentTimestamp(),
         total: calculateGrandTotal(),
         total_part_cost: calculateTotalPartCost(),
         profit: calculateProfit(),
         total_paid: formData.totalPaid,
         pending_balance: calculatePendingBalance(),
         customer_name: formData.customer_name.trim()
+      }
+      
+      // Solo agregar timestamps para actualizaciones
+      if (order) {
+        orderData.id = order.id
+        orderData.created_at = order.created_at
+        orderData.updated_at = getCurrentTimestamp()
+      } else {
+        orderData.id = generateUUID()
+        // No enviar created_at para nuevas órdenes, usar DEFAULT de la BD
       }
 
       console.log('ServiceOrderForm - orderData:', orderData)

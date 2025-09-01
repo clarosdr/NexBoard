@@ -139,12 +139,12 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
   const calculateTotals = () => {
     return filteredOrders.reduce((acc, order) => {
       acc.totalSales += order.total;
-      acc.totalCosts += order.totalPartCost;
+      acc.totalCosts += order.total_part_cost || order.totalPartCost || 0;
       acc.totalProfit += order.profit;
       
       // Calcular totales de pagos y saldos pendientes
       if (order.status === 'finalizado' || order.status === 'entregado') {
-        const totalPaid = order.totalPaid || 0;
+        const totalPaid = order.total_paid || order.totalPaid || 0;
         const pendingBalance = order.total - totalPaid;
         
         acc.totalPaid += totalPaid;
@@ -166,7 +166,7 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
     if (order.status !== 'finalizado' && order.status !== 'entregado') {
       return 0;
     }
-    const totalPaid = order.totalPaid || 0;
+    const totalPaid = order.total_paid || order.totalPaid || 0;
     return Math.max(0, order.total - totalPaid);
   };
 
@@ -396,7 +396,7 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   {(order.status === 'finalizado' || order.status === 'entregado') ? (
                     <span className="text-teal-600 dark:text-teal-400 transition-colors duration-200">
-                      {formatCurrency(order.totalPaid || 0)}
+                      {formatCurrency(order.total_paid || order.totalPaid || 0)}
                     </span>
                   ) : (
                     <span className="text-gray-400 dark:text-gray-500 transition-colors duration-200">-</span>
@@ -540,7 +540,7 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
                 <>
                   <div>
                     <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Pagado:</p>
-                    <p className="text-teal-600 dark:text-teal-400 font-semibold transition-colors duration-200">{formatCurrency(order.totalPaid || 0)}</p>
+                    <p className="text-teal-600 dark:text-teal-400 font-semibold transition-colors duration-200">{formatCurrency(order.total_paid || order.totalPaid || 0)}</p>
                   </div>
                   <div>
                     <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Pendiente:</p>
