@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { AuthProvider } from './contexts/AuthContext'
+import { useAuth } from './hooks/useAuth'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { supabaseService, isSupabaseConfigured } from './lib/supabase'
 import LoginForm from './components/LoginForm'
@@ -35,12 +36,16 @@ function MainApp() {
   useEffect(() => {
     const loadOrders = async () => {
       if (user) {
+        console.log('📋 MainApp - Cargando órdenes para user.id:', user.id)
         try {
           const ordersData = await supabaseService.getServiceOrders(user.id)
+          console.log('📋 MainApp - Órdenes cargadas:', ordersData?.length || 0)
           setOrders(ordersData)
         } catch (error) {
-          console.error('Error loading orders:', error)
+          console.error('❌ MainApp - Error loading orders:', error)
         }
+      } else {
+        console.log('⚠️ MainApp - No hay usuario, no se pueden cargar órdenes')
       }
     }
     loadOrders()
@@ -347,6 +352,11 @@ function App() {
 // Componente que maneja la lógica de autenticación
 function AppContent() {
   const { user, loading } = useAuth()
+  
+  // Debug: verificar qué está llegando del contexto
+  console.log('🏠 AppContent - User:', user)
+  console.log('🏠 AppContent - User ID:', user?.id)
+  console.log('🏠 AppContent - Loading:', loading)
 
   if (loading) {
     return (

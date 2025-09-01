@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import Button from './ui/Button'
 import { getTodayLocalDate, getCurrentTimestamp } from '../utils/dateUtils'
+import { useAuth } from '../hooks/useAuth'
 
 const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -24,6 +25,7 @@ const formatCurrency = (value) => {
 
 
 export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
+  const { user } = useAuth()
   const [formData, setFormData] = useState({
     customer_name: '',
     description: '',
@@ -109,6 +111,10 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
       alert('La descripción del servicio es requerida')
       return
     }
+    if (!user?.id) {
+      alert('Error: Usuario no autenticado. Por favor, inicia sesión nuevamente.')
+      return
+    }
 
     setIsSubmitting(true)
 
@@ -117,6 +123,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
       const orderData = {
         ...formDataWithoutTotalPaid,
         id: order ? order.id : generateUUID(),
+        user_id: user?.id,
         created_at: order ? order.created_at : getCurrentTimestamp(),
         updated_at: getCurrentTimestamp(),
         total: calculateGrandTotal(),
@@ -126,6 +133,9 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
         pending_balance: calculatePendingBalance(),
         customer_name: formData.customer_name.trim()
       }
+
+      console.log('ServiceOrderForm - orderData:', orderData)
+      console.log('ServiceOrderForm - user_id:', user?.id)
 
       let error
       if (order) {

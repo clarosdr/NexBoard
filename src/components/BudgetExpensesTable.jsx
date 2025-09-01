@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import BudgetExpenseForm from './BudgetExpenseForm';
 import PullToRefresh from './PullToRefresh';
 import { useSwipeCard } from '../hooks/useTouchGestures';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { supabaseService } from '../lib/supabase';
 
 // Función para formatear valores en pesos colombianos

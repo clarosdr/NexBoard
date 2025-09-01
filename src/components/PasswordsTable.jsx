@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PasswordForm from './PasswordForm';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { supabaseService } from '../lib/supabase';
 
 const PasswordsTable = () => {

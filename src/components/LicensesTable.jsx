@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import LicenseForm from './LicenseForm';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { supabaseService } from '../lib/supabase';
 
 const LicensesTable = () => {

@@ -1,15 +1,7 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useEffect, useState } from 'react'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
 
 const AuthContext = createContext({})
-
-export const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
-}
 
 // Función para generar UUID simple
 const generateUUID = () => {
@@ -31,11 +23,14 @@ export const AuthProvider = ({ children }) => {
       const getInitialSession = async () => {
         try {
           const { data: { session }, error } = await supabase.auth.getSession()
+          console.log('🔍 getInitialSession - Session obtenida:', session)
+          console.log('🔍 getInitialSession - User ID:', session?.user?.id)
           if (error) {
             console.error('Error getting session:', error)
           } else {
             setSession(session)
             setUser(session?.user ?? null)
+            console.log('✅ Session y User establecidos correctamente')
           }
         } catch (error) {
           console.error('Supabase auth error:', error)
@@ -48,7 +43,9 @@ export const AuthProvider = ({ children }) => {
       // Escuchar cambios de autenticación
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
-          console.log('Auth state changed:', event, session)
+          console.log('🔄 Auth state changed:', event)
+          console.log('🔄 Nueva session:', session)
+          console.log('🔄 User ID en nueva session:', session?.user?.id)
           setSession(session)
           setUser(session?.user ?? null)
           setLoading(false)
@@ -80,10 +77,15 @@ export const AuthProvider = ({ children }) => {
     if (isSupabaseConfigured()) {
       try {
         setLoading(true)
+        console.log('🔐 Intentando login con email:', email)
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
+
+        console.log('🔐 Respuesta de signInWithPassword:', { data, error })
+        console.log('🔐 User ID obtenido:', data?.user?.id)
+        console.log('🔐 Session obtenida:', data?.session)
 
         if (error) {
           throw error
@@ -91,7 +93,7 @@ export const AuthProvider = ({ children }) => {
 
         return { data, error: null }
       } catch (error) {
-        console.error('Error signing in:', error)
+        console.error('❌ Error signing in:', error)
         return { data: null, error }
       } finally {
         setLoading(false)
@@ -178,12 +180,24 @@ export const AuthProvider = ({ children }) => {
     if (isSupabaseConfigured()) {
       try {
         setLoading(true)
-        const { error } = await supabase.auth.signOut()
-        if (error) {
-          throw error
+        // Limpiar estado local primero
+        setUser(null)
+        setSession(null)
+        localStorage.removeItem('nexboard-user')
+        
+        // Intentar logout en Supabase (no crítico si falla)
+        try {
+          await supabase.auth.signOut({ scope: 'local' })
+        } catch (supabaseError) {
+          console.warn('Supabase logout failed (non-critical):', supabaseError)
+          // Continuar con el logout local exitoso
         }
       } catch (error) {
         console.error('Error signing out:', error)
+        // Asegurar que el estado local se limpie incluso si hay errores
+        setUser(null)
+        setSession(null)
+        localStorage.removeItem('nexboard-user')
       } finally {
         setLoading(false)
       }

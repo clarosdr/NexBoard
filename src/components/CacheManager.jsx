@@ -1,6 +1,6 @@
 import React from 'react';
 import { supabaseService, isSupabaseConfigured } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 const CacheManager = ({ className = '' }) => {
   const { user } = useAuth();

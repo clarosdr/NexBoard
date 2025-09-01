@@ -23,6 +23,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 })
 
+// Hacer supabase disponible globalmente para debugging en consola
+if (typeof window !== 'undefined') {
+  window.supabase = supabase
+  console.log('🔧 Supabase client disponible en window.supabase para debugging')
+}
+
 // Cache simple para optimizar consultas (opcional)
 class SimpleCache {
   constructor(ttl = 5 * 60 * 1000) { // 5 minutos por defecto

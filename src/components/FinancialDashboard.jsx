@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PullToRefresh from './PullToRefresh';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { supabaseService } from '../lib/supabase';
 
 const formatCurrency = (value) => {
