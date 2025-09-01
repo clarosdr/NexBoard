@@ -1,6 +1,6 @@
 # NexBoard - Sistema de Gestión Empresarial
 
-NexBoard es una aplicación web completa para la gestión empresarial que incluye manejo de órdenes de servicio, control financiero, gestión de gastos, y más.
+NexBoard incluye manejo de órdenes de servicio, control financiero, gestión de gastos, y más.
 
 ## 🚀 Características Principales
 
