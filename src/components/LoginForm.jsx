@@ -51,7 +51,7 @@ const LoginForm = () => {
           }
         }
       }
-    } catch (error) {
+    } catch {
       setError('Ocurrió un error inesperado')
     } finally {
       setLoading(false)
@@ -79,7 +79,7 @@ const LoginForm = () => {
           setMessage('Función de restablecimiento de contraseña (modo demo)')
         }
       }
-    } catch (error) {
+    } catch {
       setError('Error al enviar email de restablecimiento')
     } finally {
       setLoading(false)

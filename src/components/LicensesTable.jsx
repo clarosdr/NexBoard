@@ -385,7 +385,7 @@ const LicensesTable = () => {
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 transition-colors duration-200">
                 {filteredAndSortedLicenses.map((license) => {
-                  const daysUntilExpiration = getDaysUntilExpiration(license.expiry_date);
+                  // Removed unused variable since it's not needed in this scope
                   
                   return (
                     <tr key={license.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">

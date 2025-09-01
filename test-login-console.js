@@ -2,7 +2,7 @@
 // Copia y pega este código en la consola del navegador (F12 -> Console)
 
 // Función para probar login directo
-async function testSupabaseLogin() {
+async function TEST_SUPABASE_LOGIN() {
   console.log('🧪 Iniciando prueba de login directo...');
   
   try {
@@ -38,7 +38,7 @@ async function testSupabaseLogin() {
 }
 
 // Función para verificar la sesión actual
-async function checkCurrentSession() {
+async function CHECK_CURRENT_SESSION() {
   console.log('🔍 Verificando sesión actual...');
   
   try {
@@ -68,7 +68,7 @@ async function checkCurrentSession() {
 }
 
 // Función para verificar localStorage
-function checkLocalStorage() {
+function CHECK_LOCAL_STORAGE() {
   console.log('💾 Verificando localStorage...');
   
   const supabaseSession = localStorage.getItem('sb-localhost-auth-token');

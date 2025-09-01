@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { hashPassword, verifyPassword, sanitizeInput } from '../utils/security.js'
+import { sanitizeInput } from '../utils/security.js'
 
 // Configuración de Supabase desde variables de entorno
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
