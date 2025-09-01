@@ -5,8 +5,7 @@
 [build.environment]
   # Versión de Node.js
   NODE_VERSION = "22"
-  # Configuración de npm
-  NPM_FLAGS = "--production=false"
+  # NPM_FLAGS eliminado (ya no es necesario con Vite)
 
 # Configuración de redirects para SPA
 [[redirects]]
@@ -23,7 +22,7 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Permissions-Policy = "camera=(self), microphone=(self), geolocation=(self)"
 
 # Headers para archivos estáticos con cache
 [[headers]]
@@ -41,9 +40,9 @@
 [functions]
   directory = "netlify/functions"
 
-# Configuración de plugins
-[[plugins]]
-  package = "@netlify/plugin-lighthouse"
+# Configuración de plugins (opcional)
+# [[plugins]]
+#   package = "@netlify/plugin-lighthouse"
 
 # Variables de entorno de ejemplo (se configuran en Netlify UI)
 # VITE_SUPABASE_URL = "https://your-project.supabase.co"
