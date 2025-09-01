@@ -2,7 +2,7 @@
 
 ## 🎯 Problema Identificado
 
-El problema principal es que **las políticas RLS (Row Level Security) están bloqueando todas las operaciones** en Supabase, impidiendo que la aplicación funcione correctamente.
+El problema principal es que **las políticas RLS (Row Level Security) están bloqueando todas las operaciones** en Supabase, impidiendo que la aplicación funcione.
 
 ## ✅ Diagnóstico Completado
 
