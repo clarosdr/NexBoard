@@ -51,9 +51,7 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
     try {
       const credentialData = {
         ...formData,
-        id: credential ? credential.id : generateUUID(),
-        created_at: credential ? credential.created_at : new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        id: credential ? credential.id : generateUUID()
       }
 
       let error

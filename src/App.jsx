@@ -151,7 +151,7 @@ function MainApp() {
 
   const handleFormSubmit = async (orderData) => {
     if (editingOrder) {
-      await handleUpdateOrder({ ...orderData, id: editingOrder.id, created_at: editingOrder.created_at })
+      await handleUpdateOrder({ ...orderData, id: editingOrder.id })
     } else {
       await handleCreateOrder(orderData)
     }
