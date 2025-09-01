@@ -1,7 +1,7 @@
 // Utilidades para estilos de botones unificados
 
 // Estilos base para todos los botones
-const baseButtonStyles = `
+export const baseButtonStyles = `
   inline-flex items-center justify-center
   font-medium rounded-md
   focus:outline-none focus:ring-2 focus:ring-offset-2
