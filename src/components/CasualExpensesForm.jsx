@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import Button from './ui/Button'
+import { getTodayLocalDate, getCurrentTimestamp } from '../utils/dateUtils'
 
 const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -14,7 +15,7 @@ export default function CasualExpensesForm({ expense, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     description: '',
     amount: 0,
-    date: new Date().toISOString().split('T')[0]
+    date: getTodayLocalDate()
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -23,7 +24,7 @@ export default function CasualExpensesForm({ expense, onSubmit, onCancel }) {
       setFormData({
         description: expense.description || '',
         amount: Number(expense.amount) || 0,
-        date: expense.date || new Date().toISOString().split('T')[0]
+        date: expense.date || getTodayLocalDate()
       })
     }
   }, [expense])
@@ -48,8 +49,8 @@ export default function CasualExpensesForm({ expense, onSubmit, onCancel }) {
       const expenseData = {
         ...formData,
         id: expense ? expense.id : generateUUID(),
-        created_at: expense ? expense.created_at : new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+        created_at: expense ? expense.created_at : getCurrentTimestamp(),
+        updated_at: getCurrentTimestamp(),
         amount: Number(formData.amount) || 0
       }
 

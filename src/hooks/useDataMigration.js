@@ -38,7 +38,7 @@ export const useDataMigration = () => {
         payments: order.payments || [],
         total_cost: parseFloat(order.totalCost) || 0,
         total_paid: parseFloat(order.totalPaid) || 0,
-        pending_balance: parseFloat(order.pendingBalance) || 0,
+        pending_balance: (parseFloat(order.totalCost) || 0) - (parseFloat(order.totalPaid) || 0),
         profit: parseFloat(order.profit) || 0,
         status: order.status || 'pendiente',
         priority: order.priority || 'media',

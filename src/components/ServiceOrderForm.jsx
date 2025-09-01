@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import Button from './ui/Button'
+import { getTodayLocalDate, getCurrentTimestamp } from '../utils/dateUtils'
 
 const generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -10,20 +11,23 @@ const generateUUID = () => {
   })
 }
 
+// Función para formatear valores en pesos colombianos
 const formatCurrency = (value) => {
   return new Intl.NumberFormat('es-CO', {
     style: 'currency',
     currency: 'COP',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
-  }).format(value)
+  }).format(value || 0)
 }
+
+
 
 export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     customer_name: '',
     description: '',
-    date: new Date().toISOString().split('T')[0],
+    date: getTodayLocalDate(),
     status: 'pendiente',
     items: [{ id: 1, description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
     payments: [],
@@ -41,7 +45,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
       setFormData({
         customer_name: order.customer_name || '',
         description: order.description || '',
-        date: order.date || new Date().toISOString().split('T')[0],
+        date: order.date || getTodayLocalDate(),
         status: order.status || 'pendiente',
         items: order.items && order.items.length > 0
           ? order.items.map(item => ({ ...item }))
@@ -53,7 +57,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
       setFormData({
         customer_name: '',
         description: '',
-        date: new Date().toISOString().split('T')[0],
+        date: getTodayLocalDate(),
         status: 'pendiente',
         items: [{ id: 1, description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
         payments: [],
@@ -112,8 +116,8 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
       const orderData = {
         ...formData,
         id: order ? order.id : generateUUID(),
-        created_at: order ? order.created_at : new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: order ? order.created_at : getCurrentTimestamp(),
+        updated_at: getCurrentTimestamp(),
         total: calculateGrandTotal(),
         totalPartCost: calculateTotalPartCost(),
         profit: calculateProfit(),
@@ -183,7 +187,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
     const newPayment = {
       id: Date.now(),
       amount: 0,
-      date: new Date().toISOString().split('T')[0],
+      date: getTodayLocalDate(),
       method: 'efectivo'
     }
     setFormData(prev => ({
@@ -305,7 +309,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
         </div>
         
         <div className="space-y-3">
-          {formData.items.map((item, index) => (
+          {formData.items.map((item) => (
             <div key={item.id} className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 border border-gray-200 dark:border-gray-600 rounded-md">
               <div className="md:col-span-2">
                 <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
@@ -385,7 +389,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
           <div>
             <span className="text-gray-600 dark:text-gray-400">Total:</span>
             <div className="font-semibold text-green-600 dark:text-green-400">
-              {formatCurrency(calculateGrandTotal())}
+              {new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(calculateGrandTotal())}
             </div>
           </div>
           <div>
