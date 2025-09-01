@@ -1,1 +1,12 @@
-@import 'tailwindcss';
+@import "tailwindcss";
+
+/* Opcional: si quieres seguir usando tu tailwind.config.js actual */
+@config "./tailwind.config.js";
+
+/* Tokens y temas con @theme (v4) */
+@theme {
+  /* Ejemplos: agrega tus colores/fuentes aquí */
+  --color-brand-500: oklch(0.65 0.12 265);
+  --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+/* Ya puedes usar bg-brand-500, font-sans, etc. */
