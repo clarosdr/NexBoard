@@ -95,7 +95,7 @@ const PasswordsTable = () => {
 
   // Filtrar contraseñas por término de búsqueda
   const filteredPasswords = passwords.filter(password =>
-    password.website.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    password.service_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     password.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -186,10 +186,10 @@ const PasswordsTable = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">
-                          {password.website}
+                          {password.service_name}
                         </div>
                         <button
-                          onClick={() => copyToClipboard(password.website, 'Sitio web')}
+                          onClick={() => copyToClipboard(password.service_name, 'Sitio web')}
                           className="ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200"
                           title="Copiar sitio web"
                         >

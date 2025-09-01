@@ -4,7 +4,7 @@ import { generateSecurePassword, evaluatePasswordStrength } from '../utils/secur
 
 const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
   const [formData, setFormData] = useState({
-    website: '',
+    service_name: '',
     username: '',
     password: ''
   });
@@ -15,13 +15,13 @@ const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
   useEffect(() => {
     if (editingPassword) {
       setFormData({
-        website: editingPassword.website || '',
+        service_name: editingPassword.service_name || '',
         username: editingPassword.username || '',
         password: editingPassword.password || ''
       });
     } else {
       setFormData({
-        website: '',
+        service_name: '',
         username: '',
         password: ''
       });
@@ -44,14 +44,14 @@ const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.website.trim() || !formData.username.trim() || !formData.password.trim()) {
+    if (!formData.service_name.trim() || !formData.username.trim() || !formData.password.trim()) {
       alert('Por favor, completa todos los campos');
       return;
     }
 
     const passwordData = {
       id: editingPassword ? editingPassword.id : Date.now().toString(),
-      website: formData.website.trim(),
+      service_name: formData.service_name.trim(),
       username: formData.username.trim(),
       password: formData.password.trim(),
       created_at: editingPassword ? editingPassword.created_at : new Date().toISOString(),
@@ -93,14 +93,14 @@ const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
         <div className="space-y-4">
           {/* Sitio Web */}
           <div>
-            <label htmlFor="website" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
+            <label htmlFor="service_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
               Sitio Web *
             </label>
             <input
               type="text"
-              id="website"
-              name="website"
-              value={formData.website}
+              id="service_name"
+              name="service_name"
+              value={formData.service_name}
               onChange={handleInputChange}
               placeholder="Ej: Gmail, Facebook, GitHub"
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"

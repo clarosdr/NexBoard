@@ -12,9 +12,9 @@ const generateUUID = () => {
 
 export default function LicenseForm({ license, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
-    name: '',
-    key: '',
-    expirationDate: new Date().toISOString().split('T')[0],
+    software_name: '',
+    license_key: '',
+    expiry_date: new Date().toISOString().split('T')[0],
     notes: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -22,9 +22,9 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
   useEffect(() => {
     if (license) {
       setFormData({
-        name: license.name || '',
-        key: license.key || '',
-        expirationDate: license.expirationDate || new Date().toISOString().split('T')[0],
+        software_name: license.software_name || '',
+        license_key: license.license_key || '',
+        expiry_date: license.expiry_date || new Date().toISOString().split('T')[0],
         notes: license.notes || ''
       })
     }
@@ -39,7 +39,7 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
     e.preventDefault()
     if (isSubmitting) return
 
-    if (!formData.name.trim()) {
+    if (!formData.software_name.trim()) {
       alert('El nombre de la licencia es requerido')
       return
     }
@@ -87,15 +87,15 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
     <form onSubmit={handleSubmit} className="p-6 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
       <div className="space-y-4">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="software_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Nombre de la licencia *
           </label>
           <input
             type="text"
-            id="name"
-            name="name"
+            id="software_name"
+            name="software_name"
             placeholder="Ej: Microsoft Office, Adobe Creative Suite"
-            value={formData.name}
+            value={formData.software_name}
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
@@ -103,15 +103,15 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
         </div>
         
         <div>
-          <label htmlFor="key" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="license_key" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Clave de licencia *
           </label>
           <input
             type="text"
-            id="key"
-            name="key"
+            id="license_key"
+            name="license_key"
             placeholder="Ingrese la clave de licencia"
-            value={formData.key}
+            value={formData.license_key}
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white font-mono"
@@ -119,14 +119,14 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
         </div>
         
         <div>
-          <label htmlFor="expirationDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="expiry_date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Fecha de expiración *
           </label>
           <input
             type="date"
-            id="expirationDate"
-            name="expirationDate"
-            value={formData.expirationDate}
+            id="expiry_date"
+            name="expiry_date"
+            value={formData.expiry_date}
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"

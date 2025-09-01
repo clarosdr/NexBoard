@@ -9,7 +9,7 @@ const LicensesTable = () => {
   const [editingLicense, setEditingLicense] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all'); // all, active, expiring, expired
-  const [sortBy, setSortBy] = useState('expirationDate'); // expirationDate, client, licenseName, profit
+  const [sortBy, setSortBy] = useState('expiry_date'); // expiry_date, client, licenseName, profit
   const [sortOrder, setSortOrder] = useState('asc');
   const { user } = useAuth();
 
@@ -85,11 +85,11 @@ const LicensesTable = () => {
     }
   };
 
-  const getDaysUntilExpiration = (expirationDate) => {
-    if (!expirationDate) return null;
-    
+  const getDaysUntilExpiration = (expiry_date) => {
+    if (!expiry_date) return null;
+
     const today = new Date();
-    const expDate = new Date(expirationDate);
+    const expDate = new Date(expiry_date);
     const diffTime = expDate - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
@@ -97,7 +97,7 @@ const LicensesTable = () => {
   };
 
   const getLicenseStatus = (license) => {
-    const daysUntilExpiration = getDaysUntilExpiration(license.expirationDate);
+    const daysUntilExpiration = getDaysUntilExpiration(license.expiry_date);
     
     if (daysUntilExpiration === null) return 'unknown';
     if (daysUntilExpiration < 0) return 'expired';
@@ -107,7 +107,7 @@ const LicensesTable = () => {
 
   const getStatusBadge = (license) => {
     const status = getLicenseStatus(license);
-    const daysUntilExpiration = getDaysUntilExpiration(license.expirationDate);
+    const daysUntilExpiration = getDaysUntilExpiration(license.expiry_date);
     
     switch (status) {
       case 'expired':
@@ -167,9 +167,9 @@ const LicensesTable = () => {
       let aValue, bValue;
       
       switch (sortBy) {
-        case 'expirationDate':
-          aValue = new Date(a.expirationDate || '9999-12-31');
-          bValue = new Date(b.expirationDate || '9999-12-31');
+        case 'expiry_date':
+          aValue = new Date(a.expiry_date || '9999-12-31');
+          bValue = new Date(b.expiry_date || '9999-12-31');
           break;
         case 'client':
           aValue = a.client.toLowerCase();
@@ -327,7 +327,7 @@ const LicensesTable = () => {
               onChange={(e) => setSortBy(e.target.value)}
               className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
             >
-              <option value="expirationDate">📅 Fecha vencimiento</option>
+              <option value="expiry_date">📅 Fecha vencimiento</option>
               <option value="client">🏢 Cliente</option>
               <option value="licenseName">📋 Licencia</option>
               <option value="profit">💰 Ganancia</option>
@@ -385,7 +385,7 @@ const LicensesTable = () => {
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 transition-colors duration-200">
                 {filteredAndSortedLicenses.map((license) => {
-                  const daysUntilExpiration = getDaysUntilExpiration(license.expirationDate);
+                  const daysUntilExpiration = getDaysUntilExpiration(license.expiry_date);
                   
                   return (
                     <tr key={license.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
@@ -420,7 +420,7 @@ const LicensesTable = () => {
                         <div className="space-y-1">
                           {getStatusBadge(license)}
                           <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
-                            📅 {new Date(license.expirationDate).toLocaleDateString('es-CO')}
+                            📅 {new Date(license.expiry_date).toLocaleDateString('es-CO')}
                           </div>
                         </div>
                       </td>

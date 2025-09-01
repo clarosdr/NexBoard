@@ -88,7 +88,7 @@ const PrintReceipt = ({ order, onClose }) => {
             <div>
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3 transition-colors duration-200">Cliente</h3>
               <div className="space-y-2">
-                <p className="text-lg font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">{order.customerName}</p>
+                <p className="text-lg font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">{order.customer_name}</p>
               </div>
             </div>
           </div>

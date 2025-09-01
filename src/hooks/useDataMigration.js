@@ -176,7 +176,7 @@ export const useDataMigration = () => {
     try {
       const credentialsToMigrate = credentials.map(credential => ({
         user_id: user.id,
-        server_name: credential.serverName || '',
+        server_name: credential.server_name || '',
         ip_address: credential.ipAddress || '',
         hostname: credential.hostname || '',
         username: credential.username || '',

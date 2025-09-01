@@ -107,7 +107,7 @@ const ServerCredentialsTable = () => {
   // Filtrar credenciales por término de búsqueda
   const filteredCredentials = credentials.filter(credential =>
     credential.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    credential.localServerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    credential.server_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     credential.vpnName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     credential.vpnIp.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -203,7 +203,7 @@ const ServerCredentialsTable = () => {
                             🏢 {credential.client}
                           </div>
                           <div className="text-sm text-gray-600 dark:text-gray-300 transition-colors duration-200">
-                            🖥️ {credential.localServerName}
+                            🖥️ {credential.server_name}
                           </div>
                         </div>
                       </td>

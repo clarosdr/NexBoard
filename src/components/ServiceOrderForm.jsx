@@ -21,7 +21,7 @@ const formatCurrency = (value) => {
 
 export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
-    customerName: '',
+    customer_name: '',
     description: '',
     date: new Date().toISOString().split('T')[0],
     status: 'pendiente',
@@ -39,7 +39,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
         return sum + amount
       }, 0)
       setFormData({
-        customerName: order.customerName || '',
+        customer_name: order.customer_name || '',
         description: order.description || '',
         date: order.date || new Date().toISOString().split('T')[0],
         status: order.status || 'pendiente',
@@ -51,7 +51,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
       })
     } else {
       setFormData({
-        customerName: '',
+        customer_name: '',
         description: '',
         date: new Date().toISOString().split('T')[0],
         status: 'pendiente',
@@ -97,7 +97,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
     e.preventDefault()
     if (isSubmitting) return
 
-    if (!formData.customerName.trim()) {
+    if (!formData.customer_name.trim()) {
       alert('El nombre del cliente es requerido')
       return
     }
@@ -118,7 +118,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
         totalPartCost: calculateTotalPartCost(),
         profit: calculateProfit(),
         pendingBalance: calculatePendingBalance(),
-        customerName: formData.customerName.trim()
+        customer_name: formData.customer_name.trim()
       }
 
       let error
@@ -225,14 +225,14 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
       {/* Información básica */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="customerName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="customer_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Nombre del Cliente *
           </label>
           <input
             type="text"
-            id="customerName"
-            name="customerName"
-            value={formData.customerName}
+            id="customer_name"
+            name="customer_name"
+            value={formData.customer_name}
             onChange={handleInputChange}
             required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"

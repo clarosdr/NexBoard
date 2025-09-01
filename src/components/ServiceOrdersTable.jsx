@@ -78,7 +78,8 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
     .filter(order => {
       const matchesStatus = filterStatus === 'todos' || order.status === filterStatus;
       const matchesSearch = order.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          order.id.toString().includes(searchTerm);
+                          order.id.toString().includes(searchTerm) ||
+                          (order.customer_name && order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()));
       return matchesStatus && matchesSearch;
     })
     .sort((a, b) => {
@@ -242,7 +243,7 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
           {/* Búsqueda */}
           <input
             type="text"
-            placeholder="Buscar por descripción o ID..."
+            placeholder="Buscar por descripción, cliente o ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
@@ -330,6 +331,9 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
                 Fecha {getSortIcon('date')}
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
+                Cliente
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                 Descripción
               </th>
               <th 
@@ -369,6 +373,11 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 transition-colors duration-200">
                   {formatDate(order.date)}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-900 dark:text-white transition-colors duration-200">
+                  <div className="max-w-xs truncate" title={order.customer_name}>
+                    {order.customer_name || 'N/A'}
+                  </div>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900 dark:text-white transition-colors duration-200">
                   <div className="max-w-xs truncate" title={order.description}>
@@ -507,7 +516,11 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
               </div>
             </div>
             
-            {/* Descripción */}
+            {/* Cliente y Descripción */}
+            <div>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Cliente:</p>
+              <p className="text-sm text-gray-900 dark:text-white transition-colors duration-200">{order.customer_name || 'N/A'}</p>
+            </div>
             <div>
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Descripción:</p>
               <p className="text-sm text-gray-900 dark:text-white transition-colors duration-200">{order.description}</p>

@@ -12,7 +12,7 @@ const generateUUID = () => {
 
 export default function ServerCredentialsForm({ credential, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
-    serverName: '',
+    server_name: '',
     ipAddress: '',
     username: '',
     password: '',
@@ -23,7 +23,7 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
   useEffect(() => {
     if (credential) {
       setFormData({
-        serverName: credential.serverName || '',
+        server_name: credential.server_name || '',
         ipAddress: credential.ipAddress || '',
         username: credential.username || '',
         password: credential.password || '',
@@ -41,7 +41,7 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
     e.preventDefault()
     if (isSubmitting) return
 
-    if (!formData.serverName.trim()) {
+    if (!formData.server_name.trim()) {
       alert('El nombre del servidor es requerido')
       return
     }
@@ -89,15 +89,15 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
     <form onSubmit={handleSubmit} className="p-6 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
       <div className="space-y-4">
         <div>
-          <label htmlFor="serverName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="server_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Nombre del servidor *
           </label>
           <input
             type="text"
-            id="serverName"
-            name="serverName"
-            placeholder="Ej: Servidor Web Principal, Base de Datos"
-            value={formData.serverName}
+            id="server_name"
+            name="server_name"
+            placeholder="Ej: Servidor Web Principal"
+            value={formData.server_name}
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
