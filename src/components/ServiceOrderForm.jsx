@@ -113,7 +113,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
     setIsSubmitting(true)
 
     try {
-      const { totalPaid, ...formDataWithoutTotalPaid } = formData
+      const { totalPaid: _totalPaid, ...formDataWithoutTotalPaid } = formData
       const orderData = {
         ...formDataWithoutTotalPaid,
         id: order ? order.id : generateUUID(),
