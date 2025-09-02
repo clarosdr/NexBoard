@@ -78,7 +78,6 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
     .filter(order => {
       const matchesStatus = filterStatus === 'todos' || order.status === filterStatus;
       const matchesSearch = order.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          order.id.toString().includes(searchTerm) ||
                           (order.customer_name && order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()));
       return matchesStatus && matchesSearch;
     })
@@ -321,8 +320,8 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-700 transition-colors duration-200">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
-                ID
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200 hidden">
+                {/* Oculto: ID */}
               </th>
               <th 
                 className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
@@ -368,8 +367,8 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 transition-colors duration-200">
             {paginatedOrders.map((order) => (
               <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">
-                  #{order.id}
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200 hidden">
+                  {/* Oculto: #${'{'}order.id{'}'} */}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 transition-colors duration-200">
                   {formatDate(order.date)}
@@ -508,7 +507,7 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
             {/* Header del Card */}
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white transition-colors duration-200">#{order.id}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white transition-colors duration-200">Orden de Servicio</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">{formatDate(order.date)}</p>
               </div>
               <div className="text-right">

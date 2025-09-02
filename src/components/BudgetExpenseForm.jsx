@@ -15,16 +15,30 @@ export default function BudgetExpenseForm({ expense, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     description: '',
     amount: 0,
-    date: getTodayLocalDate()
+    date: getTodayLocalDate(),
+    category: 'otros'
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Opciones de categoría alineadas con BudgetExpensesTable
+  const categoryOptions = [
+    { value: 'alimentacion', label: '🍽️ Alimentación' },
+    { value: 'transporte', label: '🚗 Transporte' },
+    { value: 'entretenimiento', label: '🎬 Entretenimiento' },
+    { value: 'salud', label: '🏥 Salud' },
+    { value: 'compras', label: '🛒 Compras Personales' },
+    { value: 'servicios', label: '🔧 Servicios' },
+    { value: 'educacion', label: '📚 Educación' },
+    { value: 'otros', label: '📦 Otros' }
+  ]
 
   useEffect(() => {
     if (expense) {
       setFormData({
         description: expense.description || '',
         amount: Number(expense.amount) || 0,
-        date: expense.date || getTodayLocalDate()
+        date: expense.date || getTodayLocalDate(),
+        category: expense.category || 'otros'
       })
     }
   }, [expense])
@@ -118,6 +132,23 @@ export default function BudgetExpenseForm({ expense, onSubmit, onCancel }) {
             required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
           />
+        </div>
+        
+        <div>
+          <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Categoría
+          </label>
+          <select
+            id="category"
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+          >
+            {categoryOptions.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
         </div>
         
         <div>

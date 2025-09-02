@@ -77,18 +77,14 @@ const BudgetExpensesTable = () => {
 
   const categoryOptions = [
     { value: 'all', label: 'Todas las Categorías' },
-    { value: 'general', label: 'General' },
-    { value: 'housing', label: 'Vivienda' },
-    { value: 'utilities', label: 'Servicios Públicos' },
-    { value: 'food', label: 'Alimentación' },
-    { value: 'transportation', label: 'Transporte' },
-    { value: 'healthcare', label: 'Salud' },
-    { value: 'entertainment', label: 'Entretenimiento' },
-    { value: 'education', label: 'Educación' },
-    { value: 'insurance', label: 'Seguros' },
-    { value: 'debt', label: 'Deudas' },
-    { value: 'savings', label: 'Ahorros' },
-    { value: 'other', label: 'Otros' }
+    { value: 'alimentacion', label: '🍽️ Alimentación' },
+    { value: 'transporte', label: '🚗 Transporte' },
+    { value: 'entretenimiento', label: '🎬 Entretenimiento' },
+    { value: 'salud', label: '🏥 Salud' },
+    { value: 'compras', label: '🛒 Compras Personales' },
+    { value: 'servicios', label: '🔧 Servicios' },
+    { value: 'educacion', label: '📚 Educación' },
+    { value: 'otros', label: '📦 Otros' }
   ];
 
   const getExpenseCountByStatus = (status) => {
