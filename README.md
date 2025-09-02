@@ -5,7 +5,7 @@ NexBoard incluye manejo de órdenes de servicio, control financiero, gestión de
 ## 🚀 Características Principales
 
 - **Gestión de Órdenes de Servicio**: CRUD completo con cálculos automáticos
-- **Dashboard Financiero**: Métricas en tiempo real y reportes
+- **Dashboard Financiero: Métricas en tiempo real y reportes
 - **Gestión de Gastos**: Presupuestarios y casuales
 - **Gestión de Licencias**: Control de licencias de software
 - **Gestor de Contraseñas**: Almacenamiento seguro de credenciales
