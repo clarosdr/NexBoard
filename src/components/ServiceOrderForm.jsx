@@ -30,7 +30,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
     customer_name: '',
     description: '',
     date: getTodayLocalDate(),
-    status: 'pendiente',
+    status: 'PENDIENTE',
     items: [{ id: 1, description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
     payments: [],
     totalPaid: 0
@@ -48,7 +48,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
         customer_name: order.customer_name || '',
         description: order.description || '',
         date: order.date || getTodayLocalDate(),
-        status: order.status || 'pendiente',
+        status: order.status || 'PENDIENTE',
         items: order.items && order.items.length > 0
           ? order.items.map(item => ({ ...item }))
           : [{ id: 1, description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
@@ -60,7 +60,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
         customer_name: '',
         description: '',
         date: getTodayLocalDate(),
-        status: 'pendiente',
+        status: 'PENDIENTE',
         items: [{ id: 1, description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
         payments: [],
         totalPaid: 0
@@ -70,10 +70,10 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
   }, [order])
 
   const statusOptions = [
-    { value: 'pendiente', label: 'Pendiente' },
-    { value: 'en_proceso', label: 'En Proceso' },
-    { value: 'finalizado', label: 'Finalizado' },
-    { value: 'entregado', label: 'Entregado' }
+    { value: 'PENDIENTE', label: 'Pendiente' },
+    { value: 'EN PROCESO', label: 'En Proceso' },
+    { value: 'FINALIZADO', label: 'Finalizado' },
+    { value: 'ENTREGADO', label: 'Entregado' }
   ]
 
   const handleInputChange = (e) => {

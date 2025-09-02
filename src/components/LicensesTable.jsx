@@ -85,11 +85,11 @@ const LicensesTable = () => {
     }
   };
 
-  const getDaysUntilExpiration = (expiry_date) => {
-    if (!expiry_date) return null;
+  const getDaysUntilExpiration = (expirationDate) => {
+    if (!expirationDate) return null;
 
     const today = new Date();
-    const expDate = new Date(expiry_date);
+    const expDate = new Date(expirationDate);
     const diffTime = expDate - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
@@ -97,7 +97,7 @@ const LicensesTable = () => {
   };
 
   const getLicenseStatus = (license) => {
-    const daysUntilExpiration = getDaysUntilExpiration(license.expiry_date);
+    const daysUntilExpiration = getDaysUntilExpiration(license.expirationDate);
     
     if (daysUntilExpiration === null) return 'unknown';
     if (daysUntilExpiration < 0) return 'expired';
@@ -107,7 +107,7 @@ const LicensesTable = () => {
 
   const getStatusBadge = (license) => {
     const status = getLicenseStatus(license);
-    const daysUntilExpiration = getDaysUntilExpiration(license.expiry_date);
+    const daysUntilExpiration = getDaysUntilExpiration(license.expirationDate);
     
     switch (status) {
       case 'expired':
@@ -150,10 +150,10 @@ const LicensesTable = () => {
     .filter(license => {
       // Filtro por término de búsqueda
       const matchesSearch = 
-        license.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        license.licenseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        license.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        license.provider.toLowerCase().includes(searchTerm.toLowerCase());
+        license.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        license.licenseName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        license.serial?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        license.provider?.toLowerCase().includes(searchTerm.toLowerCase());
       
       if (!matchesSearch) return false;
       
@@ -168,16 +168,16 @@ const LicensesTable = () => {
       
       switch (sortBy) {
         case 'expiry_date':
-          aValue = new Date(a.expiry_date || '9999-12-31');
-          bValue = new Date(b.expiry_date || '9999-12-31');
+          aValue = new Date(a.expirationDate || '9999-12-31');
+          bValue = new Date(b.expirationDate || '9999-12-31');
           break;
         case 'client':
-          aValue = a.client.toLowerCase();
-          bValue = b.client.toLowerCase();
+          aValue = a.clientName?.toLowerCase() || '';
+          bValue = b.clientName?.toLowerCase() || '';;
           break;
         case 'licenseName':
-          aValue = a.licenseName.toLowerCase();
-          bValue = b.licenseName.toLowerCase();
+          aValue = a.licenseName?.toLowerCase() || '';
+          bValue = b.licenseName?.toLowerCase() || '';
           break;
         case 'profit':
           aValue = a.profit || 0;
@@ -199,7 +199,7 @@ const LicensesTable = () => {
     expiring: licenses.filter(l => getLicenseStatus(l) === 'expiring').length,
     expired: licenses.filter(l => getLicenseStatus(l) === 'expired').length,
     totalProfit: licenses.reduce((sum, l) => sum + (l.profit || 0), 0),
-    totalSales: licenses.reduce((sum, l) => sum + (l.saleValue || 0), 0)
+    totalSales: licenses.reduce((sum, l) => sum + (l.salePrice || 0), 0)
   };
 
   if (showForm) {
@@ -229,6 +229,53 @@ const LicensesTable = () => {
           + Nueva Licencia
         </button>
       </div>
+
+      {/* Panel de Licencias Próximas a Vencer */}
+      {licenses.filter(l => getLicenseStatus(l) === 'expiring').length > 0 && (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 transition-colors duration-200">
+          <div className="flex items-center mb-3">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center transition-colors duration-200">
+                <span className="text-yellow-600 dark:text-yellow-400 font-semibold transition-colors duration-200">⚠️</span>
+              </div>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-lg font-medium text-yellow-800 dark:text-yellow-200 transition-colors duration-200">
+                Licencias Próximas a Vencer
+              </h3>
+              <p className="text-sm text-yellow-700 dark:text-yellow-300 transition-colors duration-200">
+                {licenses.filter(l => getLicenseStatus(l) === 'expiring').length} licencia(s) vencen en los próximos 30 días
+              </p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {licenses
+              .filter(l => getLicenseStatus(l) === 'expiring')
+              .sort((a, b) => new Date(a.expirationDate) - new Date(b.expirationDate))
+              .map(license => {
+                const daysLeft = getDaysUntilExpiration(license.expirationDate);
+                return (
+                  <div key={license.id} className="flex justify-between items-center bg-white dark:bg-gray-800 p-3 rounded border border-yellow-200 dark:border-yellow-700 transition-colors duration-200">
+                    <div>
+                      <span className="font-medium text-gray-900 dark:text-white transition-colors duration-200">
+                        🏢 {license.clientName}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-yellow-700 dark:text-yellow-300 transition-colors duration-200">
+                        📅 {license.expirationDate ? new Date(license.expirationDate).toLocaleDateString('es-CO') : 'Sin fecha'}
+                      </div>
+                      <div className="text-xs text-yellow-600 dark:text-yellow-400 transition-colors duration-200">
+                        {daysLeft > 0 ? `${daysLeft} día(s) restante(s)` : 'Vencida'}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            }
+          </div>
+        </div>
+      )}
 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -296,7 +343,7 @@ const LicensesTable = () => {
           <div className="relative">
             <input
               type="text"
-              placeholder="Buscar por cliente, licencia, código o proveedor..."
+              placeholder="Buscar por cliente, licencia, serial o proveedor..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full px-4 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
@@ -367,13 +414,13 @@ const LicensesTable = () => {
                     Cliente / Licencia
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
-                    Código / Proveedor
+                    Serial / Proveedor
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                     Estado / Vencimiento
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
-                    Instalaciones
+                    Instalaciones / Condición
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                     Financiero
@@ -392,7 +439,7 @@ const LicensesTable = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">
-                            🏢 {license.client}
+                            🏢 {license.clientName}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
                             📋 {license.licenseName}
@@ -402,11 +449,11 @@ const LicensesTable = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-white font-mono flex items-center transition-colors duration-200">
-                            🔑 {license.code}
+                            🔑 {license.serial}
                             <button
-                              onClick={() => copyToClipboard(license.code, 'Código')}
+                              onClick={() => copyToClipboard(license.serial, 'Serial')}
                               className="ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
-                              title="Copiar código"
+                              title="Copiar serial"
                             >
                               📋
                             </button>
@@ -420,20 +467,27 @@ const LicensesTable = () => {
                         <div className="space-y-1">
                           {getStatusBadge(license)}
                           <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
-                            📅 {new Date(license.expiry_date).toLocaleDateString('es-CO')}
+                            📅 {license.expirationDate ? new Date(license.expirationDate).toLocaleDateString('es-CO') : 'Sin fecha'}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white transition-colors duration-200">
-                        💻 {license.numberOfInstallations}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm text-gray-900 dark:text-white transition-colors duration-200">
+                            💻 {license.currentInstallations || 0} / {license.maxInstallations || 'N/A'}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
+                            📦 {license.condition || 'N/A'}
+                          </div>
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm">
                           <div className="text-gray-900 dark:text-white transition-colors duration-200">
-                            💰 {formatCurrency(license.saleValue)}
+                            💰 {formatCurrency(license.salePrice)}
                           </div>
                           <div className="text-gray-500 dark:text-gray-400 transition-colors duration-200">
-                            💸 {formatCurrency(license.costValue)}
+                            💸 {formatCurrency(license.costPrice)}
                           </div>
                           <div className={`font-medium transition-colors duration-200 ${
                             license.profit > 0 ? 'text-green-600 dark:text-green-400' : 

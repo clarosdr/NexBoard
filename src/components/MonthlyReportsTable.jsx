@@ -84,7 +84,7 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
       ];
       
       const completedOrders = monthOrders.filter(order => 
-        order.status === 'finalizado' || order.status === 'entregado'
+        order.status === 'FINALIZADO' || order.status === 'ENTREGADO'
       );
       
       const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.total || 0), 0);

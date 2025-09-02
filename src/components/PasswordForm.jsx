@@ -4,11 +4,9 @@ import { generateSecurePassword, evaluatePasswordStrength } from '../utils/secur
 
 const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
   const [formData, setFormData] = useState({
-    serviceName: '',
-    username: '',
+    websiteApp: '',
+    userOrEmail: '',
     password: '',
-    email: '',
-    url: '',
     category: '',
     notes: ''
   });
@@ -19,21 +17,17 @@ const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
   useEffect(() => {
     if (editingPassword) {
       setFormData({
-        serviceName: editingPassword.serviceName || '',
-        username: editingPassword.username || '',
+        websiteApp: editingPassword.service_name || editingPassword.websiteApp || '',
+        userOrEmail: editingPassword.username || editingPassword.email || editingPassword.userOrEmail || '',
         password: editingPassword.password || '',
-        email: editingPassword.email || '',
-        url: editingPassword.url || '',
         category: editingPassword.category || '',
         notes: editingPassword.notes || ''
       });
     } else {
       setFormData({
-        serviceName: '',
-        username: '',
+        websiteApp: '',
+        userOrEmail: '',
         password: '',
-        email: '',
-        url: '',
         category: '',
         notes: ''
       });
@@ -56,20 +50,19 @@ const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.serviceName.trim() || !formData.username.trim() || !formData.password.trim()) {
-      alert('Por favor, completa todos los campos');
+    if (!formData.websiteApp.trim() || !formData.userOrEmail.trim() || !formData.password.trim()) {
+      alert('Por favor, completa los campos obligatorios: Sitio Web/Aplicación, Usuario o Email y Contraseña');
       return;
     }
 
     const passwordData = {
-      id: editingPassword ? editingPassword.id : Date.now().toString(),
-      serviceName: formData.serviceName.trim(),
-      username: formData.username.trim(),
+      service_name: formData.websiteApp.trim(),
+      username: formData.userOrEmail.trim(),
+      email: formData.userOrEmail.includes('@') ? formData.userOrEmail.trim() : '',
       password: formData.password.trim(),
-      email: formData.email.trim(),
-      url: formData.url.trim(),
       category: formData.category.trim(),
-      notes: formData.notes.trim()
+      notes: formData.notes.trim(),
+      url: '' // Campo mantenido para compatibilidad
     };
 
     onSubmit(passwordData);

@@ -82,7 +82,7 @@ const FinancialDashboard = ({ orders, expenses }) => {
     const filteredCasualExpenses = filterDataByPeriod(casualExpenses || [], selectedPeriod);
     
     const completedOrders = filteredOrders.filter(order => 
-      order.status === 'finalizado' || order.status === 'entregado'
+      order.status === 'FINALIZADO' || order.status === 'ENTREGADO'
     );
     
     const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
@@ -101,7 +101,7 @@ const FinancialDashboard = ({ orders, expenses }) => {
     const netProfit = totalProfit - totalExpenses;
     
     const pendingOrders = filteredOrders.filter(order => 
-      order.status === 'pendiente' || order.status === 'en_proceso'
+      order.status === 'PENDIENTE' || order.status === 'EN PROCESO'
     ).length;
     
     const averageOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;

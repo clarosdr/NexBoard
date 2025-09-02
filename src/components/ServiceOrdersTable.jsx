@@ -28,10 +28,10 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
 
   const statusOptions = [
     { value: 'todos', label: 'Todos', color: 'gray' },
-    { value: 'pendiente', label: 'Pendiente', color: 'yellow' },
-    { value: 'en_proceso', label: 'En Proceso', color: 'blue' },
-    { value: 'finalizado', label: 'Finalizado', color: 'green' },
-    { value: 'entregado', label: 'Entregado', color: 'gray' }
+    { value: 'PENDIENTE', label: 'Pendiente', color: 'yellow' },
+    { value: 'EN PROCESO', label: 'En Proceso', color: 'blue' },
+    { value: 'FINALIZADO', label: 'Finalizado', color: 'green' },
+    { value: 'ENTREGADO', label: 'Entregado', color: 'gray' }
   ];
 
   // Función para contar órdenes por estado
@@ -142,7 +142,7 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
       acc.totalProfit += order.profit;
       
       // Calcular totales de pagos y saldos pendientes
-      if (order.status === 'finalizado' || order.status === 'entregado') {
+      if (order.status === 'FINALIZADO' || order.status === 'ENTREGADO') {
         const totalPaid = order.total_paid || order.totalPaid || 0;
         const pendingBalance = order.total - totalPaid;
         
@@ -162,7 +162,7 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
   
   // Función para calcular el saldo pendiente de una orden
   const calculatePendingBalance = (order) => {
-    if (order.status !== 'finalizado' && order.status !== 'entregado') {
+    if (order.status !== 'FINALIZADO' && order.status !== 'ENTREGADO') {
       return 0;
     }
     const totalPaid = order.total_paid || order.totalPaid || 0;
@@ -393,7 +393,7 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
                   {formatCurrency(order.profit)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  {(order.status === 'finalizado' || order.status === 'entregado') ? (
+                  {(order.status === 'FINALIZADO' || order.status === 'ENTREGADO') ? (
                     <span className="text-teal-600 dark:text-teal-400 transition-colors duration-200">
                       {formatCurrency(order.total_paid || order.totalPaid || 0)}
                     </span>
@@ -402,7 +402,7 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  {(order.status === 'finalizado' || order.status === 'entregado') ? (
+                  {(order.status === 'FINALIZADO' || order.status === 'ENTREGADO') ? (
                     <span className={calculatePendingBalance(order) > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-green-600 dark:text-green-400'} transition-colors duration-200>
                       {formatCurrency(calculatePendingBalance(order))}
                     </span>
@@ -535,7 +535,7 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
                 <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Ganancia:</p>
                 <p className="text-blue-600 dark:text-blue-400 font-semibold transition-colors duration-200">{formatCurrency(order.profit)}</p>
               </div>
-              {(order.status === 'finalizado' || order.status === 'entregado') && (
+              {(order.status === 'FINALIZADO' || order.status === 'ENTREGADO') && (
                 <>
                   <div>
                     <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Pagado:</p>

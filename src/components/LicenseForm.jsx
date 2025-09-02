@@ -12,14 +12,18 @@ const generateUUID = () => {
 
 export default function LicenseForm({ license, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
-    softwareName: '',
-    licenseKey: '',
-    purchaseDate: '',
-    expiryDate: new Date().toISOString().split('T')[0],
-    vendor: '',
-    cost: 0,
+    clientName: '',
+    licenseName: '',
+    serial: '',
+    installationDate: '',
+    expirationDate: new Date().toISOString().split('T')[0],
     maxInstallations: 1,
     currentInstallations: 0,
+    salePrice: 0,
+    costPrice: 0,
+    profit: 0,
+    provider: '',
+    condition: 'NUEVA',
     notes: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -27,14 +31,18 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
   useEffect(() => {
     if (license) {
       setFormData({
-        softwareName: license.softwareName || '',
-        licenseKey: license.licenseKey || '',
-        purchaseDate: license.purchaseDate || '',
-        expiryDate: license.expiryDate || new Date().toISOString().split('T')[0],
-        vendor: license.vendor || '',
-        cost: license.cost || 0,
-        maxInstallations: license.maxInstallations || 1,
-        currentInstallations: license.currentInstallations || 0,
+        clientName: license.client_name || license.clientName || '',
+        licenseName: license.license_name || license.licenseName || '',
+        serial: license.serial || license.licenseKey || '',
+        installationDate: license.installation_date || license.installationDate || '',
+        expirationDate: license.expiration_date || license.expirationDate || new Date().toISOString().split('T')[0],
+        maxInstallations: license.max_installations || license.maxInstallations || 1,
+        currentInstallations: license.current_installations || license.currentInstallations || 0,
+        salePrice: license.sale_price || license.salePrice || 0,
+        costPrice: license.cost_price || license.costPrice || 0,
+        profit: license.profit || 0,
+        provider: license.provider || license.vendor || '',
+        condition: license.condition || 'NUEVA',
         notes: license.notes || ''
       })
     }
@@ -42,15 +50,24 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    const newFormData = { ...formData, [name]: value }
+    
+    // Calcular ganancia automáticamente cuando cambian los precios
+    if (name === 'salePrice' || name === 'costPrice') {
+      const salePrice = parseFloat(name === 'salePrice' ? value : formData.salePrice) || 0
+      const costPrice = parseFloat(name === 'costPrice' ? value : formData.costPrice) || 0
+      newFormData.profit = salePrice - costPrice
+    }
+    
+    setFormData(newFormData)
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (isSubmitting) return
 
-    if (!formData.softwareName.trim()) {
-      alert('El nombre de la licencia es requerido')
+    if (!formData.clientName.trim() || !formData.licenseName.trim()) {
+      alert('El nombre del cliente y el nombre de la licencia son requeridos')
       return
     }
 
@@ -58,7 +75,19 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
 
     try {
       const licenseData = {
-        ...formData,
+        client_name: formData.clientName,
+        license_name: formData.licenseName,
+        serial: formData.serial,
+        installation_date: formData.installationDate || null,
+        expiration_date: formData.expirationDate,
+        max_installations: parseInt(formData.maxInstallations) || 1,
+        current_installations: parseInt(formData.currentInstallations) || 0,
+        sale_price: parseFloat(formData.salePrice) || 0,
+        cost_price: parseFloat(formData.costPrice) || 0,
+        profit: parseFloat(formData.profit) || 0,
+        provider: formData.provider,
+        condition: formData.condition,
+        notes: formData.notes,
         id: license ? license.id : generateUUID()
       }
 
