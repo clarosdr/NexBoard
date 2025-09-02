@@ -108,7 +108,7 @@ const ServerCredentialsTable = () => {
   const filteredCredentials = credentials.filter(credential =>
     (credential.client || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (credential.server_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (credential.vpnName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (credential.localName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (credential.vpnIp || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -210,7 +210,7 @@ const ServerCredentialsTable = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">
-                            {credential.vpnName}
+                            {credential.localName}
                           </div>
                           <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center transition-colors duration-200">
                             📍 {credential.vpnIp}
@@ -231,32 +231,7 @@ const ServerCredentialsTable = () => {
                                 </span>
                               </span>
                             ) : (
-                              <>
-                                🔒 {visiblePasswords.has(`vpn-${credential.id}`) 
-                                  ? credential.vpnPassword 
-                                  : '••••••••'
-                                }
-                              </>
-                            )}
-                            {!credential.password_encrypted && (
-                              <>
-                                <button
-                                  onClick={() => togglePasswordVisibility(`vpn-${credential.id}`)}
-                                  className="ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
-                                  title={visiblePasswords.has(`vpn-${credential.id}`) ? 'Ocultar' : 'Mostrar'}
-                                  aria-label={visiblePasswords.has(`vpn-${credential.id}`) ? 'Ocultar contraseña VPN' : 'Mostrar contraseña VPN'}
-                                >
-                                  <span aria-hidden="true">{visiblePasswords.has(`vpn-${credential.id}`) ? '👁️' : '👁️‍🗨️'}</span>
-                                </button>
-                                <button
-                                  onClick={() => copyToClipboard(credential.vpnPassword, 'Contraseña VPN')}
-                                  className="ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
-                                  title="Copiar contraseña VPN"
-                                  aria-label="Copiar contraseña VPN al portapapeles"
-                                >
-                                  <span aria-hidden="true">📋</span>
-                                </button>
-                              </>
+                              <span className="text-xs bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 px-2 py-1 rounded">No disponible</span>
                             )}
                           </div>
                         </div>

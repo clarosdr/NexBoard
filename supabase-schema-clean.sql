@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS casual_expenses (
     description TEXT NOT NULL,
     amount DECIMAL(12,2) NOT NULL,
     date DATE NOT NULL DEFAULT CURRENT_DATE,
-    category TEXT DEFAULT 'otros' CHECK (category IN ('alimentacion', 'transporte', 'entretenimiento', 'salud', 'compras', 'servicios', 'educacion', 'otros')),
+    category TEXT DEFAULT 'otros' CHECK (category IN ('vivienda', 'mi_hija', 'mama', 'deudas', 'sueldo', 'sueldo_2', 'otros')),
     notes TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS budget_expenses (
     description TEXT NOT NULL,
     amount DECIMAL(12,2) NOT NULL,
     date DATE NOT NULL DEFAULT CURRENT_DATE,
-    category TEXT DEFAULT 'otros',
+    category TEXT DEFAULT 'vivienda' CHECK (category IN ('vivienda', 'mi_hija', 'mama', 'deudas', 'sueldo', 'sueldo_2')),
     notes TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -74,6 +74,10 @@ CREATE TABLE IF NOT EXISTS licenses (
 );
 
 -- =====================================================
+-- ESQUEMA LIMPIO DE BASE DE DATOS PARA NEXBOARD
+-- =====================================================
+
+-- =====================================================
 -- TABLA: passwords (Contraseñas)
 -- =====================================================
 CREATE TABLE IF NOT EXISTS passwords (
@@ -89,17 +93,24 @@ CREATE TABLE IF NOT EXISTS passwords (
 -- =====================================================
 -- TABLA: server_credentials (Credenciales de Servidores)
 -- =====================================================
+DROP TABLE IF EXISTS server_credentials CASCADE;
 CREATE TABLE IF NOT EXISTS server_credentials (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    client TEXT,
     server_name TEXT NOT NULL,
     ip_address TEXT,
-    username TEXT NOT NULL,
-    password_encrypted TEXT NOT NULL,
+    local_name TEXT,
+    password_encrypted TEXT,
+    users JSONB DEFAULT '[]'::jsonb,
     notes TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Índices útiles
+CREATE INDEX IF NOT EXISTS idx_server_credentials_user_id ON server_credentials(user_id);
+CREATE INDEX IF NOT EXISTS idx_server_credentials_server_name ON server_credentials(server_name);
 
 -- =====================================================
 -- TRIGGERS PARA UPDATED_AT AUTOMÁTICO
@@ -187,7 +198,7 @@ CREATE INDEX IF NOT EXISTS idx_service_orders_status ON service_orders(status);
 CREATE INDEX IF NOT EXISTS idx_licenses_status ON licenses(status);
 
 -- =====================================================
--- POLÍTICAS RLS (ROW LEVEL SECURITY) - SIMPLES
+-- POLÍTICAS RLS (ROW LEVEL SECURITY) - PRECISAS POR OPERACIÓN
 -- =====================================================
 
 -- Habilitar RLS en todas las tablas
@@ -198,35 +209,83 @@ ALTER TABLE licenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE passwords ENABLE ROW LEVEL SECURITY;
 ALTER TABLE server_credentials ENABLE ROW LEVEL SECURITY;
 
--- Políticas simples: usuarios solo pueden ver/editar sus propios datos
-CREATE POLICY "Users can manage their own service orders" ON service_orders
-    FOR ALL USING (auth.uid() = user_id);
+-- Eliminar políticas previas genéricas si existen
+DROP POLICY IF EXISTS "Users can manage their own service orders" ON service_orders;
+DROP POLICY IF EXISTS "Users can manage their own casual expenses" ON casual_expenses;
+DROP POLICY IF EXISTS "Users can manage their own budget expenses" ON budget_expenses;
+DROP POLICY IF EXISTS "Users can manage their own licenses" ON licenses;
+DROP POLICY IF EXISTS "Users can manage their own passwords" ON passwords;
+DROP POLICY IF EXISTS "Users can manage their own server credentials" ON server_credentials;
 
-CREATE POLICY "Users can manage their own casual expenses" ON casual_expenses
-    FOR ALL USING (auth.uid() = user_id);
+-- Crear políticas por operación: SELECT / INSERT / UPDATE / DELETE
+-- service_orders
+CREATE POLICY IF NOT EXISTS "Select own service_orders" ON service_orders
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Insert own service_orders" ON service_orders
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Update own service_orders" ON service_orders
+  FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Delete own service_orders" ON service_orders
+  FOR DELETE USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can manage their own budget expenses" ON budget_expenses
-    FOR ALL USING (auth.uid() = user_id);
+-- casual_expenses
+CREATE POLICY IF NOT EXISTS "Select own casual_expenses" ON casual_expenses
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Insert own casual_expenses" ON casual_expenses
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Update own casual_expenses" ON casual_expenses
+  FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Delete own casual_expenses" ON casual_expenses
+  FOR DELETE USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can manage their own licenses" ON licenses
-    FOR ALL USING (auth.uid() = user_id);
+-- budget_expenses
+CREATE POLICY IF NOT EXISTS "Select own budget_expenses" ON budget_expenses
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Insert own budget_expenses" ON budget_expenses
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Update own budget_expenses" ON budget_expenses
+  FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Delete own budget_expenses" ON budget_expenses
+  FOR DELETE USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can manage their own passwords" ON passwords
-    FOR ALL USING (auth.uid() = user_id);
+-- licenses
+CREATE POLICY IF NOT EXISTS "Select own licenses" ON licenses
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Insert own licenses" ON licenses
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Update own licenses" ON licenses
+  FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Delete own licenses" ON licenses
+  FOR DELETE USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can manage their own server credentials" ON server_credentials
-    FOR ALL USING (auth.uid() = user_id);
+-- passwords
+CREATE POLICY IF NOT EXISTS "Select own passwords" ON passwords
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Insert own passwords" ON passwords
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Update own passwords" ON passwords
+  FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Delete own passwords" ON passwords
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- server_credentials
+CREATE POLICY IF NOT EXISTS "Select own server_credentials" ON server_credentials
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Insert own server_credentials" ON server_credentials
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Update own server_credentials" ON server_credentials
+  FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Delete own server_credentials" ON server_credentials
+  FOR DELETE USING (auth.uid() = user_id);
 
 -- =====================================================
 -- COMENTARIOS PARA DOCUMENTACIÓN
 -- =====================================================
-
-COMMENT ON TABLE service_orders IS 'Órdenes de servicio con items, pagos y cálculos automáticos';
 COMMENT ON TABLE casual_expenses IS 'Gastos casuales categorizados por tipo';
 COMMENT ON TABLE budget_expenses IS 'Gastos presupuestados para control financiero';
 COMMENT ON TABLE licenses IS 'Licencias de software con fechas de expiración';
 COMMENT ON TABLE passwords IS 'Contraseñas encriptadas para servicios';
-COMMENT ON TABLE server_credentials IS 'Credenciales de servidores con encriptación';
+COMMENT ON TABLE server_credentials IS 'Credenciales de servidores con encriptación y usuarios (jsonb)';
 
 -- =====================================================
 -- ESQUEMA COMPLETADO

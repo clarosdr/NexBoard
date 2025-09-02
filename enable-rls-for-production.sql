@@ -14,26 +14,76 @@ ALTER TABLE licenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE passwords ENABLE ROW LEVEL SECURITY;
 ALTER TABLE server_credentials ENABLE ROW LEVEL SECURITY;
 
--- PASO 2: Crear políticas de seguridad
+-- PASO 2: Crear políticas de seguridad (por operación)
 -- Usuarios solo pueden ver/editar sus propios datos
 
-CREATE POLICY "Users can manage their own service orders" ON service_orders
-    FOR ALL USING (auth.uid() = user_id);
+-- Eliminar políticas genéricas previas si existen
+DROP POLICY IF EXISTS "Users can manage their own service orders" ON service_orders;
+DROP POLICY IF EXISTS "Users can manage their own casual expenses" ON casual_expenses;
+DROP POLICY IF EXISTS "Users can manage their own budget expenses" ON budget_expenses;
+DROP POLICY IF EXISTS "Users can manage their own licenses" ON licenses;
+DROP POLICY IF EXISTS "Users can manage their own passwords" ON passwords;
+DROP POLICY IF EXISTS "Users can manage their own server credentials" ON server_credentials;
 
-CREATE POLICY "Users can manage their own casual expenses" ON casual_expenses
-    FOR ALL USING (auth.uid() = user_id);
+-- service_orders
+CREATE POLICY IF NOT EXISTS "Select own service_orders" ON service_orders
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Insert own service_orders" ON service_orders
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Update own service_orders" ON service_orders
+  FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Delete own service_orders" ON service_orders
+  FOR DELETE USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can manage their own budget expenses" ON budget_expenses
-    FOR ALL USING (auth.uid() = user_id);
+-- casual_expenses
+CREATE POLICY IF NOT EXISTS "Select own casual_expenses" ON casual_expenses
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Insert own casual_expenses" ON casual_expenses
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Update own casual_expenses" ON casual_expenses
+  FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Delete own casual_expenses" ON casual_expenses
+  FOR DELETE USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can manage their own licenses" ON licenses
-    FOR ALL USING (auth.uid() = user_id);
+-- budget_expenses
+CREATE POLICY IF NOT EXISTS "Select own budget_expenses" ON budget_expenses
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Insert own budget_expenses" ON budget_expenses
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Update own budget_expenses" ON budget_expenses
+  FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Delete own budget_expenses" ON budget_expenses
+  FOR DELETE USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can manage their own passwords" ON passwords
-    FOR ALL USING (auth.uid() = user_id);
+-- licenses
+CREATE POLICY IF NOT EXISTS "Select own licenses" ON licenses
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Insert own licenses" ON licenses
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Update own licenses" ON licenses
+  FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Delete own licenses" ON licenses
+  FOR DELETE USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can manage their own server credentials" ON server_credentials
-    FOR ALL USING (auth.uid() = user_id);
+-- passwords
+CREATE POLICY IF NOT EXISTS "Select own passwords" ON passwords
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Insert own passwords" ON passwords
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Update own passwords" ON passwords
+  FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Delete own passwords" ON passwords
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- server_credentials
+CREATE POLICY IF NOT EXISTS "Select own server_credentials" ON server_credentials
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Insert own server_credentials" ON server_credentials
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Update own server_credentials" ON server_credentials
+  FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY IF NOT EXISTS "Delete own server_credentials" ON server_credentials
+  FOR DELETE USING (auth.uid() = user_id);
 
 -- =====================================================
 -- VERIFICACIÓN
