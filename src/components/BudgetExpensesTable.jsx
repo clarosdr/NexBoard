@@ -124,15 +124,12 @@ const BudgetExpensesTable = () => {
   const handleSubmit = async (expenseData) => {
     try {
       if (editingExpense) {
-        const updatedExpense = await supabaseService.updateBudgetExpense(editingExpense.id, expenseData);
+        const updatedExpense = await supabaseService.updateBudgetExpense(editingExpense.id, expenseData, user.id);
         setExpenses(prev => prev.map(expense => 
           expense.id === editingExpense.id ? updatedExpense : expense
         ));
       } else {
-        const newExpense = await supabaseService.createBudgetExpense({
-          ...expenseData,
-          user_id: user.id
-        });
+        const newExpense = await supabaseService.createBudgetExpense(expenseData, user.id);
         setExpenses(prev => [...prev, newExpense]);
       }
       setShowForm(false);
@@ -151,7 +148,7 @@ const BudgetExpensesTable = () => {
   const handleDelete = async (expenseId) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este gasto?')) {
       try {
-        await supabaseService.deleteBudgetExpense(expenseId);
+        await supabaseService.deleteBudgetExpense(expenseId, user.id);
         setExpenses(prev => prev.filter(expense => expense.id !== expenseId));
       } catch (error) {
         console.error('Error deleting budget expense:', error);

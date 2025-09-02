@@ -257,40 +257,41 @@ export const supabaseService = {
     return data
   },
 
-  async createBudgetExpense(expenseData) {
+  async createBudgetExpense(expenseData, userId) {
     const { data, error } = await supabase
       .from('budget_expenses')
-      .insert(expenseData)
+      .insert({ ...expenseData, user_id: userId })
       .select()
       .single()
 
     if (error) throw error
-    this.clearUserCache(expenseData.user_id)
+    this.clearUserCache(userId)
     return data
   },
 
-  async updateBudgetExpense(expenseId, expenseData) {
+  async updateBudgetExpense(expenseId, expenseData, userId) {
     const { data, error } = await supabase
       .from('budget_expenses')
       .update(expenseData)
       .eq('id', expenseId)
+      .eq('user_id', userId)
       .select()
       .single()
 
     if (error) throw error
-    if (expenseData.user_id) {
-      this.clearUserCache(expenseData.user_id)
-    }
+    this.clearUserCache(userId)
     return data
   },
 
-  async deleteBudgetExpense(expenseId) {
+  async deleteBudgetExpense(expenseId, userId) {
     const { error } = await supabase
       .from('budget_expenses')
       .delete()
       .eq('id', expenseId)
+      .eq('user_id', userId)
 
     if (error) throw error
+    this.clearUserCache(userId)
   },
 
   // Casual Expenses

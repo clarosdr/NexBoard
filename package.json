@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "deploy:prepare": "node deploy.cjs",
-    "deploy:netlify": "npm run deploy:prepare && echo 'Ready for Netlify deployment!'"
+    "deploy:netlify": "npm run deploy:prepare && echo 'Ready for Netlify deployment!'",
+    "sync:supabase": "node scripts/sync-supabase.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.56.1",
