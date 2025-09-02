@@ -12,9 +12,14 @@ const generateUUID = () => {
 
 export default function LicenseForm({ license, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
-    software_name: '',
-    license_key: '',
-    expiry_date: new Date().toISOString().split('T')[0],
+    softwareName: '',
+    licenseKey: '',
+    purchaseDate: '',
+    expiryDate: new Date().toISOString().split('T')[0],
+    vendor: '',
+    cost: 0,
+    maxInstallations: 1,
+    currentInstallations: 0,
     notes: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -22,9 +27,14 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
   useEffect(() => {
     if (license) {
       setFormData({
-        software_name: license.software_name || '',
-        license_key: license.license_key || '',
-        expiry_date: license.expiry_date || new Date().toISOString().split('T')[0],
+        softwareName: license.softwareName || '',
+        licenseKey: license.licenseKey || '',
+        purchaseDate: license.purchaseDate || '',
+        expiryDate: license.expiryDate || new Date().toISOString().split('T')[0],
+        vendor: license.vendor || '',
+        cost: license.cost || 0,
+        maxInstallations: license.maxInstallations || 1,
+        currentInstallations: license.currentInstallations || 0,
         notes: license.notes || ''
       })
     }
@@ -39,7 +49,7 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
     e.preventDefault()
     if (isSubmitting) return
 
-    if (!formData.software_name.trim()) {
+    if (!formData.softwareName.trim()) {
       alert('El nombre de la licencia es requerido')
       return
     }
@@ -85,15 +95,15 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
     <form onSubmit={handleSubmit} className="p-6 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
       <div className="space-y-4">
         <div>
-          <label htmlFor="software_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="softwareName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Nombre de la licencia *
           </label>
           <input
             type="text"
-            id="software_name"
-            name="software_name"
+            id="softwareName"
+            name="softwareName"
             placeholder="Ej: Microsoft Office, Adobe Creative Suite"
-            value={formData.software_name}
+            value={formData.softwareName}
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
@@ -101,34 +111,113 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
         </div>
         
         <div>
-          <label htmlFor="license_key" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="licenseKey" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Clave de licencia *
           </label>
           <input
             type="text"
-            id="license_key"
-            name="license_key"
+            id="licenseKey"
+            name="licenseKey"
             placeholder="Ingrese la clave de licencia"
-            value={formData.license_key}
+            value={formData.licenseKey}
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white font-mono"
           />
         </div>
         
-        <div>
-          <label htmlFor="expiry_date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Fecha de expiración *
-          </label>
-          <input
-            type="date"
-            id="expiry_date"
-            name="expiry_date"
-            value={formData.expiry_date}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="purchaseDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Fecha de compra
+            </label>
+            <input
+              type="date"
+              id="purchaseDate"
+              name="purchaseDate"
+              value={formData.purchaseDate}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+          <div>
+            <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Fecha de expiración *
+            </label>
+            <input
+              type="date"
+              id="expiryDate"
+              name="expiryDate"
+              value={formData.expiryDate}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="vendor" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Proveedor
+            </label>
+            <input
+              type="text"
+              id="vendor"
+              name="vendor"
+              placeholder="Ej: Microsoft, Adobe"
+              value={formData.vendor}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+          <div>
+            <label htmlFor="cost" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Costo
+            </label>
+            <input
+              type="number"
+              id="cost"
+              name="cost"
+              placeholder="0.00"
+              value={formData.cost}
+              onChange={handleChange}
+              min="0"
+              step="0.01"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="maxInstallations" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Instalaciones máximas
+            </label>
+            <input
+              type="number"
+              id="maxInstallations"
+              name="maxInstallations"
+              value={formData.maxInstallations}
+              onChange={handleChange}
+              min="1"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+          <div>
+            <label htmlFor="currentInstallations" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Instalaciones actuales
+            </label>
+            <input
+              type="number"
+              id="currentInstallations"
+              name="currentInstallations"
+              value={formData.currentInstallations}
+              onChange={handleChange}
+              min="0"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            />
+          </div>
         </div>
         
         <div>
