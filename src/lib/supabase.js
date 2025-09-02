@@ -81,8 +81,17 @@ export const supabaseService = {
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    cache.set(cacheKey, data)
-    return data
+    
+    // Mapear campos de BD a nombres del frontend
+    const mapped = (data || []).map((row) => ({
+      ...row,
+      websiteApp: row.website_application || '',
+      userOrEmail: row.username_email || '',
+      password: row.password_value || '',
+    }))
+    
+    cache.set(cacheKey, mapped)
+    return mapped
   },
 
   async createServiceOrder(orderData, userId) {
@@ -94,7 +103,14 @@ export const supabaseService = {
 
     if (error) throw error
     this.clearUserCache(userId)
-    return data
+    
+    // Mapear respuesta al formato del frontend
+    return {
+      ...data,
+      websiteApp: data.website_application || '',
+      userOrEmail: data.username_email || '',
+      password: data.password_value || '',
+    }
   },
 
   async updateServiceOrder(orderId, orderData, userId) {
@@ -108,7 +124,14 @@ export const supabaseService = {
 
     if (error) throw error
     this.clearUserCache(userId)
-    return data
+    
+    // Mapear respuesta al formato del frontend
+    return {
+      ...data,
+      websiteApp: data.website_application || '',
+      userOrEmail: data.username_email || '',
+      password: data.password_value || '',
+    }
   },
 
   async deleteServiceOrder(orderId, userId) {
@@ -140,26 +163,14 @@ export const supabaseService = {
   },
 
   async createPassword(passwordData, userId) {
-    // Sanitizar datos de entrada
+    // Sanitizar datos de entrada usando los campos correctos del esquema
     const sanitizedData = {
-      ...passwordData,
       user_id: userId,
-      service_name: sanitizeInput(passwordData.service_name, 200),
-      username: passwordData.username ? sanitizeInput(passwordData.username, 200) : null,
-      email: passwordData.email ? sanitizeInput(passwordData.email, 200) : null,
-      url: passwordData.url ? sanitizeInput(passwordData.url, 500) : null,
-      category: passwordData.category ? sanitizeInput(passwordData.category, 100) : null,
+      website_application: sanitizeInput(passwordData.websiteApp || passwordData.service_name || '', 200),
+      username_email: sanitizeInput(passwordData.userOrEmail || passwordData.username || passwordData.email || '', 200),
+      password_value: passwordData.password || '',
+      category: passwordData.category ? sanitizeInput(passwordData.category, 100) : 'Otros',
       notes: passwordData.notes ? sanitizeInput(passwordData.notes, 1000) : null
-    }
-    
-    // Encriptar contraseña usando las funciones de la base de datos
-    if (passwordData.password) {
-      const { data: encryptedData, error: encryptError } = await supabase
-        .rpc('encrypt_password', { password_text: passwordData.password })
-      
-      if (encryptError) throw encryptError
-      sanitizedData.password_encrypted = encryptedData
-      delete sanitizedData.password // Remover contraseña en texto plano
     }
 
     const { data, error } = await supabase
@@ -174,25 +185,23 @@ export const supabaseService = {
   },
 
   async updatePassword(passwordId, passwordData, userId) {
-    // Sanitizar datos de entrada
-    const sanitizedData = {
-      ...passwordData,
-      service_name: passwordData.service_name ? sanitizeInput(passwordData.service_name, 200) : undefined,
-      username: passwordData.username ? sanitizeInput(passwordData.username, 200) : undefined,
-      email: passwordData.email ? sanitizeInput(passwordData.email, 200) : undefined,
-      url: passwordData.url ? sanitizeInput(passwordData.url, 500) : undefined,
-      category: passwordData.category ? sanitizeInput(passwordData.category, 100) : undefined,
-      notes: passwordData.notes ? sanitizeInput(passwordData.notes, 1000) : undefined
-    }
+    // Sanitizar datos de entrada usando los campos correctos del esquema
+    const sanitizedData = {}
     
-    // Encriptar contraseña si se proporciona una nueva
+    if (passwordData.websiteApp || passwordData.service_name) {
+      sanitizedData.website_application = sanitizeInput(passwordData.websiteApp || passwordData.service_name, 200)
+    }
+    if (passwordData.userOrEmail || passwordData.username || passwordData.email) {
+      sanitizedData.username_email = sanitizeInput(passwordData.userOrEmail || passwordData.username || passwordData.email, 200)
+    }
     if (passwordData.password) {
-      const { data: encryptedData, error: encryptError } = await supabase
-        .rpc('encrypt_password', { password_text: passwordData.password })
-      
-      if (encryptError) throw encryptError
-      sanitizedData.password_encrypted = encryptedData
-      delete sanitizedData.password // Remover contraseña en texto plano
+      sanitizedData.password_value = passwordData.password
+    }
+    if (passwordData.category) {
+      sanitizedData.category = sanitizeInput(passwordData.category, 100)
+    }
+    if (passwordData.notes !== undefined) {
+      sanitizedData.notes = passwordData.notes ? sanitizeInput(passwordData.notes, 1000) : null
     }
 
     const { data, error } = await supabase
@@ -419,10 +428,15 @@ export const supabaseService = {
     // Mapear a la forma usada por el frontend (camelCase)
     const mapped = (data || []).map((row) => ({
       ...row,
-      vpnIp: row.ip_address || '',
+      client: row.company || '',
+      vpnIp: row.vpn_ip || '',
       localName: row.local_name || '',
-      // Asegurar estructura de usuarios como array
-      users: Array.isArray(row.users) ? row.users : [],
+      password: row.vpn_password || '',
+      // Convertir usuarios de texto a array
+      users: row.users ? row.users.split(';').map(u => {
+        const [username, password] = u.split(':')
+        return { username: username || '', password: password || '' }
+      }).filter(u => u.username) : [],
     }))
 
     cache.set(cacheKey, mapped)
@@ -430,39 +444,29 @@ export const supabaseService = {
   },
 
   async createServerCredential(credentialData, userId) {
-    // Sanitizar datos de entrada y mapear a columnas de BD (snake_case)
+    // Sanitizar datos de entrada usando los campos correctos del esquema
     const sanitizedData = {
       user_id: userId,
-      client: credentialData.client ? sanitizeInput(credentialData.client, 200) : null,
+      company: credentialData.client || credentialData.company ? sanitizeInput(credentialData.client || credentialData.company, 200) : null,
       server_name: sanitizeInput(credentialData.server_name, 200),
-      ip_address: credentialData.vpnIp ? sanitizeInput(credentialData.vpnIp, 100) : null,
+      vpn_ip: credentialData.vpnIp ? sanitizeInput(credentialData.vpnIp, 100) : null,
       local_name: credentialData.localName ? sanitizeInput(credentialData.localName, 200) : null,
       notes: credentialData.notes ? sanitizeInput(credentialData.notes, 1000) : null,
     }
 
-    // Encriptar contraseña de VPN si se proporciona (se guarda en password_encrypted)
+    // Guardar contraseña VPN directamente (sin encriptar según el esquema actual)
     if (credentialData.password) {
-      const { data: encryptedData, error: encryptError } = await supabase
-        .rpc('encrypt_password', { password_text: credentialData.password })
-      if (encryptError) throw encryptError
-      sanitizedData.password_encrypted = encryptedData
+      sanitizedData.vpn_password = credentialData.password
     }
 
-    // Encriptar contraseñas de usuarios si vienen en el payload
+    // Guardar usuarios como texto simple (según esquema actual)
     if (Array.isArray(credentialData.users)) {
-      const encryptedUsers = []
-      for (const u of credentialData.users) {
+      const usersText = credentialData.users.map(u => {
         const username = sanitizeInput(u.username || '', 200)
-        let userObj = { username }
-        if (u.password && u.password.trim()) {
-          const { data: encUserPwd, error: encUserErr } = await supabase
-            .rpc('encrypt_password', { password_text: u.password.trim() })
-          if (encUserErr) throw encUserErr
-          userObj.password_encrypted = encUserPwd
-        }
-        encryptedUsers.push(userObj)
-      }
-      sanitizedData.users = encryptedUsers
+        const password = u.password ? u.password.trim() : ''
+        return `${username}:${password}`
+      }).join(';')
+      sanitizedData.users = usersText
     }
 
     const { data, error } = await supabase
@@ -477,48 +481,50 @@ export const supabaseService = {
     // Devolver en formato frontend
     return {
       ...data,
-      vpnIp: data.ip_address || '',
+      client: data.company || '',
+      vpnIp: data.vpn_ip || '',
       localName: data.local_name || '',
-      users: Array.isArray(data.users) ? data.users : [],
+      password: data.vpn_password || '',
+      users: data.users ? data.users.split(';').map(u => {
+        const [username, password] = u.split(':')
+        return { username: username || '', password: password || '' }
+      }).filter(u => u.username) : [],
     }
   },
 
   async updateServerCredential(credentialId, credentialData, userId) {
-    // Sanitizar datos de entrada y mapear a columnas de BD (snake_case)
-    const sanitizedData = {
-      client: credentialData.client ? sanitizeInput(credentialData.client, 200) : undefined,
-      server_name: credentialData.server_name ? sanitizeInput(credentialData.server_name, 200) : undefined,
-      ip_address: credentialData.vpnIp ? sanitizeInput(credentialData.vpnIp, 100) : undefined,
-      local_name: credentialData.localName ? sanitizeInput(credentialData.localName, 200) : undefined,
-      notes: credentialData.notes ? sanitizeInput(credentialData.notes, 1000) : undefined,
+    // Sanitizar datos de entrada usando los campos correctos del esquema
+    const sanitizedData = {}
+    
+    if (credentialData.client || credentialData.company) {
+      sanitizedData.company = sanitizeInput(credentialData.client || credentialData.company, 200)
+    }
+    if (credentialData.server_name) {
+      sanitizedData.server_name = sanitizeInput(credentialData.server_name, 200)
+    }
+    if (credentialData.vpnIp) {
+      sanitizedData.vpn_ip = sanitizeInput(credentialData.vpnIp, 100)
+    }
+    if (credentialData.localName) {
+      sanitizedData.local_name = sanitizeInput(credentialData.localName, 200)
+    }
+    if (credentialData.notes !== undefined) {
+      sanitizedData.notes = credentialData.notes ? sanitizeInput(credentialData.notes, 1000) : null
     }
 
-    // Encriptar contraseña de VPN si se proporciona una nueva
+    // Guardar contraseña VPN directamente (sin encriptar según el esquema actual)
     if (credentialData.password) {
-      const { data: encryptedData, error: encryptError } = await supabase
-        .rpc('encrypt_password', { password_text: credentialData.password })
-      if (encryptError) throw encryptError
-      sanitizedData.password_encrypted = encryptedData
+      sanitizedData.vpn_password = credentialData.password
     }
 
-    // Actualizar usuarios: si se envían, re-encriptar contraseñas provistas
+    // Guardar usuarios como texto simple (según esquema actual)
     if (Array.isArray(credentialData.users)) {
-      const encryptedUsers = []
-      for (const u of credentialData.users) {
+      const usersText = credentialData.users.map(u => {
         const username = sanitizeInput(u.username || '', 200)
-        let userObj = { username }
-        if (u.password && u.password.trim()) {
-          const { data: encUserPwd, error: encUserErr } = await supabase
-            .rpc('encrypt_password', { password_text: u.password.trim() })
-          if (encUserErr) throw encUserErr
-          userObj.password_encrypted = encUserPwd
-        } else if (u.password_encrypted) {
-          // Permitir conservar encriptado existente si viene del cliente
-          userObj.password_encrypted = u.password_encrypted
-        }
-        encryptedUsers.push(userObj)
-      }
-      sanitizedData.users = encryptedUsers
+        const password = u.password ? u.password.trim() : ''
+        return `${username}:${password}`
+      }).join(';')
+      sanitizedData.users = usersText
     }
 
     const { data, error } = await supabase
@@ -535,9 +541,14 @@ export const supabaseService = {
     // Devolver en formato frontend
     return {
       ...data,
-      vpnIp: data.ip_address || '',
+      client: data.company || '',
+      vpnIp: data.vpn_ip || '',
       localName: data.local_name || '',
-      users: Array.isArray(data.users) ? data.users : [],
+      password: data.vpn_password || '',
+      users: data.users ? data.users.split(';').map(u => {
+        const [username, password] = u.split(':')
+        return { username: username || '', password: password || '' }
+      }).filter(u => u.username) : [],
     }
   },
 
