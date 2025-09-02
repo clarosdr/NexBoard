@@ -265,7 +265,7 @@ const LoginForm = () => {
         {/* Footer */}
         <div className="text-center">
           <p className="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200">
-            © 2025NexBoard. Sistema de Gestión Empresarial. seo Diego Ramon Claros
+            © 2025 NexBoard. Sistema de Gestión Empresarial. Diego Ramón Claros
           </p>
         </div>
       </div>
