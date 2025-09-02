@@ -45,18 +45,15 @@ const BudgetExpensesTable = () => {
   useEffect(() => {
     let filtered = expenses;
 
-    // Filtro por estado
-    if (filterStatus === 'paid') {
-      filtered = filtered.filter(expense => expense.isPaid);
-    } else if (filterStatus === 'unpaid') {
-      filtered = filtered.filter(expense => !expense.isPaid);
-    } else if (filterStatus === 'overdue') {
-      const today = new Date().toISOString().split('T')[0];
-      filtered = filtered.filter(expense => !expense.isPaid && expense.dueDate < today);
+    // Filtro por estado (simplificado usando fecha de vencimiento)
+    if (filterStatus === 'overdue') {
+      const todayStr = new Date().toISOString().split('T')[0];
+      filtered = filtered.filter(expense => expense.date < todayStr);
     } else if (filterStatus === 'due_soon') {
       const today = new Date();
-      const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      filtered = filtered.filter(expense => !expense.isPaid && expense.dueDate <= nextWeek && expense.dueDate >= today.toISOString().split('T')[0]);
+      const nextWeekStr = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const todayStr = today.toISOString().split('T')[0];
+      filtered = filtered.filter(expense => expense.date <= nextWeekStr && expense.date >= todayStr);
     }
 
     // Filtro por categoría
@@ -77,40 +74,27 @@ const BudgetExpensesTable = () => {
 
   const categoryOptions = [
     { value: 'all', label: 'Todas las Categorías' },
-    { value: 'alimentacion', label: '🍽️ Alimentación' },
-    { value: 'transporte', label: '🚗 Transporte' },
-    { value: 'entretenimiento', label: '🎬 Entretenimiento' },
-    { value: 'salud', label: '🏥 Salud' },
-    { value: 'compras', label: '🛒 Compras Personales' },
-    { value: 'servicios', label: '🔧 Servicios' },
-    { value: 'educacion', label: '📚 Educación' },
-    { value: 'otros', label: '📦 Otros' }
+    { value: 'vivienda', label: '🏠 Vivienda' },
+    { value: 'mi_hija', label: '👧 Mi hija' },
+    { value: 'mama', label: '👩 Mamá' },
+    { value: 'deudas', label: '💳 Deudas' },
+    { value: 'sueldo', label: '💼 Sueldo' },
+    { value: 'sueldo_2', label: '💼 Sueldo 2' }
   ];
 
   const getExpenseCountByStatus = (status) => {
     if (status === 'all') return expenses.length;
-    if (status === 'paid') return expenses.filter(e => e.isPaid).length;
-    if (status === 'unpaid') return expenses.filter(e => !e.isPaid).length;
     if (status === 'overdue') {
-      const today = new Date().toISOString().split('T')[0];
-      return expenses.filter(e => !e.isPaid && e.dueDate < today).length;
+      const todayStr = new Date().toISOString().split('T')[0];
+      return expenses.filter(e => e.date < todayStr).length;
     }
     if (status === 'due_soon') {
       const today = new Date();
-      const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      return expenses.filter(e => !e.isPaid && e.dueDate <= nextWeek && e.dueDate >= today.toISOString().split('T')[0]).length;
+      const nextWeekStr = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const todayStr = today.toISOString().split('T')[0];
+      return expenses.filter(e => e.date <= nextWeekStr && e.date >= todayStr).length;
     }
     return 0;
-  };
-
-  const getFrequencyLabel = (frequency) => {
-    const labels = {
-      weekly: 'Semanal',
-      monthly: 'Mensual',
-      quarterly: 'Trimestral',
-      yearly: 'Anual'
-    };
-    return labels[frequency] || frequency;
   };
 
   const getCategoryLabel = (category) => {
@@ -118,27 +102,22 @@ const BudgetExpensesTable = () => {
     return option ? option.label : category;
   };
 
-  const getDaysUntilDue = (dueDate) => {
+  const getDaysUntilDue = (date) => {
     const today = new Date();
-    const due = new Date(dueDate);
+    const due = new Date(date);
     const diffTime = due - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   };
 
   const getStatusBadge = (expense) => {
-    if (expense.isPaid) {
-      return <span className="px-2 py-1 text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full transition-colors duration-200">Pagado</span>;
-    }
-    
-    const daysUntilDue = getDaysUntilDue(expense.dueDate);
-    
+    const daysUntilDue = getDaysUntilDue(expense.date);
     if (daysUntilDue < 0) {
       return <span className="px-2 py-1 text-xs font-semibold bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-full transition-colors duration-200">Vencido</span>;
     } else if (daysUntilDue <= 7) {
       return <span className="px-2 py-1 text-xs font-semibold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded-full transition-colors duration-200">Próximo a vencer</span>;
     } else {
-      return <span className="px-2 py-1 text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full transition-colors duration-200">Pendiente</span>;
+      return <span className="px-2 py-1 text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full transition-colors duration-200">Al día</span>;
     }
   };
 
@@ -181,31 +160,12 @@ const BudgetExpensesTable = () => {
     }
   };
 
-  const togglePaidStatus = async (expenseId) => {
-    try {
-      const expense = expenses.find(e => e.id === expenseId);
-      const updatedExpense = await supabaseService.updateBudgetExpense(expenseId, {
-        ...expense,
-        isPaid: !expense.isPaid,
-        updated_at: new Date().toISOString()
-      });
-      setExpenses(prev => prev.map(exp => 
-        exp.id === expenseId ? updatedExpense : exp
-      ));
-    } catch (error) {
-      console.error('Error updating expense status:', error);
-      alert('Error al actualizar el estado del gasto. Por favor, intenta de nuevo.');
-    }
+  const calculateTotal = () => {
+    const total = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+    return { total };
   };
 
-  const calculateTotalByStatus = () => {
-    const paid = expenses.filter(e => e.isPaid).reduce((sum, e) => sum + e.amount, 0);
-    const unpaid = expenses.filter(e => !e.isPaid).reduce((sum, e) => sum + e.amount, 0);
-    const total = expenses.reduce((sum, e) => sum + e.amount, 0);
-    return { paid, unpaid, total };
-  };
-
-  const totals = calculateTotalByStatus();
+  const totals = calculateTotal();
 
   const handleRefresh = async () => {
     // Actualizar filtros y búsqueda
@@ -259,18 +219,10 @@ const BudgetExpensesTable = () => {
       </div>
 
       {/* Resumen de totales */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6">
         <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border dark:border-blue-800 transition-colors duration-200">
           <h3 className="text-sm font-medium text-blue-800 dark:text-blue-300 transition-colors duration-200">Total Gastos</h3>
           <p className="text-2xl font-bold text-blue-900 dark:text-blue-200 transition-colors duration-200">{formatCurrency(totals.total)}</p>
-        </div>
-        <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border dark:border-green-800 transition-colors duration-200">
-          <h3 className="text-sm font-medium text-green-800 dark:text-green-300 transition-colors duration-200">Pagados</h3>
-          <p className="text-2xl font-bold text-green-900 dark:text-green-200 transition-colors duration-200">{formatCurrency(totals.paid)}</p>
-        </div>
-        <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border dark:border-red-800 transition-colors duration-200">
-          <h3 className="text-sm font-medium text-red-800 dark:text-red-300 transition-colors duration-200">Pendientes</h3>
-          <p className="text-2xl font-bold text-red-900 dark:text-red-200 transition-colors duration-200">{formatCurrency(totals.unpaid)}</p>
         </div>
       </div>
 
@@ -279,8 +231,6 @@ const BudgetExpensesTable = () => {
         <div className="flex flex-wrap gap-2 mb-4">
           {[
             { key: 'all', label: 'Todos', color: 'gray' },
-            { key: 'unpaid', label: 'Pendientes', color: 'blue' },
-            { key: 'paid', label: 'Pagados', color: 'green' },
             { key: 'due_soon', label: 'Próximos a vencer', color: 'yellow' },
             { key: 'overdue', label: 'Vencidos', color: 'red' }
           ].map(status => (
@@ -290,14 +240,10 @@ const BudgetExpensesTable = () => {
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
                 filterStatus === status.key
                   ? status.color === 'gray' ? 'bg-gray-600 dark:bg-gray-500 text-white'
-                  : status.color === 'blue' ? 'bg-blue-600 dark:bg-blue-500 text-white'
-                  : status.color === 'green' ? 'bg-green-600 dark:bg-green-500 text-white'
                   : status.color === 'yellow' ? 'bg-yellow-600 dark:bg-yellow-500 text-white'
                   : status.color === 'red' ? 'bg-red-600 dark:bg-red-500 text-white'
                   : 'bg-gray-600 text-white'
                   : status.color === 'gray' ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                  : status.color === 'blue' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50'
-                  : status.color === 'green' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50'
                   : status.color === 'yellow' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-900/50'
                   : status.color === 'red' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -359,9 +305,6 @@ const BudgetExpensesTable = () => {
                     Categoría
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
-                    Frecuencia
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
                     Vencimiento
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
@@ -390,19 +333,14 @@ const BudgetExpensesTable = () => {
                       {getCategoryLabel(expense.category)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
-                      {getFrequencyLabel(expense.frequency)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
                       <div>
-                        {new Date(expense.dueDate).toLocaleDateString('es-CO')}
-                        {!expense.isPaid && (
-                          <div className="text-xs">
-                            {getDaysUntilDue(expense.dueDate) >= 0 
-                              ? `${getDaysUntilDue(expense.dueDate)} días restantes`
-                              : `${Math.abs(getDaysUntilDue(expense.dueDate))} días vencido`
-                            }
-                          </div>
-                        )}
+                        {new Date(expense.date).toLocaleDateString('es-CO')}
+                        <div className="text-xs">
+                          {getDaysUntilDue(expense.date) >= 0 
+                            ? `${getDaysUntilDue(expense.date)} días restantes`
+                            : `${Math.abs(getDaysUntilDue(expense.date))} días vencido`
+                          }
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -410,18 +348,8 @@ const BudgetExpensesTable = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
-                        onClick={() => togglePaidStatus(expense.id)}
-                        className={`px-3 py-1 rounded text-xs font-medium transition-colors duration-200 ${
-                          expense.isPaid
-                            ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-900/50'
-                            : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50'
-                        }`}
-                      >
-                        {expense.isPaid ? 'Marcar pendiente' : 'Marcar pagado'}
-                      </button>
-                      <button
                         onClick={() => handleEdit(expense)}
-                        className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 transition-colors duration-200"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:bg-blue-300 transition-colors duration-200"
                       >
                         Editar
                       </button>
@@ -514,37 +442,21 @@ const BudgetExpensesTable = () => {
                     <p className="text-gray-900 dark:text-gray-200 transition-colors duration-200">{getCategoryLabel(expense.category)}</p>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Frecuencia:</p>
-                    <p className="text-gray-900 dark:text-gray-200 transition-colors duration-200">{getFrequencyLabel(expense.frequency)}</p>
-                  </div>
-                  <div>
                     <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Vencimiento:</p>
-                    <p className="text-gray-900 dark:text-gray-200 transition-colors duration-200">{new Date(expense.dueDate).toLocaleDateString('es-CO')}</p>
-                    {!expense.isPaid && (
-                      <p className={`text-xs mt-1 transition-colors duration-200 ${
-                        getDaysUntilDue(expense.dueDate) >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
-                      }`}>
-                        {getDaysUntilDue(expense.dueDate) >= 0 
-                          ? `${getDaysUntilDue(expense.dueDate)} días restantes`
-                          : `${Math.abs(getDaysUntilDue(expense.dueDate))} días vencido`
-                        }
-                      </p>
-                    )}
+                    <p className="text-gray-900 dark:text-gray-200 transition-colors duration-200">{new Date(expense.date).toLocaleDateString('es-CO')}</p>
+                    <p className={`text-xs mt-1 transition-colors duration-200 ${
+                      getDaysUntilDue(expense.date) >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
+                    }`}>
+                      {getDaysUntilDue(expense.date) >= 0 
+                        ? `${getDaysUntilDue(expense.date)} días restantes`
+                        : `${Math.abs(getDaysUntilDue(expense.date))} días vencido`
+                      }
+                    </p>
                   </div>
                 </div>
                 
                 {/* Acciones */}
                 <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-gray-100 dark:border-gray-700 transition-colors duration-200">
-                  <button
-                    onClick={() => togglePaidStatus(expense.id)}
-                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium touch-manipulation transition-colors duration-200 ${
-                      expense.isPaid
-                        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-900/50'
-                        : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50'
-                    }`}
-                  >
-                    {expense.isPaid ? 'Marcar pendiente' : 'Marcar pagado'}
-                  </button>
                   <button
                     onClick={() => handleEdit(expense)}
                     className="flex-1 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/50 text-sm font-medium touch-manipulation transition-colors duration-200"

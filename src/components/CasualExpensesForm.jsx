@@ -1,30 +1,36 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
 import Button from './ui/Button'
-import { getTodayLocalDate, getCurrentTimestamp } from '../utils/dateUtils'
-
-const generateUUID = () => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    const r = Math.random() * 16 | 0
-    const v = c === 'x' ? r : (r & 0x3 | 0x8)
-    return v.toString(16)
-  })
-}
+import { getTodayLocalDate } from '../utils/dateUtils'
 
 export default function CasualExpensesForm({ expense, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     description: '',
     amount: 0,
-    date: getTodayLocalDate()
+    date: getTodayLocalDate(),
+    category: 'otros',
+    notes: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Categorías solicitadas (mismas de presupuesto + Otros)
+  const categoryOptions = [
+    { value: 'vivienda', label: '🏠 Vivienda' },
+    { value: 'mi_hija', label: '👧 Mi hija' },
+    { value: 'mama', label: '👩 Mamá' },
+    { value: 'deudas', label: '💳 Deudas' },
+    { value: 'sueldo', label: '💼 Sueldo' },
+    { value: 'sueldo_2', label: '💼 Sueldo 2' },
+    { value: 'otros', label: '📦 Otros' }
+  ]
 
   useEffect(() => {
     if (expense) {
       setFormData({
         description: expense.description || '',
         amount: Number(expense.amount) || 0,
-        date: expense.date || getTodayLocalDate()
+        date: expense.date || getTodayLocalDate(),
+        category: expense.category || 'otros',
+        notes: expense.notes || ''
       })
     }
   }, [expense])
@@ -46,39 +52,8 @@ export default function CasualExpensesForm({ expense, onSubmit, onCancel }) {
     setIsSubmitting(true)
 
     try {
-      const expenseData = {
-        ...formData,
-        id: expense ? expense.id : generateUUID(),
-        created_at: expense ? expense.created_at : getCurrentTimestamp(),
-        updated_at: getCurrentTimestamp(),
-        amount: Number(formData.amount) || 0
-      }
-
-      let error
-      if (expense) {
-        ({ error } = await supabase
-          .from('casual_expenses')
-          .update(expenseData)
-          .eq('id', expense.id))
-      } else {
-        ({ error } = await supabase
-          .from('casual_expenses')
-          .insert([expenseData]))
-      }
-
-      if (error) {
-        console.error('Error al guardar en Supabase:', error.message)
-        alert(`No se pudo guardar el gasto: ${error.message}`)
-        setIsSubmitting(false)
-        return
-      }
-
-      alert('Gasto guardado correctamente ✅')
-      if (onSubmit) onSubmit(expenseData)
-
-    } catch (err) {
-      console.error('Error inesperado:', err)
-      alert('Ocurrió un error inesperado')
+      await onSubmit?.({ ...formData })
+    } finally {
       setIsSubmitting(false)
     }
   }
@@ -119,6 +94,23 @@ export default function CasualExpensesForm({ expense, onSubmit, onCancel }) {
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
           />
         </div>
+
+        <div>
+          <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Categoría
+          </label>
+          <select
+            id="category"
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+          >
+            {categoryOptions.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
         
         <div>
           <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -131,6 +123,21 @@ export default function CasualExpensesForm({ expense, onSubmit, onCancel }) {
             value={formData.date}
             onChange={handleChange}
             required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Detalle
+          </label>
+          <textarea
+            id="notes"
+            name="notes"
+            rows={3}
+            placeholder="Detalle del gasto (opcional)"
+            value={formData.notes}
+            onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
           />
         </div>

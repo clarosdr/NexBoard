@@ -1,35 +1,25 @@
 import React, { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
 import Button from './ui/Button'
-import { getTodayLocalDate, getCurrentTimestamp } from '../utils/dateUtils'
-
-const generateUUID = () => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    const r = Math.random() * 16 | 0
-    const v = c === 'x' ? r : (r & 0x3 | 0x8)
-    return v.toString(16)
-  })
-}
+import { getTodayLocalDate } from '../utils/dateUtils'
 
 export default function BudgetExpenseForm({ expense, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     description: '',
     amount: 0,
     date: getTodayLocalDate(),
-    category: 'otros'
+    category: 'vivienda',
+    notes: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Opciones de categoría alineadas con BudgetExpensesTable
+  // Categorías fijas solicitadas (solo fijos)
   const categoryOptions = [
-    { value: 'alimentacion', label: '🍽️ Alimentación' },
-    { value: 'transporte', label: '🚗 Transporte' },
-    { value: 'entretenimiento', label: '🎬 Entretenimiento' },
-    { value: 'salud', label: '🏥 Salud' },
-    { value: 'compras', label: '🛒 Compras Personales' },
-    { value: 'servicios', label: '🔧 Servicios' },
-    { value: 'educacion', label: '📚 Educación' },
-    { value: 'otros', label: '📦 Otros' }
+    { value: 'vivienda', label: '🏠 Vivienda' },
+    { value: 'mi_hija', label: '👧 Mi hija' },
+    { value: 'mama', label: '👩 Mamá' },
+    { value: 'deudas', label: '💳 Deudas' },
+    { value: 'sueldo', label: '💼 Sueldo' },
+    { value: 'sueldo_2', label: '💼 Sueldo 2' }
   ]
 
   useEffect(() => {
@@ -38,7 +28,8 @@ export default function BudgetExpenseForm({ expense, onSubmit, onCancel }) {
         description: expense.description || '',
         amount: Number(expense.amount) || 0,
         date: expense.date || getTodayLocalDate(),
-        category: expense.category || 'otros'
+        category: expense.category || 'vivienda',
+        notes: expense.notes || ''
       })
     }
   }, [expense])
@@ -48,7 +39,7 @@ export default function BudgetExpenseForm({ expense, onSubmit, onCancel }) {
     setFormData(prev => ({ ...prev, [name]: name === 'amount' ? Number(value) : value }))
   }
 
-  const handleSubmit = async (e) => {
+  const submitLocal = async (e) => {
     e.preventDefault()
     if (isSubmitting) return
 
@@ -60,45 +51,14 @@ export default function BudgetExpenseForm({ expense, onSubmit, onCancel }) {
     setIsSubmitting(true)
 
     try {
-      const expenseData = {
-        ...formData,
-        id: expense ? expense.id : generateUUID(),
-        created_at: expense ? expense.created_at : getCurrentTimestamp(),
-        updated_at: getCurrentTimestamp(),
-        amount: Number(formData.amount) || 0
-      }
-
-      let error
-      if (expense) {
-        ({ error } = await supabase
-          .from('budget_expenses')
-          .update(expenseData)
-          .eq('id', expense.id))
-      } else {
-        ({ error } = await supabase
-          .from('budget_expenses')
-          .insert([expenseData]))
-      }
-
-      if (error) {
-        console.error('Error al guardar en Supabase:', error.message)
-        alert(`No se pudo guardar el gasto presupuestado: ${error.message}`)
-        setIsSubmitting(false)
-        return
-      }
-
-      alert('Gasto presupuestado guardado correctamente ✅')
-      if (onSubmit) onSubmit(expenseData)
-
-    } catch (err) {
-      console.error('Error inesperado:', err)
-      alert('Ocurrió un error inesperado')
+      await onSubmit?.({ ...formData })
+    } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+    <form onSubmit={submitLocal} className="p-6 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
       <div className="space-y-4">
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -108,7 +68,7 @@ export default function BudgetExpenseForm({ expense, onSubmit, onCancel }) {
             type="text"
             id="description"
             name="description"
-            placeholder="Descripción del gasto presupuestado"
+            placeholder="Descripción del gasto fijo"
             value={formData.description}
             onChange={handleChange}
             required
@@ -136,7 +96,7 @@ export default function BudgetExpenseForm({ expense, onSubmit, onCancel }) {
         
         <div>
           <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Categoría
+            Categoría (gasto fijo)
           </label>
           <select
             id="category"
@@ -153,7 +113,7 @@ export default function BudgetExpenseForm({ expense, onSubmit, onCancel }) {
         
         <div>
           <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Fecha *
+            Vencimiento mensual *
           </label>
           <input
             type="date"
@@ -162,6 +122,21 @@ export default function BudgetExpenseForm({ expense, onSubmit, onCancel }) {
             value={formData.date}
             onChange={handleChange}
             required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Detalle
+          </label>
+          <textarea
+            id="notes"
+            name="notes"
+            rows={3}
+            placeholder="Detalle del gasto (opcional)"
+            value={formData.notes}
+            onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
           />
         </div>

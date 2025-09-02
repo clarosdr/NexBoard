@@ -70,7 +70,7 @@ const PrintReceipt = ({ order, onClose }) => {
             <div>
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3 transition-colors duration-200">Información de la Orden</h3>
               <div className="space-y-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">
-                <p><span className="font-medium">Orden N°:</span> {/* oculto el ID */}</p>
+                {/* Orden N° eliminado según requerimiento */}
                 <p><span className="font-medium">Fecha:</span> {formatDate(order.date)}</p>
                 <p><span className="font-medium">Estado:</span> 
                   <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${

@@ -106,10 +106,10 @@ const ServerCredentialsTable = () => {
 
   // Filtrar credenciales por término de búsqueda
   const filteredCredentials = credentials.filter(credential =>
-    credential.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    credential.server_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    credential.vpnName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    credential.vpnIp.toLowerCase().includes(searchTerm.toLowerCase())
+    (credential.client || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (credential.server_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (credential.vpnName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (credential.vpnIp || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (showForm) {
@@ -117,7 +117,7 @@ const ServerCredentialsTable = () => {
       <ServerCredentialsForm
         onSubmit={handleFormSubmit}
         onCancel={handleFormCancel}
-        editingCredential={editingCredential}
+        credential={editingCredential}
       />
     );
   }

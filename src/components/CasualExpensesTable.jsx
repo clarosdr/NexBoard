@@ -25,16 +25,15 @@ const CasualExpensesTable = () => {
   const [showArchived, setShowArchived] = useState(false);
   const { user } = useAuth();
 
-  // Categorías para filtros
+  // Categorías para filtros (alineadas con el formulario y presupuesto)
   const categories = [
     { value: 'all', label: 'Todas las categorías' },
-    { value: 'alimentacion', label: '🍽️ Alimentación' },
-    { value: 'transporte', label: '🚗 Transporte' },
-    { value: 'entretenimiento', label: '🎬 Entretenimiento' },
-    { value: 'salud', label: '🏥 Salud' },
-    { value: 'compras', label: '🛒 Compras Personales' },
-    { value: 'servicios', label: '🔧 Servicios' },
-    { value: 'educacion', label: '📚 Educación' },
+    { value: 'vivienda', label: '🏠 Vivienda' },
+    { value: 'mi_hija', label: '👧 Mi hija' },
+    { value: 'mama', label: '👩 Mamá' },
+    { value: 'deudas', label: '💳 Deudas' },
+    { value: 'sueldo', label: '💼 Sueldo' },
+    { value: 'sueldo_2', label: '💼 Sueldo 2' },
     { value: 'otros', label: '📦 Otros' }
   ];
 
