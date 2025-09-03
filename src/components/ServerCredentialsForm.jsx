@@ -3,12 +3,11 @@ import Button from './ui/Button'
 
 export default function ServerCredentialsForm({ credential, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
-    client: '', // Empresa
+    company_name: '', // Empresa
     server_name: '', // Nombre del Servidor
-    vpnIp: '', // IP VPN
-    localName: '', // Nombre local
-    notes: '', // Notas
-    passVpn: '' // Pass VPN (solo para entrada; se mapeará a 'password' en el payload)
+    vpn_ip: '', // IP VPN
+    local_name: '', // Nombre local
+    vpn_password: '' // Pass VPN
   })
   const [users, setUsers] = useState([{ username: '', password: '' }]) // Usuarios
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -17,12 +16,11 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
     if (credential) {
       setFormData(prev => ({
         ...prev,
-        client: credential.client || '',
+        company_name: credential.client || credential.company_name || '',
         server_name: credential.server_name || '',
-        vpnIp: credential.vpnIp || '',
-        localName: credential.localName || '',
-        notes: credential.notes || '',
-        passVpn: '' // Por seguridad no prellenamos el password
+        vpn_ip: credential.vpnIp || credential.vpn_ip || '',
+        local_name: credential.localName || credential.local_name || '',
+        vpn_password: '' // Por seguridad no prellenamos el password
       }))
       setUsers(Array.isArray(credential.users) && credential.users.length > 0
         ? credential.users.map(u => ({ username: u.username || '', password: '' }))
@@ -44,12 +42,11 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
   const removeUser = (index) => setUsers(prev => prev.filter((_, i) => i !== index))
 
   const validate = () => {
-    if (!formData.client.trim()) { alert('La Empresa es requerida'); return false }
+    if (!formData.company_name.trim()) { alert('La Empresa es requerida'); return false }
     if (!formData.server_name.trim()) { alert('El Nombre del Servidor es requerido'); return false }
-    if (!formData.passVpn.trim()) { alert('El Pass VPN es requerido'); return false }
-    if (!formData.vpnIp.trim()) { alert('La IP VPN es requerida'); return false }
-    if (!formData.localName.trim()) { alert('El Nombre local es requerido'); return false }
-    if (!formData.notes.trim()) { alert('Las Notas son requeridas'); return false }
+    if (!formData.vpn_password.trim()) { alert('El Pass VPN es requerido'); return false }
+    if (!formData.vpn_ip.trim()) { alert('La IP VPN es requerida'); return false }
+    if (!formData.local_name.trim()) { alert('El Nombre local es requerido'); return false }
     if (!users.length) { alert('Debe agregar al menos un usuario'); return false }
     for (let i = 0; i < users.length; i++) {
       const u = users[i]
@@ -67,16 +64,12 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
     setIsSubmitting(true)
     try {
       const payload = {
-        client: formData.client.trim(),
+        company_name: formData.company_name.trim(),
         server_name: formData.server_name.trim(),
-        vpnIp: formData.vpnIp.trim(),
-        localName: formData.localName.trim(),
-        notes: formData.notes.trim(),
+        vpn_ip: formData.vpn_ip.trim(),
+        local_name: formData.local_name.trim(),
+        vpn_password: formData.vpn_password.trim(),
         users: users.map(u => ({ username: u.username.trim(), password: u.password }))
-      }
-      // Mapear Pass VPN al campo 'password' para que el servicio lo encripte (no guardamos texto plano)
-      if (formData.passVpn.trim()) {
-        payload.password = formData.passVpn.trim()
       }
 
       await onSubmit?.(payload)
@@ -89,15 +82,15 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
     <form onSubmit={handleSubmit} className="p-6 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
       <div className="space-y-4">
         <div>
-          <label htmlFor="client" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="company_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Empresa *
           </label>
           <input
             type="text"
-            id="client"
-            name="client"
+            id="company_name"
+            name="company_name"
             placeholder="Ej: ACME S.A.S."
-            value={formData.client}
+            value={formData.company_name}
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
@@ -121,15 +114,15 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
         </div>
 
         <div>
-          <label htmlFor="passVpn" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="vpn_password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Pass VPN *
           </label>
           <input
             type="password"
-            id="passVpn"
-            name="passVpn"
+            id="vpn_password"
+            name="vpn_password"
             placeholder="Contraseña de la VPN"
-            value={formData.passVpn}
+            value={formData.vpn_password}
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white font-mono"
@@ -137,15 +130,15 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
         </div>
 
         <div>
-          <label htmlFor="vpnIp" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="vpn_ip" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             IP VPN *
           </label>
           <input
             type="text"
-            id="vpnIp"
-            name="vpnIp"
+            id="vpn_ip"
+            name="vpn_ip"
             placeholder="192.168.1.100"
-            value={formData.vpnIp}
+            value={formData.vpn_ip}
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white font-mono"
@@ -153,15 +146,15 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
         </div>
 
         <div>
-          <label htmlFor="localName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="local_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Nombre local *
           </label>
           <input
             type="text"
-            id="localName"
-            name="localName"
+            id="local_name"
+            name="local_name"
             placeholder="Ej: Servidor Local Oficina"
-            value={formData.localName}
+            value={formData.local_name}
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"

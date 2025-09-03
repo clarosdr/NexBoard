@@ -109,7 +109,8 @@ const CasualExpensesTable = () => {
   // Filtrar gastos
   const filteredExpenses = allExpenses.filter(expense => {
     const matchesSearch = expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (expense.notes && expense.notes.toLowerCase().includes(searchTerm.toLowerCase()));
+                         (expense.detail && expense.detail.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (expense.notes && expense.notes.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCategory = selectedCategory === 'all' || expense.category === selectedCategory;
     const matchesMonth = !selectedMonth || expense.date.startsWith(selectedMonth);
     
@@ -351,9 +352,9 @@ const CasualExpensesTable = () => {
                     <td className="px-6 py-4 text-sm text-gray-900 dark:text-white transition-colors duration-200">
                       <div>
                         <div className="font-medium">{expense.description}</div>
-                        {expense.notes && (
-                          <div className="text-gray-600 dark:text-gray-300 text-xs mt-1 transition-colors duration-200">{expense.notes}</div>
-                        )}
+                        {(expense.detail || expense.notes) && (
+                    <div className="text-gray-600 dark:text-gray-300 text-xs mt-1 transition-colors duration-200">{expense.detail || expense.notes}</div>
+                  )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white transition-colors duration-200">
@@ -450,9 +451,9 @@ const CasualExpensesTable = () => {
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white transition-colors duration-200">{expense.description}</h3>
                       <p className="text-sm text-gray-600 dark:text-gray-300 transition-colors duration-200">{formatDate(expense.date)}</p>
-                      {expense.notes && (
-                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 transition-colors duration-200">{expense.notes}</p>
-                      )}
+                      {(expense.detail || expense.notes) && (
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 transition-colors duration-200">{expense.detail || expense.notes}</p>
+                  )}
                     </div>
                     <div className="ml-3 text-right">
                       <p className="text-lg font-semibold text-red-600 dark:text-red-400 transition-colors duration-200">{formatCurrency(expense.amount)}</p>

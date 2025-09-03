@@ -65,7 +65,7 @@ const BudgetExpensesTable = () => {
     if (searchTerm) {
       filtered = filtered.filter(expense => 
         expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        expense.notes?.toLowerCase().includes(searchTerm.toLowerCase())
+        (expense.detail || expense.notes || '').toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -318,8 +318,8 @@ const BudgetExpensesTable = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">{expense.description}</div>
-                        {expense.notes && (
-                          <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">{expense.notes}</div>
+                        {(expense.detail || expense.notes) && (
+                          <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">{expense.detail || expense.notes}</div>
                         )}
                       </div>
                     </td>
@@ -419,8 +419,8 @@ const BudgetExpensesTable = () => {
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white transition-colors duration-200">{expense.description}</h3>
-                    {expense.notes && (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 transition-colors duration-200">{expense.notes}</p>
+                    {(expense.detail || expense.notes) && (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 transition-colors duration-200">{expense.detail || expense.notes}</p>
                     )}
                   </div>
                   <div className="ml-3">

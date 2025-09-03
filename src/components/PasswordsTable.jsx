@@ -95,8 +95,8 @@ const PasswordsTable = () => {
 
   // Filtrar contraseñas por término de búsqueda
   const filteredPasswords = passwords.filter(password => {
-    const displayService = password.service_name || password.websiteApp || password.website_application || ''
-    const displayUser = password.username || password.email || password.userOrEmail || password.username_email || ''
+    const displayService = password.site_app || ''
+    const displayUser = password.username || ''
     const term = searchTerm.toLowerCase()
     return (
       displayService.toLowerCase().includes(term) ||
@@ -187,9 +187,9 @@ const PasswordsTable = () => {
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 transition-colors duration-200">
                 {filteredPasswords.map((password) => {
-                  const displayService = password.service_name || password.websiteApp || password.website_application || ''
-                  const displayUser = password.username || password.email || password.userOrEmail || password.username_email || ''
-                  const displayPassword = password.password || password.password_value || ''
+                  const displayService = password.site_app || ''
+                  const displayUser = password.username || ''
+                  const displayPassword = password.password || ''
                   return (
                   <tr key={password.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
                     <td className="px-6 py-4 whitespace-nowrap">

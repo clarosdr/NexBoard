@@ -100,7 +100,7 @@ const OrderDetailsModal = ({ order, isOpen, onClose }) => {
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Fecha de Servicio</label>
-                  <p className="text-gray-900 dark:text-gray-200 transition-colors duration-200">{formatDate(order.date)}</p>
+                  <p className="text-gray-900 dark:text-gray-200 transition-colors duration-200">{formatDate(order.service_date || order.date)}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 transition-colors duration-200">Estado</label>

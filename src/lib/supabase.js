@@ -26,7 +26,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // Hacer supabase disponible globalmente para debugging en consola
 if (typeof window !== 'undefined') {
   window.supabase = supabase
-  console.log('🔧 Supabase client disponible en window.supabase para debugging')
+  
 }
 
 // Cache simple para optimizar consultas (opcional)
@@ -75,9 +75,13 @@ export const supabaseService = {
     if (cached) return cached
 
     const { data, error } = await supabase
-      .from('service_orders')
-      .select('*')
-      .eq('user_id', userId)
+      .from('orders')
+      .select(`
+        *,
+        order_items(*),
+        order_payments(*)
+      `)
+      .eq('owner_id', userId)
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -85,10 +89,8 @@ export const supabaseService = {
     // Mapear campos de BD a nombres del frontend
     const mapped = (data || []).map((row) => ({
       ...row,
-      customer_name: row.client_name,
-      websiteApp: row.website_application || '',
-      userOrEmail: row.username_email || '',
-      password: row.password_value || '',
+      items: row.order_items || [],
+      payments: row.order_payments || []
     }))
     
     cache.set(cacheKey, mapped)
@@ -96,70 +98,195 @@ export const supabaseService = {
   },
 
   async createServiceOrder(orderData, userId) {
-    // Mapear customer_name a client_name para la BD
-    const dbData = {
-      ...orderData,
-      client_name: orderData.customer_name || orderData.client_name,
-      user_id: userId
+    // Preparar datos de la orden principal
+    const orderPayload = {
+      customer_name: orderData.customer_name,
+      service_date: orderData.service_date,
+      description: orderData.description,
+      status: orderData.status || 'pending',
+      owner_id: userId
     }
-    // Remover customer_name del payload si existe
-    delete dbData.customer_name
 
-    const { data, error } = await supabase
-      .from('service_orders')
-      .insert(dbData)
+    // Crear la orden principal
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .insert(orderPayload)
       .select()
       .single()
 
-    if (error) throw error
+    if (orderError) throw orderError
+
+    // Crear items si existen
+    let orderItems = []
+    if (orderData.items && orderData.items.length > 0) {
+      const itemsPayload = orderData.items.map(item => ({
+        order_id: order.id,
+        quantity: item.quantity || 1,
+        item_desc: item.description || item.item_desc,
+        unit_price: item.unitPrice || item.unit_price || 0,
+        part_cost: item.partCost || item.part_cost || 0
+      }))
+
+      const { data: items, error: itemsError } = await supabase
+        .from('order_items')
+        .insert(itemsPayload)
+        .select()
+
+      if (itemsError) throw itemsError
+      orderItems = items
+    }
+
+    // Crear pagos si existen
+    let orderPayments = []
+    if (orderData.payments && orderData.payments.length > 0) {
+      const paymentsPayload = orderData.payments.map(payment => ({
+        order_id: order.id,
+        amount: payment.amount || 0,
+        payment_date: payment.date || payment.payment_date,
+        payment_method: payment.method || payment.payment_method || 'efectivo'
+      }))
+
+      const { data: payments, error: paymentsError } = await supabase
+        .from('order_payments')
+        .insert(paymentsPayload)
+        .select()
+
+      if (paymentsError) throw paymentsError
+      orderPayments = payments
+    }
+
     this.clearUserCache(userId)
     
-    // Mapear respuesta al formato del frontend
+    // Devolver orden completa con items y pagos
     return {
-      ...data,
-      customer_name: data.client_name,
-      websiteApp: data.website_application || '',
-      userOrEmail: data.username_email || '',
-      password: data.password_value || '',
+      ...order,
+      items: orderItems,
+      payments: orderPayments
     }
   },
 
   async updateServiceOrder(orderId, orderData, userId) {
-    // Mapear customer_name a client_name para la BD
-    const dbData = {
-      ...orderData,
-      client_name: orderData.customer_name || orderData.client_name,
+    // Preparar datos de la orden principal
+    const orderPayload = {
+      customer_name: orderData.customer_name,
+      service_date: orderData.service_date,
+      description: orderData.description,
+      status: orderData.status
     }
-    // Remover customer_name del payload si existe
-    delete dbData.customer_name
 
-    const { data, error } = await supabase
-      .from('service_orders')
-      .update(dbData)
+    // Actualizar la orden principal
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .update(orderPayload)
       .eq('id', orderId)
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
       .select()
       .single()
 
-    if (error) throw error
+    if (orderError) throw orderError
+
+    // Actualizar items si se proporcionan
+    let orderItems = []
+    if (Array.isArray(orderData.items)) {
+      // Eliminar items existentes
+      await supabase
+        .from('order_items')
+        .delete()
+        .eq('order_id', orderId)
+
+      // Crear nuevos items si existen
+      if (orderData.items.length > 0) {
+        const itemsPayload = orderData.items.map(item => ({
+          order_id: orderId,
+          quantity: item.quantity || 1,
+          item_desc: item.description || item.item_desc,
+          unit_price: item.unitPrice || item.unit_price || 0,
+          part_cost: item.partCost || item.part_cost || 0
+        }))
+
+        const { data: items, error: itemsError } = await supabase
+          .from('order_items')
+          .insert(itemsPayload)
+          .select()
+
+        if (itemsError) throw itemsError
+        orderItems = items
+      }
+    } else {
+      // Si no se proporcionan items, obtener los existentes
+      const { data: existingItems } = await supabase
+        .from('order_items')
+        .select('*')
+        .eq('order_id', orderId)
+      
+      orderItems = existingItems || []
+    }
+
+    // Actualizar pagos si se proporcionan
+    let orderPayments = []
+    if (Array.isArray(orderData.payments)) {
+      // Eliminar pagos existentes
+      await supabase
+        .from('order_payments')
+        .delete()
+        .eq('order_id', orderId)
+
+      // Crear nuevos pagos si existen
+      if (orderData.payments.length > 0) {
+        const paymentsPayload = orderData.payments.map(payment => ({
+          order_id: orderId,
+          amount: payment.amount || 0,
+          payment_date: payment.date || payment.payment_date,
+          payment_method: payment.method || payment.payment_method || 'efectivo'
+        }))
+
+        const { data: payments, error: paymentsError } = await supabase
+          .from('order_payments')
+          .insert(paymentsPayload)
+          .select()
+
+        if (paymentsError) throw paymentsError
+        orderPayments = payments
+      }
+    } else {
+      // Si no se proporcionan pagos, obtener los existentes
+      const { data: existingPayments } = await supabase
+        .from('order_payments')
+        .select('*')
+        .eq('order_id', orderId)
+      
+      orderPayments = existingPayments || []
+    }
+
     this.clearUserCache(userId)
     
-    // Mapear respuesta al formato del frontend
+    // Devolver orden completa con items y pagos
     return {
-      ...data,
-      customer_name: data.client_name,
-      websiteApp: data.website_application || '',
-      userOrEmail: data.username_email || '',
-      password: data.password_value || '',
+      ...order,
+      items: orderItems,
+      payments: orderPayments
     }
   },
 
   async deleteServiceOrder(orderId, userId) {
+    // Eliminar items relacionados
+    await supabase
+      .from('order_items')
+      .delete()
+      .eq('order_id', orderId)
+
+    // Eliminar pagos relacionados
+    await supabase
+      .from('order_payments')
+      .delete()
+      .eq('order_id', orderId)
+
+    // Eliminar la orden principal
     const { error } = await supabase
-      .from('service_orders')
+      .from('orders')
       .delete()
       .eq('id', orderId)
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
 
     if (error) throw error
     this.clearUserCache(userId)
@@ -172,9 +299,9 @@ export const supabaseService = {
     if (cached) return cached
 
     const { data, error } = await supabase
-      .from('passwords')
+      .from('credentials')
       .select('*')
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -185,16 +312,16 @@ export const supabaseService = {
   async createPassword(passwordData, userId) {
     // Sanitizar datos de entrada usando los campos correctos del esquema
     const sanitizedData = {
-      user_id: userId,
-      website_application: sanitizeInput(passwordData.websiteApp || passwordData.service_name || '', 200),
-      username_email: sanitizeInput(passwordData.userOrEmail || passwordData.username || passwordData.email || '', 200),
-      password_value: passwordData.password || '',
-      category: passwordData.category ? sanitizeInput(passwordData.category, 100) : 'Otros',
+      owner_id: userId,
+      site_app: sanitizeInput(passwordData.site_app || '', 200),
+      username: sanitizeInput(passwordData.username || '', 200),
+      password: passwordData.password || '',
+      category: passwordData.category ? sanitizeInput(passwordData.category, 100) : 'otros',
       notes: passwordData.notes ? sanitizeInput(passwordData.notes, 1000) : null
     }
 
     const { data, error } = await supabase
-      .from('passwords')
+      .from('credentials')
       .insert(sanitizedData)
       .select()
       .single()
@@ -208,14 +335,14 @@ export const supabaseService = {
     // Sanitizar datos de entrada usando los campos correctos del esquema
     const sanitizedData = {}
     
-    if (passwordData.websiteApp || passwordData.service_name) {
-      sanitizedData.website_application = sanitizeInput(passwordData.websiteApp || passwordData.service_name, 200)
+    if (passwordData.site_app) {
+      sanitizedData.site_app = sanitizeInput(passwordData.site_app, 200)
     }
-    if (passwordData.userOrEmail || passwordData.username || passwordData.email) {
-      sanitizedData.username_email = sanitizeInput(passwordData.userOrEmail || passwordData.username || passwordData.email, 200)
+    if (passwordData.username) {
+      sanitizedData.username = sanitizeInput(passwordData.username, 200)
     }
     if (passwordData.password) {
-      sanitizedData.password_value = passwordData.password
+      sanitizedData.password = passwordData.password
     }
     if (passwordData.category) {
       sanitizedData.category = sanitizeInput(passwordData.category, 100)
@@ -225,10 +352,10 @@ export const supabaseService = {
     }
 
     const { data, error } = await supabase
-      .from('passwords')
+      .from('credentials')
       .update(sanitizedData)
       .eq('id', passwordId)
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
       .select()
       .single()
 
@@ -239,10 +366,10 @@ export const supabaseService = {
 
   async deletePassword(passwordId, userId) {
     const { error } = await supabase
-      .from('passwords')
+      .from('credentials')
       .delete()
       .eq('id', passwordId)
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
 
     if (error) throw error
     this.clearUserCache(userId)
@@ -251,10 +378,10 @@ export const supabaseService = {
   // Verificar contraseña
   async verifyPassword(passwordId, passwordText, userId) {
     const { data: password, error: fetchError } = await supabase
-      .from('passwords')
+      .from('credentials')
       .select('password_encrypted')
       .eq('id', passwordId)
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
       .single()
     
     if (fetchError) throw fetchError
@@ -276,48 +403,105 @@ export const supabaseService = {
     if (cached) return cached
 
     const { data, error } = await supabase
-      .from('budget_expenses')
-      .select('*')
-      .eq('user_id', userId)
+      .from('budget_lines')
+      .select(`
+        *,
+        budget_payments(*)
+      `)
+      .eq('owner_id', userId)
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    cache.set(cacheKey, data)
-    return data
+    
+    // Mapear datos para compatibilidad con el frontend
+    const mapped = (data || []).map(line => ({
+      ...line,
+      date: line.due_day ? `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(line.due_day).padStart(2, '0')}` : line.date,
+      payments: line.budget_payments || []
+    }))
+    
+    cache.set(cacheKey, mapped)
+    return mapped
   },
 
   async createBudgetExpense(expenseData, userId) {
+    // Extraer día de vencimiento de la fecha
+    const dueDay = expenseData.date ? new Date(expenseData.date).getDate() : expenseData.due_day
+    
+    const payload = {
+      description: expenseData.description,
+      amount: expenseData.amount,
+      category: expenseData.category,
+      due_day: dueDay,
+      owner_id: userId
+    }
+
     const { data, error } = await supabase
-      .from('budget_expenses')
-      .insert({ ...expenseData, user_id: userId })
-      .select()
+      .from('budget_lines')
+      .insert(payload)
+      .select(`
+        *,
+        budget_payments(*)
+      `)
       .single()
 
     if (error) throw error
     this.clearUserCache(userId)
-    return data
+    
+    // Mapear para compatibilidad con el frontend
+    return {
+      ...data,
+      date: data.due_day ? `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(data.due_day).padStart(2, '0')}` : data.date,
+      payments: data.budget_payments || []
+    }
   },
 
   async updateBudgetExpense(expenseId, expenseData, userId) {
+    // Extraer día de vencimiento de la fecha
+    const dueDay = expenseData.date ? new Date(expenseData.date).getDate() : expenseData.due_day
+    
+    const payload = {
+      description: expenseData.description,
+      amount: expenseData.amount,
+      category: expenseData.category,
+      due_day: dueDay
+    }
+
     const { data, error } = await supabase
-      .from('budget_expenses')
-      .update(expenseData)
+      .from('budget_lines')
+      .update(payload)
       .eq('id', expenseId)
-      .eq('user_id', userId)
-      .select()
+      .eq('owner_id', userId)
+      .select(`
+        *,
+        budget_payments(*)
+      `)
       .single()
 
     if (error) throw error
     this.clearUserCache(userId)
-    return data
+    
+    // Mapear para compatibilidad con el frontend
+    return {
+      ...data,
+      date: data.due_day ? `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(data.due_day).padStart(2, '0')}` : data.date,
+      payments: data.budget_payments || []
+    }
   },
 
   async deleteBudgetExpense(expenseId, userId) {
+    // Eliminar pagos asociados primero
+    await supabase
+      .from('budget_payments')
+      .delete()
+      .eq('budget_line_id', expenseId)
+    
+    // Eliminar la línea de presupuesto
     const { error } = await supabase
-      .from('budget_expenses')
+      .from('budget_lines')
       .delete()
       .eq('id', expenseId)
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
 
     if (error) throw error
     this.clearUserCache(userId)
@@ -330,48 +514,88 @@ export const supabaseService = {
     if (cached) return cached
 
     const { data, error } = await supabase
-      .from('casual_expenses')
+      .from('expenses')
       .select('*')
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    cache.set(cacheKey, data)
-    return data
+    
+    // Mapear expense_date a date para compatibilidad con el frontend
+    const mapped = (data || []).map(expense => ({
+      ...expense,
+      date: expense.expense_date || expense.date
+    }))
+    
+    cache.set(cacheKey, mapped)
+    return mapped
   },
 
   async createCasualExpense(expenseData, userId) {
+    // Mapear date a expense_date para la base de datos
+    const payload = {
+      ...expenseData,
+      expense_date: expenseData.date || expenseData.expense_date,
+      owner_id: userId
+    }
+    
+    // Remover el campo date si existe para evitar conflictos
+    if (payload.date && payload.expense_date) {
+      delete payload.date
+    }
+
     const { data, error } = await supabase
-      .from('casual_expenses')
-      .insert({ ...expenseData, user_id: userId })
+      .from('expenses')
+      .insert(payload)
       .select()
       .single()
 
     if (error) throw error
     this.clearUserCache(userId)
-    return data
+    
+    // Mapear expense_date a date para el frontend
+    return {
+      ...data,
+      date: data.expense_date || data.date
+    }
   },
 
   async updateCasualExpense(expenseId, expenseData, userId) {
+    // Mapear date a expense_date para la base de datos
+    const payload = {
+      ...expenseData,
+      expense_date: expenseData.date || expenseData.expense_date
+    }
+    
+    // Remover el campo date si existe para evitar conflictos
+    if (payload.date && payload.expense_date) {
+      delete payload.date
+    }
+
     const { data, error } = await supabase
-      .from('casual_expenses')
-      .update(expenseData)
+      .from('expenses')
+      .update(payload)
       .eq('id', expenseId)
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
       .select()
       .single()
 
     if (error) throw error
     this.clearUserCache(userId)
-    return data
+    
+    // Mapear expense_date a date para el frontend
+    return {
+      ...data,
+      date: data.expense_date || data.date
+    }
   },
 
   async deleteCasualExpense(expenseId, userId) {
     const { error } = await supabase
-      .from('casual_expenses')
+      .from('expenses')
       .delete()
       .eq('id', expenseId)
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
 
     if (error) throw error
     this.clearUserCache(userId)
@@ -386,7 +610,7 @@ export const supabaseService = {
     const { data, error } = await supabase
       .from('licenses')
       .select('*')
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -418,7 +642,7 @@ export const supabaseService = {
   async createLicense(licenseData, userId) {
     // Aceptar payload con camelCase o snake_case y convertir a columnas de BD
     const dbData = {
-      user_id: userId,
+      owner_id: userId,
       client_name: (licenseData.clientName ?? licenseData.client_name) || null,
       license_name: (licenseData.licenseName ?? licenseData.license_name) || null,
       serial: (licenseData.serial ?? licenseData.licenseKey) || null,
@@ -488,7 +712,7 @@ export const supabaseService = {
       .from('licenses')
       .update(dbData)
       .eq('id', licenseId)
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
       .select()
       .single()
 
@@ -523,7 +747,7 @@ export const supabaseService = {
       .from('licenses')
       .delete()
       .eq('id', licenseId)
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
 
     if (error) throw error
     this.clearUserCache(userId)
@@ -535,26 +759,25 @@ export const supabaseService = {
     const cached = cache.get(cacheKey)
     if (cached) return cached
 
-    const { data, error } = await supabase
-      .from('server_credentials')
-      .select('*')
-      .eq('user_id', userId)
+    const { data: servers, error } = await supabase
+      .from('servers')
+      .select(`
+        *,
+        server_users(*)
+      `)
+      .eq('owner_id', userId)
       .order('created_at', { ascending: false })
 
     if (error) throw error
 
-    // Mapear a la forma usada por el frontend (camelCase)
-    const mapped = (data || []).map((row) => ({
-      ...row,
-      client: row.company || '',
-      vpnIp: row.vpn_ip || '',
-      localName: row.local_name || '',
-      password: row.vpn_password || '',
-      // Convertir usuarios de texto a array
-      users: row.users ? row.users.split(';').map(u => {
-        const [username, password] = u.split(':')
-        return { username: username || '', password: password || '' }
-      }).filter(u => u.username) : [],
+    // Mapear a la forma usada por el frontend
+    const mapped = (servers || []).map((server) => ({
+      ...server,
+      client: server.company_name || '',
+      vpnIp: server.vpn_ip || '',
+      localName: server.local_name || '',
+      password: server.vpn_password || '',
+      users: server.server_users || [],
     }))
 
     cache.set(cacheKey, mapped)
@@ -563,119 +786,142 @@ export const supabaseService = {
 
   async createServerCredential(credentialData, userId) {
     // Sanitizar datos de entrada usando los campos correctos del esquema
-    const sanitizedData = {
-      user_id: userId,
-      company: credentialData.client || credentialData.company ? sanitizeInput(credentialData.client || credentialData.company, 200) : null,
+    const serverData = {
+      owner_id: userId,
+      company_name: sanitizeInput(credentialData.client || credentialData.company_name, 200),
       server_name: sanitizeInput(credentialData.server_name, 200),
-      vpn_ip: credentialData.vpnIp ? sanitizeInput(credentialData.vpnIp, 100) : null,
+      vpn_password: credentialData.password || credentialData.passVpn || '',
+      vpn_ip: sanitizeInput(credentialData.vpnIp || credentialData.vpn_ip, 100),
       local_name: credentialData.localName ? sanitizeInput(credentialData.localName, 200) : null,
-      notes: credentialData.notes ? sanitizeInput(credentialData.notes, 1000) : null,
     }
 
-    // Guardar contraseña VPN directamente (sin encriptar según el esquema actual)
-    if (credentialData.password) {
-      sanitizedData.vpn_password = credentialData.password
-    }
-
-    // Guardar usuarios como texto simple (según esquema actual)
-    if (Array.isArray(credentialData.users)) {
-      const usersText = credentialData.users.map(u => {
-        const username = sanitizeInput(u.username || '', 200)
-        const password = u.password ? u.password.trim() : ''
-        return `${username}:${password}`
-      }).join(';')
-      sanitizedData.users = usersText
-    }
-
-    const { data, error } = await supabase
-      .from('server_credentials')
-      .insert(sanitizedData)
+    // Crear el servidor primero
+    const { data: server, error: serverError } = await supabase
+      .from('servers')
+      .insert(serverData)
       .select()
       .single()
 
-    if (error) throw error
+    if (serverError) throw serverError
+
+    // Crear los usuarios del servidor si existen
+    let serverUsers = []
+    if (Array.isArray(credentialData.users) && credentialData.users.length > 0) {
+      const usersData = credentialData.users.map(u => ({
+        server_id: server.id,
+        username: sanitizeInput(u.username || '', 200),
+        password: u.password || '',
+        notes: u.notes ? sanitizeInput(u.notes, 1000) : null,
+      }))
+
+      const { data: users, error: usersError } = await supabase
+        .from('server_users')
+        .insert(usersData)
+        .select()
+
+      if (usersError) throw usersError
+      serverUsers = users
+    }
+
     this.clearUserCache(userId)
 
     // Devolver en formato frontend
     return {
-      ...data,
-      client: data.company || '',
-      vpnIp: data.vpn_ip || '',
-      localName: data.local_name || '',
-      password: data.vpn_password || '',
-      users: data.users ? data.users.split(';').map(u => {
-        const [username, password] = u.split(':')
-        return { username: username || '', password: password || '' }
-      }).filter(u => u.username) : [],
+      ...server,
+      client: server.company_name || '',
+      vpnIp: server.vpn_ip || '',
+      localName: server.local_name || '',
+      password: server.vpn_password || '',
+      users: serverUsers || [],
     }
   },
 
   async updateServerCredential(credentialId, credentialData, userId) {
     // Sanitizar datos de entrada usando los campos correctos del esquema
-    const sanitizedData = {}
+    const serverData = {}
     
-    if (credentialData.client || credentialData.company) {
-      sanitizedData.company = sanitizeInput(credentialData.client || credentialData.company, 200)
+    if (credentialData.client || credentialData.company_name) {
+      serverData.company_name = sanitizeInput(credentialData.client || credentialData.company_name, 200)
     }
     if (credentialData.server_name) {
-      sanitizedData.server_name = sanitizeInput(credentialData.server_name, 200)
+      serverData.server_name = sanitizeInput(credentialData.server_name, 200)
     }
-    if (credentialData.vpnIp) {
-      sanitizedData.vpn_ip = sanitizeInput(credentialData.vpnIp, 100)
+    if (credentialData.vpnIp || credentialData.vpn_ip) {
+      serverData.vpn_ip = sanitizeInput(credentialData.vpnIp || credentialData.vpn_ip, 100)
     }
-    if (credentialData.localName) {
-      sanitizedData.local_name = sanitizeInput(credentialData.localName, 200)
+    if (credentialData.localName || credentialData.local_name) {
+      serverData.local_name = credentialData.localName ? sanitizeInput(credentialData.localName, 200) : null
     }
-    if (credentialData.notes !== undefined) {
-      sanitizedData.notes = credentialData.notes ? sanitizeInput(credentialData.notes, 1000) : null
-    }
-
-    // Guardar contraseña VPN directamente (sin encriptar según el esquema actual)
-    if (credentialData.password) {
-      sanitizedData.vpn_password = credentialData.password
+    if (credentialData.password || credentialData.passVpn) {
+      serverData.vpn_password = credentialData.password || credentialData.passVpn
     }
 
-    // Guardar usuarios como texto simple (según esquema actual)
-    if (Array.isArray(credentialData.users)) {
-      const usersText = credentialData.users.map(u => {
-        const username = sanitizeInput(u.username || '', 200)
-        const password = u.password ? u.password.trim() : ''
-        return `${username}:${password}`
-      }).join(';')
-      sanitizedData.users = usersText
-    }
-
-    const { data, error } = await supabase
-      .from('server_credentials')
-      .update(sanitizedData)
+    // Actualizar el servidor
+    const { data: server, error: serverError } = await supabase
+      .from('servers')
+      .update(serverData)
       .eq('id', credentialId)
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
       .select()
       .single()
 
-    if (error) throw error
+    if (serverError) throw serverError
+
+    // Actualizar usuarios del servidor si se proporcionan
+    let serverUsers = []
+    if (Array.isArray(credentialData.users)) {
+      // Eliminar usuarios existentes
+      await supabase
+        .from('server_users')
+        .delete()
+        .eq('server_id', credentialId)
+
+      // Crear nuevos usuarios si existen
+      if (credentialData.users.length > 0) {
+        const usersData = credentialData.users.map(u => ({
+          server_id: credentialId,
+          username: sanitizeInput(u.username || '', 200),
+          password: u.password || '',
+          notes: u.notes ? sanitizeInput(u.notes, 1000) : null,
+        }))
+
+        const { data: users, error: usersError } = await supabase
+          .from('server_users')
+          .insert(usersData)
+          .select()
+
+        if (usersError) throw usersError
+        serverUsers = users
+      }
+    } else {
+      // Si no se proporcionan usuarios, obtener los existentes
+      const { data: existingUsers } = await supabase
+        .from('server_users')
+        .select('*')
+        .eq('server_id', credentialId)
+      
+      serverUsers = existingUsers || []
+    }
+
     this.clearUserCache(userId)
 
     // Devolver en formato frontend
     return {
-      ...data,
-      client: data.company || '',
-      vpnIp: data.vpn_ip || '',
-      localName: data.local_name || '',
-      password: data.vpn_password || '',
-      users: data.users ? data.users.split(';').map(u => {
-        const [username, password] = u.split(':')
-        return { username: username || '', password: password || '' }
-      }).filter(u => u.username) : [],
+      ...server,
+      client: server.company_name || '',
+      vpnIp: server.vpn_ip || '',
+      localName: server.local_name || '',
+      password: server.vpn_password || '',
+      users: serverUsers || [],
     }
   },
 
   async deleteServerCredential(credentialId, userId) {
     const { error } = await supabase
-      .from('server_credentials')
+      .from('servers')
       .delete()
       .eq('id', credentialId)
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
 
     if (error) throw error
     this.clearUserCache(userId)
@@ -683,26 +929,20 @@ export const supabaseService = {
 
   // Verificar contraseña de servidor
   async verifyServerPassword(credentialId, passwordText, userId) {
-    const { data: credential, error: fetchError } = await supabase
-      .from('server_credentials')
-      .select('password_encrypted')
+    const { data: server, error: fetchError } = await supabase
+      .from('servers')
+      .select('vpn_password')
       .eq('id', credentialId)
-      .eq('user_id', userId)
+      .eq('owner_id', userId)
       .single()
 
     if (fetchError) throw fetchError
 
-    if (!credential.password_encrypted) {
+    if (!server.vpn_password) {
       return false // No hay contraseña configurada
     }
 
-    const { data: isValid, error: verifyError } = await supabase
-      .rpc('verify_password', {
-        password_text: passwordText,
-        encrypted_password: credential.password_encrypted
-      })
-
-    if (verifyError) throw verifyError
-    return isValid
+    // Comparación directa ya que las contraseñas no están encriptadas en el esquema actual
+    return server.vpn_password === passwordText
   }
 }

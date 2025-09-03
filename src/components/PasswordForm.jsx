@@ -4,8 +4,8 @@ import { generateSecurePassword, evaluatePasswordStrength } from '../utils/secur
 
 const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
   const [formData, setFormData] = useState({
-    websiteApp: '',
-    userOrEmail: '',
+    site_app: '',
+    username: '',
     password: '',
     category: '',
     notes: ''
@@ -17,16 +17,16 @@ const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
   useEffect(() => {
     if (editingPassword) {
       setFormData({
-        websiteApp: editingPassword.service_name || editingPassword.websiteApp || editingPassword.website_application || '',
-        userOrEmail: editingPassword.username || editingPassword.email || editingPassword.userOrEmail || editingPassword.username_email || '',
-        password: editingPassword.password || editingPassword.password_value || '',
+        site_app: editingPassword.site_app || '',
+        username: editingPassword.username || '',
+        password: editingPassword.password || '',
         category: editingPassword.category || '',
         notes: editingPassword.notes || ''
       });
     } else {
       setFormData({
-        websiteApp: '',
-        userOrEmail: '',
+        site_app: '',
+        username: '',
         password: '',
         category: '',
         notes: ''
@@ -50,15 +50,15 @@ const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.websiteApp.trim() || !formData.userOrEmail.trim() || !formData.password.trim()) {
-      alert('Por favor, completa los campos obligatorios: Sitio Web/Aplicación, Usuario o Email y Contraseña');
+    if (!formData.site_app.trim() || !formData.username.trim() || !formData.password.trim()) {
+      alert('Por favor, completa los campos obligatorios: Sitio Web/Aplicación, Usuario y Contraseña');
       return;
     }
 
     // Enviar en el formato aceptado por supabaseService
     const passwordData = {
-      websiteApp: formData.websiteApp.trim(),
-      userOrEmail: formData.userOrEmail.trim(),
+      site_app: formData.site_app.trim(),
+      username: formData.username.trim(),
       password: formData.password.trim(),
       category: formData.category.trim(),
       notes: formData.notes.trim()
@@ -99,14 +99,14 @@ const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
         <div className="space-y-4">
           {/* Sitio Web / Aplicación */}
           <div>
-            <label htmlFor="websiteApp" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
+            <label htmlFor="site_app" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
               Sitio Web / Aplicación *
             </label>
             <input
               type="text"
-              id="websiteApp"
-              name="websiteApp"
-              value={formData.websiteApp}
+              id="site_app"
+              name="site_app"
+              value={formData.site_app}
               onChange={handleInputChange}
               placeholder="Ej: Gmail, Facebook, GitHub"
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
@@ -114,16 +114,16 @@ const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
             />
           </div>
 
-          {/* Usuario o Email */}
+          {/* Usuario */}
           <div>
-            <label htmlFor="userOrEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
-              Usuario o Email *
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
+              Usuario *
             </label>
             <input
               type="text"
-              id="userOrEmail"
-              name="userOrEmail"
-              value={formData.userOrEmail}
+              id="username"
+              name="username"
+              value={formData.username}
               onChange={handleInputChange}
               placeholder="Ej: mi_usuario o usuario@ejemplo.com"
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
@@ -220,14 +220,14 @@ const PasswordForm = ({ onSubmit, onCancel, editingPassword = null }) => {
               name="category"
               value={formData.category}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
             >
               <option value="">Seleccionar categoría</option>
-              <option value="Personal">Personal</option>
-              <option value="Bancos">Bancos</option>
-              <option value="Principal">Principal</option>
-              <option value="Entretenimiento">Entretenimiento</option>
-              <option value="Otros">Otros</option>
+              <option value="personal">Personal</option>
+              <option value="bancos">Bancos</option>
+              <option value="principal">Principal</option>
+              <option value="entretenimiento">Entretenimiento</option>
+              <option value="otros">Otros</option>
             </select>
           </div>
 

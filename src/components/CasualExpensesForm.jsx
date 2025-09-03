@@ -8,7 +8,7 @@ export default function CasualExpensesForm({ expense, onSubmit, onCancel }) {
     amount: 0,
     date: getTodayLocalDate(),
     category: 'otros',
-    notes: ''
+    detail: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -30,7 +30,7 @@ export default function CasualExpensesForm({ expense, onSubmit, onCancel }) {
         amount: Number(expense.amount) || 0,
         date: expense.date || getTodayLocalDate(),
         category: expense.category || 'otros',
-        notes: expense.notes || ''
+        detail: expense.detail || expense.notes || ''
       })
     }
   }, [expense])
@@ -128,15 +128,15 @@ export default function CasualExpensesForm({ expense, onSubmit, onCancel }) {
         </div>
 
         <div>
-          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label htmlFor="detail" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Detalle
           </label>
           <textarea
-            id="notes"
-            name="notes"
+            id="detail"
+            name="detail"
             rows={3}
             placeholder="Detalle del gasto (opcional)"
-            value={formData.notes}
+            value={formData.detail}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
           />

@@ -85,11 +85,11 @@ const LicensesTable = () => {
     }
   };
 
-  const getDaysUntilExpiration = (expirationDate) => {
-    if (!expirationDate) return null;
+  const getDaysUntilExpiration = (expiry_date) => {
+    if (!expiry_date) return null;
 
     const today = new Date();
-    const expDate = new Date(expirationDate);
+    const expDate = new Date(expiry_date);
     const diffTime = expDate - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
@@ -97,7 +97,7 @@ const LicensesTable = () => {
   };
 
   const getLicenseStatus = (license) => {
-    const daysUntilExpiration = getDaysUntilExpiration(license.expirationDate);
+    const daysUntilExpiration = getDaysUntilExpiration(license.expiry_date);
     
     if (daysUntilExpiration === null) return 'unknown';
     if (daysUntilExpiration < 0) return 'expired';
@@ -107,7 +107,7 @@ const LicensesTable = () => {
 
   const getStatusBadge = (license) => {
     const status = getLicenseStatus(license);
-    const daysUntilExpiration = getDaysUntilExpiration(license.expirationDate);
+    const daysUntilExpiration = getDaysUntilExpiration(license.expiry_date);
     
     switch (status) {
       case 'expired':
@@ -150,8 +150,8 @@ const LicensesTable = () => {
     .filter(license => {
       // Filtro por término de búsqueda
       const matchesSearch = 
-        license.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        license.licenseName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        license.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        license.license_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         license.serial?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         license.provider?.toLowerCase().includes(searchTerm.toLowerCase());
       
@@ -168,16 +168,16 @@ const LicensesTable = () => {
       
       switch (sortBy) {
         case 'expiry_date':
-          aValue = new Date(a.expirationDate || '9999-12-31');
-          bValue = new Date(b.expirationDate || '9999-12-31');
+          aValue = new Date(a.expiry_date || '9999-12-31');
+          bValue = new Date(b.expiry_date || '9999-12-31');
           break;
         case 'client':
-          aValue = a.clientName?.toLowerCase() || '';
-          bValue = b.clientName?.toLowerCase() || '';;
+          aValue = a.client_name?.toLowerCase() || '';
+          bValue = b.client_name?.toLowerCase() || '';;
           break;
         case 'licenseName':
-          aValue = a.licenseName?.toLowerCase() || '';
-          bValue = b.licenseName?.toLowerCase() || '';
+          aValue = a.license_name?.toLowerCase() || '';
+          bValue = b.license_name?.toLowerCase() || '';
           break;
         case 'profit':
           aValue = a.profit || 0;
@@ -251,19 +251,19 @@ const LicensesTable = () => {
           <div className="space-y-2">
             {licenses
               .filter(l => getLicenseStatus(l) === 'expiring')
-              .sort((a, b) => new Date(a.expirationDate) - new Date(b.expirationDate))
+              .sort((a, b) => new Date(a.expiry_date) - new Date(b.expiry_date))
               .map(license => {
-                const daysLeft = getDaysUntilExpiration(license.expirationDate);
+                const daysLeft = getDaysUntilExpiration(license.expiry_date);
                 return (
                   <div key={license.id} className="flex justify-between items-center bg-white dark:bg-gray-800 p-3 rounded border border-yellow-200 dark:border-yellow-700 transition-colors duration-200">
                     <div>
                       <span className="font-medium text-gray-900 dark:text-white transition-colors duration-200">
-                        🏢 {license.clientName}
+                        🏢 {license.client_name}
                       </span>
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-medium text-yellow-700 dark:text-yellow-300 transition-colors duration-200">
-                        📅 {license.expirationDate ? new Date(license.expirationDate).toLocaleDateString('es-CO') : 'Sin fecha'}
+                        📅 {license.expiry_date ? new Date(license.expiry_date).toLocaleDateString('es-CO') : 'Sin fecha'}
                       </div>
                       <div className="text-xs text-yellow-600 dark:text-yellow-400 transition-colors duration-200">
                         {daysLeft > 0 ? `${daysLeft} día(s) restante(s)` : 'Vencida'}
@@ -439,10 +439,10 @@ const LicensesTable = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">
-                            🏢 {license.clientName}
+                            🏢 {license.client_name}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
-                            📋 {license.licenseName}
+                            📋 {license.license_name}
                           </div>
                         </div>
                       </td>
@@ -467,14 +467,14 @@ const LicensesTable = () => {
                         <div className="space-y-1">
                           {getStatusBadge(license)}
                           <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
-                            📅 {license.expirationDate ? new Date(license.expirationDate).toLocaleDateString('es-CO') : 'Sin fecha'}
+                            📅 {license.expiry_date ? new Date(license.expiry_date).toLocaleDateString('es-CO') : 'Sin fecha'}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm text-gray-900 dark:text-white transition-colors duration-200">
-                            💻 {license.currentInstallations || 0} / {license.maxInstallations || 'N/A'}
+                            💻 {license.current_installations || 0} / {license.max_installations || 'N/A'}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
                             📦 {license.condition || 'N/A'}
@@ -484,10 +484,10 @@ const LicensesTable = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm">
                           <div className="text-gray-900 dark:text-white transition-colors duration-200">
-                            💰 {formatCurrency(license.salePrice)}
+                            💰 {formatCurrency(license.sale_price)}
                           </div>
                           <div className="text-gray-500 dark:text-gray-400 transition-colors duration-200">
-                            💸 {formatCurrency(license.costPrice)}
+                            💸 {formatCurrency(license.cost_price)}
                           </div>
                           <div className={`font-medium transition-colors duration-200 ${
                             license.profit > 0 ? 'text-green-600 dark:text-green-400' : 

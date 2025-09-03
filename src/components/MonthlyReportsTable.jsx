@@ -57,11 +57,11 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
       // Combinar órdenes activas y archivadas para el mes
       const monthOrders = [
         ...orders.filter(order => {
-          const orderDate = new Date(order.date);
+          const orderDate = new Date(order.service_date || order.date);
           return orderDate.getFullYear() === selectedYear && orderDate.getMonth() === month;
         }),
         ...archivedOrders.filter(order => {
-          const orderDate = new Date(order.date);
+          const orderDate = new Date(order.service_date || order.date);
           return orderDate.getFullYear() === selectedYear && orderDate.getMonth() === month;
         })
       ];
@@ -140,7 +140,7 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
     
     // Archivar órdenes entregadas del mes
     const ordersToArchive = orders.filter(order => {
-      const orderDate = new Date(order.date);
+      const orderDate = new Date(order.service_date || order.date);
       return orderDate.getFullYear() === year && 
              orderDate.getMonth() === month && 
              order.status === 'entregado';
@@ -229,7 +229,7 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
     
     // Remover órdenes entregadas y gastos casuales de los datos activos
     const activeOrders = orders.filter(order => {
-      const orderDate = new Date(order.date);
+      const orderDate = new Date(order.service_date || order.date);
       return !(orderDate.getFullYear() === year && 
                orderDate.getMonth() === month && 
                order.status === 'entregado');
@@ -272,7 +272,7 @@ const MonthlyReportsTable = ({ orders, expenses }) => {
   const getAvailableYears = () => {
     const years = new Set();
     orders.forEach(order => {
-      years.add(new Date(order.date).getFullYear());
+      years.add(new Date(order.service_date || order.date).getFullYear());
     });
     expenses.forEach(expense => {
       years.add(new Date(expense.date).getFullYear());

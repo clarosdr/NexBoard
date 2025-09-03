@@ -58,33 +58,43 @@ async function executeSQL(sql) {
 // Reemplazar creación inline por ejecución de archivos de módulos
 async function applyModuleSQLFiles() {
   const modulesDir = join(__dirname, '..', 'supabase', 'modules');
-  const files = [
-    'service_orders.sql',
-    'licenses.sql',
-    'passwords.sql',
-    'server_credentials.sql',
-    'budget_expenses.sql',
-    'casual_expenses.sql'
+  const modules = [
+    'orders',
+    'licenses', 
+    'credentials',
+    'servers',
+    'budget',
+    'expenses'
   ];
-
-  for (const file of files) {
-    const filePath = join(modulesDir, file);
-    console.log(`⏳ Ejecutando módulo SQL: ${file}...`);
-    try {
-      const sql = readFileSync(filePath, 'utf-8');
-      await executeSQL(sql);
-      console.log(`✅ Módulo '${file}' aplicado correctamente`);
-    } catch (err) {
-      console.error(`❌ Error aplicando módulo '${file}':`, err.message);
-      throw err;
+  
+  // Ejecutar archivos SQL de cada módulo en orden
+  for (const module of modules) {
+    const moduleDir = join(modulesDir, module);
+    const sqlFiles = [
+      '01_schema_' + module + '.sql',
+      '02_rls_open_' + module + '.sql',
+      '03_rls_secure_' + module + '.sql'
+    ];
+    
+    for (const file of sqlFiles) {
+      const filePath = join(moduleDir, file);
+      console.log(`⏳ Ejecutando ${module}/${file}...`);
+      try {
+        const sql = readFileSync(filePath, 'utf-8');
+        await executeSQL(sql);
+        console.log(`✅ Archivo '${module}/${file}' aplicado correctamente`);
+      } catch (err) {
+        console.error(`❌ Error aplicando '${module}/${file}':`, err.message);
+        // Continuar con el siguiente archivo en caso de error
+      }
     }
   }
-}
+ }
 
 // Función para verificar las tablas
 async function verifyTables() {
   console.log('🔍 Verificando tablas creadas...');
-  const tables = ['service_orders', 'casual_expenses', 'budget_expenses', 'licenses', 'passwords', 'server_credentials'];
+  const tables = ['orders', 'expenses', 'budget_lines', 'licenses', 'credentials', 'servers'];
   
   for (const table of tables) {
     try {

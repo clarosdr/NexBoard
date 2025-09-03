@@ -1,12 +1,9 @@
-import forms from '@tailwindcss/forms'
-
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class', // Habilitar modo oscuro basado en clase
   theme: {
     extend: {
       // Colores personalizados para el modo oscuro
@@ -26,7 +23,4 @@ export default {
       }
     },
   },
-  plugins: [
-    forms({ strategy: 'base' }),
-  ],
 }

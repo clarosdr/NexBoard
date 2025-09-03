@@ -28,10 +28,10 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
 
   const statusOptions = [
     { value: 'todos', label: 'Todos', color: 'gray' },
-    { value: 'PENDIENTE', label: 'Pendiente', color: 'yellow' },
-    { value: 'EN PROCESO', label: 'En Proceso', color: 'blue' },
-    { value: 'FINALIZADO', label: 'Finalizado', color: 'green' },
-    { value: 'ENTREGADO', label: 'Entregado', color: 'gray' }
+    { value: 'pending', label: 'Pendiente', color: 'yellow' },
+    { value: 'in_progress', label: 'En Proceso', color: 'blue' },
+    { value: 'completed', label: 'Completado', color: 'green' },
+    { value: 'delivered', label: 'Entregado', color: 'gray' }
   ];
 
   // Función para contar órdenes por estado
@@ -86,8 +86,8 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
       
       switch (sortBy) {
         case 'date':
-          aValue = new Date(a.date);
-          bValue = new Date(b.date);
+          aValue = new Date(a.service_date || a.date);
+          bValue = new Date(b.service_date || b.date);
           break;
         case 'total':
           aValue = a.total;
@@ -371,7 +371,7 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
                   {/* Oculto: #${'{'}order.id{'}'} */}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 transition-colors duration-200">
-                  {formatDate(order.date)}
+                  {formatDate(order.service_date || order.date)}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900 dark:text-white transition-colors duration-200">
                   <div className="max-w-xs truncate" title={order.customer_name}>
@@ -508,7 +508,7 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white transition-colors duration-200">Orden de Servicio</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">{formatDate(order.date)}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">{formatDate(order.service_date || order.date)}</p>
               </div>
               <div className="text-right">
                 {getStatusBadge(order.status)}

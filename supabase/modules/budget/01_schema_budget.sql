@@ -52,7 +52,6 @@ flags as (
 select
   b.*,
   f.paid,
-  b.due_date_this_month,
   case
     when f.paid then 'PAGADO'
     when (b.due_date_this_month < (now() at time zone 'America/Bogota')::date) then 'VENCIDO'

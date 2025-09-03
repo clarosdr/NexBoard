@@ -106,10 +106,10 @@ const ServerCredentialsTable = () => {
 
   // Filtrar credenciales por término de búsqueda
   const filteredCredentials = credentials.filter(credential =>
-    (credential.client || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (credential.client || credential.company_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (credential.server_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (credential.localName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (credential.vpnIp || '').toLowerCase().includes(searchTerm.toLowerCase())
+    (credential.localName || credential.local_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (credential.vpnIp || credential.vpn_ip || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (showForm) {
@@ -200,7 +200,7 @@ const ServerCredentialsTable = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">
-                            🏢 {credential.client}
+                            🏢 {credential.client || credential.company_name}
                           </div>
                           <div className="text-sm text-gray-600 dark:text-gray-300 transition-colors duration-200">
                             🖥️ {credential.server_name}
@@ -210,12 +210,12 @@ const ServerCredentialsTable = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">
-                            {credential.localName}
+                            {credential.localName || credential.local_name}
                           </div>
                           <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center transition-colors duration-200">
-                            📍 {credential.vpnIp}
+                            📍 {credential.vpnIp || credential.vpn_ip}
                             <button
-                              onClick={() => copyToClipboard(credential.vpnIp, 'IP VPN')}
+                              onClick={() => copyToClipboard(credential.vpnIp || credential.vpn_ip, 'IP VPN')}
                               className="ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200"
                               title="Copiar IP"
                             >
@@ -223,11 +223,11 @@ const ServerCredentialsTable = () => {
                             </button>
                           </div>
                           <div className="text-sm text-gray-600 dark:text-gray-300 flex items-center mt-1 transition-colors duration-200">
-                            {credential.password_encrypted ? (
+                            {credential.vpn_password ? (
                               <span className="flex items-center">
                                 <span className="text-green-600 dark:text-green-400 mr-2">🔒</span>
                                 <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
-                                  Encriptada
+                                  Configurada
                                 </span>
                               </span>
                             ) : (

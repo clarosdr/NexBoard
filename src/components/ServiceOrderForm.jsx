@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabaseService } from '../lib/supabase'
 import Button from './ui/Button'
 import { getTodayLocalDate } from '../utils/dateUtils'
 import { useAuth } from '../hooks/useAuth'
@@ -29,8 +29,8 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     customer_name: '',
     description: '',
-    date: getTodayLocalDate(),
-    status: 'PENDIENTE',
+    service_date: getTodayLocalDate(),
+    status: 'pending',
     items: [{ id: 1, description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
     payments: [],
     totalPaid: 0
@@ -47,8 +47,8 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
       setFormData({
         customer_name: order.customer_name || '',
         description: order.description || '',
-        date: order.date || getTodayLocalDate(),
-        status: order.status || 'PENDIENTE',
+        service_date: order.service_date || getTodayLocalDate(),
+        status: order.status || 'pending',
         items: order.items && order.items.length > 0
           ? order.items.map(item => ({ ...item }))
           : [{ id: 1, description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
@@ -59,8 +59,8 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
       setFormData({
         customer_name: '',
         description: '',
-        date: getTodayLocalDate(),
-        status: 'PENDIENTE',
+        service_date: getTodayLocalDate(),
+        status: 'pending',
         items: [{ id: 1, description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
         payments: [],
         totalPaid: 0
@@ -70,10 +70,10 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
   }, [order])
 
   const statusOptions = [
-    { value: 'PENDIENTE', label: 'Pendiente' },
-    { value: 'EN PROCESO', label: 'En Proceso' },
-    { value: 'FINALIZADO', label: 'Finalizado' },
-    { value: 'ENTREGADO', label: 'Entregado' }
+    { value: 'pending', label: 'Pendiente' },
+    { value: 'in_progress', label: 'En Proceso' },
+    { value: 'completed', label: 'Completado' },
+    { value: 'delivered', label: 'Entregado' }
   ]
 
   const handleInputChange = (e) => {
@@ -122,49 +122,22 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
       const { totalPaid: _totalPaid, ...formDataWithoutTotalPaid } = formData
       const orderData = {
         ...formDataWithoutTotalPaid,
-        user_id: user?.id,
-        total: calculateGrandTotal(),
-        total_part_cost: calculateTotalPartCost(),
-        profit: calculateProfit(),
-        total_paid: formData.totalPaid,
-        pending_balance: calculatePendingBalance(),
         customer_name: formData.customer_name.trim()
       }
       
-      // Dejar que la BD maneje id y timestamps
-
-      console.log('ServiceOrderForm - orderData:', orderData)
-      console.log('ServiceOrderForm - user_id:', user?.id)
-
-      let data, error
+      let data
       if (order) {
-        ({ data, error } = await supabase
-          .from('service_orders')
-          .update(orderData)
-          .eq('id', order.id)
-          .select()
-          .single())
+        data = await supabaseService.updateServiceOrder(order.id, orderData, user.id)
       } else {
-        ({ data, error } = await supabase
-          .from('service_orders')
-          .insert([orderData])
-          .select()
-          .single())
-      }
-
-      if (error) {
-        console.error('Error al guardar en Supabase:', error.message)
-        alert(`No se pudo guardar la orden: ${error.message}`)
-        setIsSubmitting(false)
-        return
+        data = await supabaseService.createServiceOrder(orderData, user.id)
       }
 
       alert('Orden guardada correctamente ✅')
       if (onSubmit) onSubmit(data)
 
     } catch (err) {
-      console.error('Error inesperado:', err)
-      alert('Ocurrió un error inesperado')
+      console.error('Error al guardar orden:', err)
+      alert(`No se pudo guardar la orden: ${err.message}`)
       setIsSubmitting(false)
     }
   }
@@ -254,11 +227,11 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha de Servicio</label>
             <input
               type="date"
-              name="date"
-              value={formData.date}
+              name="service_date"
+              value={formData.service_date}
               onChange={handleInputChange}
               className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             />

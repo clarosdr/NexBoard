@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { AuthProvider } from './contexts/AuthContext'
 import { useAuth } from './hooks/useAuth'
 import { ThemeProvider } from './contexts/ThemeContextProvider'
-import { supabaseService, isSupabaseConfigured } from './lib/supabase'
+import { AppStateProvider } from './contexts/AppStateContext'
+import { useAppState } from './hooks/useAppState'
+import { isSupabaseConfigured } from './lib/supabase'
 import LoginForm from './components/LoginForm'
 import DataMigration from './components/DataMigration'
 import ThemeToggle from './components/ThemeToggle'
@@ -21,35 +23,16 @@ import MonthlyReportsTable from './components/MonthlyReportsTable'
 
 // Componente principal de la aplicación (cuando el usuario está autenticado)
 function MainApp() {
-  const [activeTab, setActiveTab] = useState('orders')
-  const [orders, setOrders] = useState([])
-  const [showForm, setShowForm] = useState(false)
-  const [editingOrder, setEditingOrder] = useState(null)
-  const [selectedOrder, setSelectedOrder] = useState(null)
-  const [showDetailsModal, setShowDetailsModal] = useState(false)
-  const [financialView, setFinancialView] = useState('dashboard') // 'dashboard' o 'reports'
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [showDataMigration, setShowDataMigration] = useState(false)
   const { user, signOut } = useAuth()
+  const { state, actions } = useAppState()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Cargar órdenes al iniciar
   useEffect(() => {
-    const loadOrders = async () => {
-      if (user) {
-        console.log('📋 MainApp - Cargando órdenes para user.id:', user.id)
-        try {
-          const ordersData = await supabaseService.getServiceOrders(user.id)
-          console.log('📋 MainApp - Órdenes cargadas:', ordersData?.length || 0)
-          setOrders(ordersData)
-        } catch (error) {
-          console.error('❌ MainApp - Error loading orders:', error)
-        }
-      } else {
-        console.log('⚠️ MainApp - No hay usuario, no se pueden cargar órdenes')
-      }
+    if (user) {
+      actions.loadOrders(user.id)
     }
-    loadOrders()
-  }, [user])
+  }, [user, actions])
 
   // Limpiar datos de localStorage obsoletos al iniciar (solo si se usa Supabase)
   useEffect(() => {
@@ -58,7 +41,6 @@ function MainApp() {
       const obsoleteKeys = ['nexboard-expenses', 'orders', 'casualExpenses', 'budgetExpenses'];
       obsoleteKeys.forEach(key => {
         if (localStorage.getItem(key)) {
-          console.log(`Removing obsolete localStorage key: ${key}`);
           localStorage.removeItem(key);
         }
       });
@@ -84,78 +66,83 @@ function MainApp() {
       const migrationShown = localStorage.getItem(`migration_shown_${user.id}`);
       
       if (hasLocalData() && !migrationShown) {
-        setShowDataMigration(true);
+        actions.setShowDataMigration(true);
       }
     }
-  }, [user])
+  }, [user, actions])
 
-  const handleCreateOrder = async (orderData) => {
+  const handleCreateOrder = useCallback(async (orderData) => {
     try {
-      const newOrder = await supabaseService.createServiceOrder(orderData, user.id)
-      setOrders(prev => [...prev, newOrder])
-      setShowForm(false)
-    } catch (error) {
-      console.error('Error creating order:', error)
-      alert('Error al crear la orden. Por favor, intenta de nuevo.')
+      await actions.createOrder(orderData, user.id)
+      actions.setShowOrderForm(false)
+    } catch {
+      // Error ya manejado en el contexto
     }
-  }
+  }, [actions, user?.id])
 
-  const handleEditOrder = (order) => {
-    setEditingOrder(order)
-    setShowForm(true)
-  }
+  const handleEditOrder = useCallback((order) => {
+    actions.setEditingOrder(order)
+    actions.setShowOrderForm(true)
+  }, [actions])
 
-  const handleUpdateOrder = async (updatedOrder) => {
+  const handleUpdateOrder = useCallback(async (updatedOrder) => {
     try {
-      const updated = await supabaseService.updateServiceOrder(updatedOrder.id, updatedOrder, user.id)
-      setOrders(prev => prev.map(order => 
-        order.id === updatedOrder.id ? updated : order
-      ))
-      setEditingOrder(null)
-      setShowForm(false)
-    } catch (error) {
-      console.error('Error updating order:', error)
-      alert('Error al actualizar la orden. Por favor, intenta de nuevo.')
+      await actions.updateOrderAsync(updatedOrder, user.id)
+      actions.setEditingOrder(null)
+      actions.setShowOrderForm(false)
+    } catch {
+      // Error ya manejado en el contexto
     }
-  }
+  }, [actions, user?.id])
 
-  const handleCloseMigration = () => {
-    setShowDataMigration(false)
+  const handleCloseMigration = useCallback(() => {
+    actions.setShowDataMigration(false)
     // Marcar que ya se mostró el modal para este usuario
     if (user) {
       localStorage.setItem(`migration_shown_${user.id}`, 'true')
     }
-  }
+  }, [actions, user])
 
-  const handleDeleteOrder = async (orderId) => {
+  const handleDeleteOrder = useCallback(async (orderId) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar esta orden?')) {
       try {
-        await supabaseService.deleteServiceOrder(orderId, user.id)
-        setOrders(prev => prev.filter(order => order.id !== orderId))
-      } catch (error) {
-        console.error('Error deleting order:', error)
-        alert('Error al eliminar la orden. Por favor, intenta de nuevo.')
+        await actions.deleteOrderAsync(orderId, user.id)
+      } catch {
+        // Error ya manejado en el contexto
       }
     }
-  }
+  }, [actions, user?.id])
 
-  const handleViewDetails = (order) => {
-    setSelectedOrder(order)
-    setShowDetailsModal(true)
-  }
+  const handleViewDetails = useCallback((order) => {
+    actions.showOrderDetails(order)
+  }, [actions])
 
-  const handleCancelForm = () => {
-    setShowForm(false)
-    setEditingOrder(null)
-  }
+  const handleCancelForm = useCallback(() => {
+    actions.setShowOrderForm(false)
+    actions.setEditingOrder(null)
+  }, [actions])
 
-  const handleFormSubmit = async (orderData) => {
-    if (editingOrder) {
-      await handleUpdateOrder({ ...orderData, id: editingOrder.id })
+  const handleFormSubmit = useCallback(async (orderData) => {
+    if (state.editingOrder) {
+      await handleUpdateOrder({ ...orderData, id: state.editingOrder.id })
     } else {
       await handleCreateOrder(orderData)
     }
-  }
+  }, [state.editingOrder, handleUpdateOrder, handleCreateOrder])
+
+  // Memoizar la configuración de pestañas
+  const tabs = useMemo(() => [
+    { id: 'orders', label: '📋 Órdenes', icon: '📋' },
+    { id: 'financial', label: '💰 Financiero', icon: '💰' },
+    { id: 'casual-expenses', label: '💸 Gastos Casuales', icon: '💸' },
+    { id: 'budget-expenses', label: '📊 Gastos Presupuesto', icon: '📊' },
+    { id: 'licenses', label: '🔑 Licencias', icon: '🔑' },
+    { id: 'passwords', label: '🔒 Contraseñas', icon: '🔒' },
+    { id: 'servers', label: '🖥️ Servidores', icon: '🖥️' }
+  ], [])
+
+  // Memoizar si Supabase está configurado
+  const supabaseConfigured = useMemo(() => isSupabaseConfigured(), [])
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
@@ -181,7 +168,7 @@ function MainApp() {
               <div className="ml-2 lg:ml-0">
                 <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white transition-colors duration-200">
                   NexBoard
-                  {!isSupabaseConfigured() && (
+                  {!supabaseConfigured && (
                     <span className="ml-2 text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full">
                       Demo
                     </span>
@@ -189,7 +176,7 @@ function MainApp() {
                 </h1>
                 <p className="text-sm lg:text-base text-gray-600 dark:text-gray-300 hidden sm:block transition-colors duration-200">
                   Sistema de Gestión Empresarial
-                  {!isSupabaseConfigured() && (
+                  {!supabaseConfigured && (
                     <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
                       (Datos guardados localmente)
                     </span>
@@ -201,9 +188,9 @@ function MainApp() {
               <div className="hidden sm:block text-sm text-gray-600 dark:text-gray-300 transition-colors duration-200">
                 {user?.email}
               </div>
-              {activeTab === 'orders' && (
+              {state.activeTab === 'orders' && (
                 <Button
-                  onClick={() => setShowForm(true)}
+                  onClick={() => actions.setShowOrderForm(true)}
                   variant="primary"
                   size="md"
                   className="lg:px-6 lg:py-3 lg:text-base"
@@ -234,23 +221,15 @@ function MainApp() {
       <nav className={`bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-200 ${mobileMenuOpen ? 'block' : 'hidden lg:block'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row lg:space-x-8 py-4">
-            {[
-              { id: 'orders', label: '📋 Órdenes', icon: '📋' },
-              { id: 'financial', label: '💰 Financiero', icon: '💰' },
-              { id: 'casual-expenses', label: '💸 Gastos Casuales', icon: '💸' },
-              { id: 'budget-expenses', label: '📊 Gastos Presupuesto', icon: '📊' },
-              { id: 'licenses', label: '🔑 Licencias', icon: '🔑' },
-              { id: 'passwords', label: '🔒 Contraseñas', icon: '🔒' },
-              { id: 'servers', label: '🖥️ Servidores', icon: '🖥️' }
-            ].map((tab) => (
+            {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => {
-                  setActiveTab(tab.id)
+                  actions.setActiveTab(tab.id)
                   setMobileMenuOpen(false)
                 }}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                  activeTab === tab.id
+                  state.activeTab === tab.id
                     ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
@@ -266,11 +245,11 @@ function MainApp() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Formulario de Orden */}
-        {showForm && (
+        {state.showOrderForm && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
             <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <ServiceOrderForm
-                order={editingOrder}
+                order={state.editingOrder}
                 onSubmit={handleFormSubmit}
                 onCancel={handleCancelForm}
               />
@@ -279,60 +258,60 @@ function MainApp() {
         )}
 
         {/* Modal de Detalles */}
-        {showDetailsModal && selectedOrder && (
-          <OrderDetailsModal
-            order={selectedOrder}
-            onClose={() => setShowDetailsModal(false)}
-          />
-        )}
+         {state.showOrderDetails && state.selectedOrder && (
+           <OrderDetailsModal
+             order={state.selectedOrder}
+             onClose={() => actions.hideOrderDetails()}
+           />
+         )}
 
         {/* Modal de Migración de Datos */}
-        {showDataMigration && isSupabaseConfigured() && (
-          <DataMigration onClose={handleCloseMigration} />
-        )}
+         {state.showDataMigration && supabaseConfigured && (
+           <DataMigration onClose={handleCloseMigration} />
+         )}
 
         {/* Contenido por Tab */}
-        {activeTab === 'orders' && (
+        {state.activeTab === 'orders' && (
           <ServiceOrdersTable
-            orders={orders}
+            orders={state.orders}
             onEdit={handleEditOrder}
             onDelete={handleDeleteOrder}
             onViewDetails={handleViewDetails}
           />
         )}
 
-        {activeTab === 'financial' && (
+        {state.activeTab === 'financial' && (
           <div>
             <div className="mb-6 flex space-x-4">
               <Button
-                onClick={() => setFinancialView('dashboard')}
-                variant={financialView === 'dashboard' ? 'primary' : 'secondary'}
+                onClick={() => actions.setFinancialView('dashboard')}
+                variant={state.financialView === 'dashboard' ? 'primary' : 'secondary'}
                 size="md"
               >
                 📊 Dashboard
               </Button>
               <Button
-                onClick={() => setFinancialView('reports')}
-                variant={financialView === 'reports' ? 'primary' : 'secondary'}
+                onClick={() => actions.setFinancialView('reports')}
+                variant={state.financialView === 'reports' ? 'primary' : 'secondary'}
                 size="md"
               >
                 📈 Reportes
               </Button>
             </div>
             
-            {financialView === 'dashboard' ? (
-              <FinancialDashboard orders={orders} />
+            {state.financialView === 'dashboard' ? (
+              <FinancialDashboard orders={state.orders} />
             ) : (
-              <MonthlyReportsTable orders={orders} />
+              <MonthlyReportsTable orders={state.orders} />
             )}
           </div>
         )}
 
-        {activeTab === 'casual-expenses' && <CasualExpensesTable />}
-        {activeTab === 'budget-expenses' && <BudgetExpensesTable />}
-        {activeTab === 'licenses' && <LicensesTable />}
-        {activeTab === 'passwords' && <PasswordsTable />}
-        {activeTab === 'servers' && <ServerCredentialsTable />}
+        {state.activeTab === 'casual-expenses' && <CasualExpensesTable />}
+        {state.activeTab === 'budget-expenses' && <BudgetExpensesTable />}
+        {state.activeTab === 'licenses' && <LicensesTable />}
+        {state.activeTab === 'passwords' && <PasswordsTable />}
+        {state.activeTab === 'servers' && <ServerCredentialsTable />}
       </main>
     </div>
   )
@@ -343,7 +322,9 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AppContent />
+        <AppStateProvider>
+          <AppContent />
+        </AppStateProvider>
       </AuthProvider>
     </ThemeProvider>
   )
@@ -352,11 +333,6 @@ function App() {
 // Componente que maneja la lógica de autenticación
 function AppContent() {
   const { user, loading } = useAuth()
-  
-  // Debug: verificar qué está llegando del contexto
-  console.log('🏠 AppContent - User:', user)
-  console.log('🏠 AppContent - User ID:', user?.id)
-  console.log('🏠 AppContent - Loading:', loading)
 
   if (loading) {
     return (

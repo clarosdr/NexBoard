@@ -47,13 +47,15 @@ const FinancialDashboard = ({ orders, expenses }) => {
   }, [user]);
 
   // Función para filtrar datos por período
-  const filterDataByPeriod = (data, period) => {
+  const filterDataByPeriod = (data, period, dateField = 'date') => {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
     
     return data.filter(item => {
-      const itemDate = new Date(item.date);
+      // Usar el campo de fecha apropiado según el tipo de dato
+      const dateValue = item[dateField] || item.date;
+      const itemDate = new Date(dateValue);
       
       switch (period) {
         case 'current_month': {
@@ -77,12 +79,13 @@ const FinancialDashboard = ({ orders, expenses }) => {
 
   // Calcular métricas del dashboard
   useEffect(() => {
-    const filteredOrders = filterDataByPeriod(orders || [], selectedPeriod);
-    const filteredBudgetExpenses = filterDataByPeriod(expenses || [], selectedPeriod);
-    const filteredCasualExpenses = filterDataByPeriod(casualExpenses || [], selectedPeriod);
+    const filteredOrders = filterDataByPeriod(orders || [], selectedPeriod, 'service_date');
+    const filteredBudgetExpenses = filterDataByPeriod(expenses || [], selectedPeriod, 'due_day');
+    const filteredCasualExpenses = filterDataByPeriod(casualExpenses || [], selectedPeriod, 'expense_date');
     
     const completedOrders = filteredOrders.filter(order => 
-      order.status === 'FINALIZADO' || order.status === 'ENTREGADO'
+      order.status === 'completed' || order.status === 'delivered' || 
+      order.status === 'FINALIZADO' || order.status === 'ENTREGADO' // Compatibilidad hacia atrás
     );
     
     const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
@@ -101,7 +104,8 @@ const FinancialDashboard = ({ orders, expenses }) => {
     const netProfit = totalProfit - totalExpenses;
     
     const pendingOrders = filteredOrders.filter(order => 
-      order.status === 'PENDIENTE' || order.status === 'EN PROCESO'
+      order.status === 'pending' || order.status === 'in_progress' ||
+      order.status === 'PENDIENTE' || order.status === 'EN PROCESO' // Compatibilidad hacia atrás
     ).length;
     
     const averageOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
