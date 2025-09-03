@@ -13,6 +13,17 @@ dotenv.config({ path: join(__dirname, '..', '.env') });
 // Configuración de Supabase
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_ACCESS_TOKEN = process.env.SUPABASE_ACCESS_TOKEN || process.env.SUPABASE_MANAGEMENT_TOKEN;
+
+if (!SUPABASE_URL) {
+  console.error('❌ Error: VITE_SUPABASE_URL no está configurado');
+  process.exit(1);
+}
+
+if (!SUPABASE_ACCESS_TOKEN) {
+  console.error('❌ Error: SUPABASE_ACCESS_TOKEN (Personal Access Token) no está configurado');
+  process.exit(1);
+}
 
 if (!SUPABASE_SERVICE_ROLE_KEY) {
   console.error('❌ Error: SUPABASE_SERVICE_ROLE_KEY no está configurado');
@@ -28,7 +39,7 @@ async function executeSQL(sql) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        'Authorization': `Bearer ${SUPABASE_ACCESS_TOKEN}`,
       },
       body: JSON.stringify({ query: sql })
     });
@@ -44,103 +55,28 @@ async function executeSQL(sql) {
   }
 }
 
-// Función alternativa usando PostgREST directamente para crear tablas
-async function createTablesDirectly() {
-  console.log('🔧 Creando tablas usando método alternativo...');
-  
-  const tables = [
-    {
-      name: 'service_orders',
-      sql: `CREATE TABLE IF NOT EXISTS service_orders (
-        id SERIAL PRIMARY KEY,
-        client_name VARCHAR(255) NOT NULL,
-        service_type VARCHAR(100) NOT NULL,
-        description TEXT,
-        status VARCHAR(50) DEFAULT 'pending',
-        price DECIMAL(10,2),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );`
-    },
-    {
-      name: 'passwords',
-      sql: `CREATE TABLE IF NOT EXISTS passwords (
-        id SERIAL PRIMARY KEY,
-        service_name VARCHAR(255) NOT NULL,
-        username VARCHAR(255),
-        email VARCHAR(255),
-        password_encrypted TEXT NOT NULL,
-        url VARCHAR(500),
-        category VARCHAR(100),
-        notes TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );`
-    },
-    {
-      name: 'licenses',
-      sql: `CREATE TABLE IF NOT EXISTS licenses (
-        id SERIAL PRIMARY KEY,
-        software_name VARCHAR(255) NOT NULL,
-        license_key TEXT NOT NULL,
-        purchase_date DATE,
-        expiry_date DATE,
-        cost DECIMAL(10,2),
-        vendor VARCHAR(255),
-        notes TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );`
-    },
-    {
-      name: 'server_credentials',
-      sql: `CREATE TABLE IF NOT EXISTS server_credentials (
-        id SERIAL PRIMARY KEY,
-        server_name VARCHAR(255) NOT NULL,
-        ip_address INET,
-        username VARCHAR(255) NOT NULL,
-        password_encrypted TEXT,
-        ssh_key TEXT,
-        port INTEGER DEFAULT 22,
-        notes TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );`
-    },
-    {
-      name: 'budget_expenses',
-      sql: `CREATE TABLE IF NOT EXISTS budget_expenses (
-        id SERIAL PRIMARY KEY,
-        category VARCHAR(100) NOT NULL,
-        description TEXT NOT NULL,
-        amount DECIMAL(10,2) NOT NULL,
-        date DATE NOT NULL,
-        is_recurring BOOLEAN DEFAULT FALSE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );`
-    },
-    {
-      name: 'casual_expenses',
-      sql: `CREATE TABLE IF NOT EXISTS casual_expenses (
-        id SERIAL PRIMARY KEY,
-        description TEXT NOT NULL,
-        amount DECIMAL(10,2) NOT NULL,
-        date DATE NOT NULL,
-        category VARCHAR(100),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );`
-    }
+// Reemplazar creación inline por ejecución de archivos de módulos
+async function applyModuleSQLFiles() {
+  const modulesDir = join(__dirname, '..', 'supabase', 'modules');
+  const files = [
+    'service_orders.sql',
+    'licenses.sql',
+    'passwords.sql',
+    'server_credentials.sql',
+    'budget_expenses.sql',
+    'casual_expenses.sql'
   ];
 
-  for (const table of tables) {
+  for (const file of files) {
+    const filePath = join(modulesDir, file);
+    console.log(`⏳ Ejecutando módulo SQL: ${file}...`);
     try {
-      console.log(`⏳ Creando tabla ${table.name}...`);
-      await executeSQL(table.sql);
-      console.log(`✅ Tabla ${table.name} creada exitosamente`);
-    } catch (error) {
-      console.log(`⚠️ Warning creando tabla ${table.name}: ${error.message}`);
+      const sql = readFileSync(filePath, 'utf-8');
+      await executeSQL(sql);
+      console.log(`✅ Módulo '${file}' aplicado correctamente`);
+    } catch (err) {
+      console.error(`❌ Error aplicando módulo '${file}':`, err.message);
+      throw err;
     }
   }
 }
@@ -162,7 +98,8 @@ async function verifyTables() {
       if (response.ok) {
         console.log(`✅ Tabla '${table}' creada y accesible`);
       } else {
-        console.log(`❌ Tabla '${table}' no accesible: ${response.status}`);
+        const text = await response.text();
+        console.log(`❌ Tabla '${table}' no accesible: ${response.status} ${text}`);
       }
     } catch (error) {
       console.log(`❌ Error verificando tabla '${table}': ${error.message}`);
@@ -176,10 +113,10 @@ async function main() {
     console.log('🚀 Iniciando sincronización con Supabase...');
     console.log(`📡 URL: ${SUPABASE_URL}`);
     
-    // Crear tablas directamente
-    await createTablesDirectly();
+    // Aplicar módulos SQL
+    await applyModuleSQLFiles();
     
-    console.log('🎉 Tablas creadas exitosamente!');
+    console.log('🎉 Módulos SQL aplicados exitosamente!');
     
     // Verificar que las tablas se crearon
     await verifyTables();

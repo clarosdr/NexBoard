@@ -94,10 +94,15 @@ const PasswordsTable = () => {
   };
 
   // Filtrar contraseñas por término de búsqueda
-  const filteredPasswords = passwords.filter(password =>
-    password.service_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    password.username.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPasswords = passwords.filter(password => {
+    const displayService = password.service_name || password.websiteApp || password.website_application || ''
+    const displayUser = password.username || password.email || password.userOrEmail || password.username_email || ''
+    const term = searchTerm.toLowerCase()
+    return (
+      displayService.toLowerCase().includes(term) ||
+      displayUser.toLowerCase().includes(term)
+    )
+  })
 
   if (showForm) {
     return (
@@ -181,15 +186,19 @@ const PasswordsTable = () => {
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 transition-colors duration-200">
-                {filteredPasswords.map((password) => (
+                {filteredPasswords.map((password) => {
+                  const displayService = password.service_name || password.websiteApp || password.website_application || ''
+                  const displayUser = password.username || password.email || password.userOrEmail || password.username_email || ''
+                  const displayPassword = password.password || password.password_value || ''
+                  return (
                   <tr key={password.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">
-                          {password.service_name}
+                          {displayService}
                         </div>
                         <button
-                          onClick={() => copyToClipboard(password.service_name, 'Sitio web')}
+                          onClick={() => copyToClipboard(displayService, 'Sitio web')}
                           className="ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200"
                           title="Copiar sitio web"
                         >
@@ -200,10 +209,10 @@ const PasswordsTable = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="text-sm text-gray-900 dark:text-white transition-colors duration-200">
-                          {password.username}
+                          {displayUser}
                         </div>
                         <button
-                          onClick={() => copyToClipboard(password.username, 'Usuario')}
+                          onClick={() => copyToClipboard(displayUser, 'Usuario')}
                           className="ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
                           title="Copiar usuario"
                         >
@@ -223,7 +232,7 @@ const PasswordsTable = () => {
                             </span>
                           ) : (
                             visiblePasswords.has(password.id) 
-                              ? password.password 
+                              ? displayPassword 
                               : '••••••••'
                           )}
                         </div>
@@ -238,7 +247,7 @@ const PasswordsTable = () => {
                               <span aria-hidden="true">{visiblePasswords.has(password.id) ? '👁️' : '👁️‍🗨️'}</span>
                             </button>
                             <button
-                              onClick={() => copyToClipboard(password.password, 'Contraseña')}
+                              onClick={() => copyToClipboard(displayPassword, 'Contraseña')}
                               className="ml-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
                               title="Copiar contraseña"
                               aria-label="Copiar contraseña al portapapeles"
@@ -275,7 +284,8 @@ const PasswordsTable = () => {
                       </button>
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           </div>

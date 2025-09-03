@@ -207,7 +207,7 @@ const LicensesTable = () => {
       <LicenseForm
         onSubmit={handleFormSubmit}
         onCancel={handleFormCancel}
-        editingLicense={editingLicense}
+        license={editingLicense}
       />
     );
   }
