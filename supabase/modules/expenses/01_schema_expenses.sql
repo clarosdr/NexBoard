@@ -1,0 +1,1 @@
+-- SQL Schema for Expenses module
