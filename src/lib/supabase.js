@@ -85,6 +85,7 @@ export const supabaseService = {
     // Mapear campos de BD a nombres del frontend
     const mapped = (data || []).map((row) => ({
       ...row,
+      customer_name: row.client_name,
       websiteApp: row.website_application || '',
       userOrEmail: row.username_email || '',
       password: row.password_value || '',
@@ -95,9 +96,18 @@ export const supabaseService = {
   },
 
   async createServiceOrder(orderData, userId) {
+    // Mapear customer_name a client_name para la BD
+    const dbData = {
+      ...orderData,
+      client_name: orderData.customer_name || orderData.client_name,
+      user_id: userId
+    }
+    // Remover customer_name del payload si existe
+    delete dbData.customer_name
+
     const { data, error } = await supabase
       .from('service_orders')
-      .insert({ ...orderData, user_id: userId })
+      .insert(dbData)
       .select()
       .single()
 
@@ -107,6 +117,7 @@ export const supabaseService = {
     // Mapear respuesta al formato del frontend
     return {
       ...data,
+      customer_name: data.client_name,
       websiteApp: data.website_application || '',
       userOrEmail: data.username_email || '',
       password: data.password_value || '',
@@ -114,9 +125,17 @@ export const supabaseService = {
   },
 
   async updateServiceOrder(orderId, orderData, userId) {
+    // Mapear customer_name a client_name para la BD
+    const dbData = {
+      ...orderData,
+      client_name: orderData.customer_name || orderData.client_name,
+    }
+    // Remover customer_name del payload si existe
+    delete dbData.customer_name
+
     const { data, error } = await supabase
       .from('service_orders')
-      .update(orderData)
+      .update(dbData)
       .eq('id', orderId)
       .eq('user_id', userId)
       .select()
@@ -128,6 +147,7 @@ export const supabaseService = {
     // Mapear respuesta al formato del frontend
     return {
       ...data,
+      customer_name: data.client_name,
       websiteApp: data.website_application || '',
       userOrEmail: data.username_email || '',
       password: data.password_value || '',
