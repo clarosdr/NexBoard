@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+// Removed direct supabase import since persistence is handled by parent via onSubmit
 import Button from './ui/Button'
 
-const generateUUID = () => {
+const _generateUUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0
     const v = c === 'x' ? r : (r & 0x3 | 0x8)
@@ -74,48 +74,28 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
     setIsSubmitting(true)
 
     try {
-      const licenseData = {
-        client_name: formData.clientName,
-        license_name: formData.licenseName,
-        serial: formData.serial,
-        installation_date: formData.installationDate || null,
-        expiration_date: formData.expirationDate,
-        max_installations: parseInt(formData.maxInstallations) || 1,
-        current_installations: parseInt(formData.currentInstallations) || 0,
-        sale_price: parseFloat(formData.salePrice) || 0,
-        cost_price: parseFloat(formData.costPrice) || 0,
-        profit: parseFloat(formData.profit) || 0,
-        provider: formData.provider,
-        condition: formData.condition,
-        notes: formData.notes,
-        id: license ? license.id : generateUUID()
+      // Preparar payload en camelCase para el supabaseService (se encarga el padre)
+      const payload = {
+        clientName: formData.clientName.trim(),
+        licenseName: formData.licenseName.trim(),
+        serial: (formData.serial || '').trim(),
+        installationDate: formData.installationDate || null,
+        expirationDate: formData.expirationDate || null,
+        maxInstallations: Number(formData.maxInstallations) || null,
+        currentInstallations: Number(formData.currentInstallations) || 0,
+        salePrice: Number(formData.salePrice) || 0,
+        costPrice: Number(formData.costPrice) || 0,
+        profit: Number(formData.profit) || (Number(formData.salePrice || 0) - Number(formData.costPrice || 0)) || 0,
+        provider: (formData.provider || '').trim(),
+        condition: formData.condition || '',
+        notes: formData.notes || ''
       }
 
-      let error
-      if (license) {
-        ({ error } = await supabase
-          .from('licenses')
-          .update(licenseData)
-          .eq('id', license.id))
-      } else {
-        ({ error } = await supabase
-          .from('licenses')
-          .insert([licenseData]))
-      }
-
-      if (error) {
-        console.error('Error al guardar en Supabase:', error.message)
-        alert(`No se pudo guardar la licencia: ${error.message}`)
-        setIsSubmitting(false)
-        return
-      }
-
-      alert('Licencia guardada correctamente ✅')
-      if (onSubmit) onSubmit(licenseData)
-
+      await onSubmit?.(payload)
     } catch (err) {
       console.error('Error inesperado:', err)
       alert('Ocurrió un error inesperado')
+    } finally {
       setIsSubmitting(false)
     }
   }
@@ -124,15 +104,15 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
     <form onSubmit={handleSubmit} className="p-6 space-y-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
       <div className="space-y-4">
         <div>
-          <label htmlFor="softwareName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Nombre de la licencia *
+          <label htmlFor="clientName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Cliente *
           </label>
           <input
             type="text"
-            id="softwareName"
-            name="softwareName"
-            placeholder="Ej: Microsoft Office, Adobe Creative Suite"
-            value={formData.softwareName}
+            id="clientName"
+            name="clientName"
+            placeholder="Nombre del cliente"
+            value={formData.clientName}
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
@@ -140,44 +120,59 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
         </div>
         
         <div>
-          <label htmlFor="licenseKey" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Clave de licencia *
+          <label htmlFor="licenseName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Nombre de la licencia *
           </label>
           <input
             type="text"
-            id="licenseKey"
-            name="licenseKey"
-            placeholder="Ingrese la clave de licencia"
-            value={formData.licenseKey}
+            id="licenseName"
+            name="licenseName"
+            placeholder="Ej: Microsoft Office, Adobe Creative Suite"
+            value={formData.licenseName}
             onChange={handleChange}
             required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="serial" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Serial / Clave de licencia
+          </label>
+          <input
+            type="text"
+            id="serial"
+            name="serial"
+            placeholder="Ingrese el serial o clave de licencia"
+            value={formData.serial}
+            onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white font-mono"
           />
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="purchaseDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Fecha de compra
+            <label htmlFor="installationDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Fecha de instalación / compra
             </label>
             <input
               type="date"
-              id="purchaseDate"
-              name="purchaseDate"
-              value={formData.purchaseDate}
+              id="installationDate"
+              name="installationDate"
+              value={formData.installationDate}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             />
           </div>
           <div>
-            <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="expirationDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Fecha de expiración *
             </label>
             <input
               type="date"
-              id="expiryDate"
-              name="expiryDate"
-              value={formData.expiryDate}
+              id="expirationDate"
+              name="expirationDate"
+              value={formData.expirationDate}
               onChange={handleChange}
               required
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
@@ -187,35 +182,53 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="vendor" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="provider" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Proveedor
             </label>
             <input
               type="text"
-              id="vendor"
-              name="vendor"
+              id="provider"
+              name="provider"
               placeholder="Ej: Microsoft, Adobe"
-              value={formData.vendor}
+              value={formData.provider}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             />
           </div>
           <div>
-            <label htmlFor="cost" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="costPrice" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Costo
             </label>
             <input
               type="number"
-              id="cost"
-              name="cost"
+              id="costPrice"
+              name="costPrice"
               placeholder="0.00"
-              value={formData.cost}
+              value={formData.costPrice}
               onChange={handleChange}
               min="0"
               step="0.01"
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             />
           </div>
+        </div>
+        
+        <div>
+          <label htmlFor="salePrice" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Precio de venta
+          </label>
+          <input
+            type="number"
+            id="salePrice"
+            name="salePrice"
+            placeholder="0.00"
+            value={formData.salePrice}
+            onChange={handleChange}
+            min="0"
+            step="0.01"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+          />
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Ganancia estimada: {Number(formData.salePrice || 0) - Number(formData.costPrice || 0)}</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

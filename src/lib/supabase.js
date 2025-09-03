@@ -370,26 +370,103 @@ export const supabaseService = {
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    cache.set(cacheKey, data)
-    return data
+
+    // Mapear filas a la forma usada por el frontend (camelCase)
+    const mapped = (data || []).map((row) => ({
+      id: row.id,
+      clientName: row.client_name ?? row.clientName ?? '',
+      licenseName: row.license_name ?? row.licenseName ?? '',
+      serial: row.serial ?? '',
+      provider: row.provider ?? row.vendor ?? '',
+      installationDate: row.installation_date ?? row.installationDate ?? null,
+      expirationDate: row.expiration_date ?? row.expirationDate ?? null,
+      maxInstallations: row.max_installations ?? row.maxInstallations ?? null,
+      currentInstallations: row.current_installations ?? row.currentInstallations ?? 0,
+      salePrice: row.sale_price ?? row.salePrice ?? 0,
+      costPrice: row.cost_price ?? row.costPrice ?? 0,
+      profit: row.profit ?? ((row.sale_price || 0) - (row.cost_price || 0)),
+      condition: row.condition ?? '',
+      notes: row.notes ?? '',
+      created_at: row.created_at,
+      updated_at: row.updated_at
+    }))
+
+    cache.set(cacheKey, mapped)
+    return mapped
   },
 
   async createLicense(licenseData, userId) {
+    // Aceptar payload con camelCase o snake_case y convertir a columnas de BD
+    const dbData = {
+      user_id: userId,
+      client_name: (licenseData.clientName ?? licenseData.client_name) || null,
+      license_name: (licenseData.licenseName ?? licenseData.license_name) || null,
+      serial: (licenseData.serial ?? licenseData.licenseKey) || null,
+      installation_date: (licenseData.installationDate ?? licenseData.installation_date ?? licenseData.purchaseDate) || null,
+      expiration_date: (licenseData.expirationDate ?? licenseData.expiration_date ?? licenseData.expiryDate) || null,
+      max_installations: (licenseData.maxInstallations ?? licenseData.max_installations) ?? null,
+      current_installations: (licenseData.currentInstallations ?? licenseData.current_installations) ?? 0,
+      sale_price: (licenseData.salePrice ?? licenseData.sale_price) ?? 0,
+      cost_price: (licenseData.costPrice ?? licenseData.cost_price ?? licenseData.cost) ?? 0,
+      // profit es una columna generada en BD; no se debe enviar en INSERT/UPDATE
+      provider: (licenseData.provider ?? licenseData.vendor) || null,
+      condition: (licenseData.condition) || null,
+      notes: (licenseData.notes) || null
+    }
+
     const { data, error } = await supabase
       .from('licenses')
-      .insert({ ...licenseData, user_id: userId })
+      .insert(dbData)
       .select()
       .single()
 
     if (error) throw error
     this.clearUserCache(userId)
-    return data
+
+    // Mapear respuesta a camelCase
+    const mapped = {
+      id: data.id,
+      clientName: data.client_name ?? '',
+      licenseName: data.license_name ?? '',
+      serial: data.serial ?? '',
+      provider: data.provider ?? '',
+      installationDate: data.installation_date ?? null,
+      expirationDate: data.expiration_date ?? null,
+      maxInstallations: data.max_installations ?? null,
+      currentInstallations: data.current_installations ?? 0,
+      salePrice: data.sale_price ?? 0,
+      costPrice: data.cost_price ?? 0,
+      profit: data.profit ?? ((data.sale_price || 0) - (data.cost_price || 0)),
+      condition: data.condition ?? '',
+      notes: data.notes ?? '',
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    }
+
+    return mapped
   },
 
   async updateLicense(licenseId, licenseData, userId) {
+    // Aceptar payload con camelCase o snake_case y convertir a columnas de BD
+    const dbData = {
+      client_name: (licenseData.clientName ?? licenseData.client_name) || null,
+      license_name: (licenseData.licenseName ?? licenseData.license_name) || null,
+      serial: (licenseData.serial ?? licenseData.licenseKey) || null,
+      installation_date: (licenseData.installationDate ?? licenseData.installation_date ?? licenseData.purchaseDate) || null,
+      expiration_date: (licenseData.expirationDate ?? licenseData.expiration_date ?? licenseData.expiryDate) || null,
+      max_installations: (licenseData.maxInstallations ?? licenseData.max_installations) ?? null,
+      current_installations: (licenseData.currentInstallations ?? licenseData.current_installations) ?? 0,
+      sale_price: (licenseData.salePrice ?? licenseData.sale_price) ?? 0,
+      cost_price: (licenseData.costPrice ?? licenseData.cost_price ?? licenseData.cost) ?? 0,
+      // profit es una columna generada en BD; no se debe enviar en INSERT/UPDATE
+      provider: (licenseData.provider ?? licenseData.vendor) || null,
+      condition: (licenseData.condition) || null,
+      notes: (licenseData.notes) || null
+    }
+
     const { data, error } = await supabase
       .from('licenses')
-      .update(licenseData)
+      .update(dbData)
       .eq('id', licenseId)
       .eq('user_id', userId)
       .select()
@@ -397,7 +474,28 @@ export const supabaseService = {
 
     if (error) throw error
     this.clearUserCache(userId)
-    return data
+
+    // Mapear respuesta a camelCase
+    const mapped = {
+      id: data.id,
+      clientName: data.client_name ?? '',
+      licenseName: data.license_name ?? '',
+      serial: data.serial ?? '',
+      provider: data.provider ?? '',
+      installationDate: data.installation_date ?? null,
+      expirationDate: data.expiration_date ?? null,
+      maxInstallations: data.max_installations ?? null,
+      currentInstallations: data.current_installations ?? 0,
+      salePrice: data.sale_price ?? 0,
+      costPrice: data.cost_price ?? 0,
+      profit: data.profit ?? ((data.sale_price || 0) - (data.cost_price || 0)),
+      condition: data.condition ?? '',
+      notes: data.notes ?? '',
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    }
+
+    return mapped
   },
 
   async deleteLicense(licenseId, userId) {
