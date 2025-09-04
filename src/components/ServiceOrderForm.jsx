@@ -30,7 +30,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
     customer_name: '',
     description: '',
     service_date: getTodayLocalDate(),
-    status: 'pending',
+    status: 'PENDIENTE',
     items: [{ id: 1, description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
     payments: [],
     totalPaid: 0
