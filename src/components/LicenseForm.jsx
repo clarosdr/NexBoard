@@ -86,14 +86,20 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
         profit: Number(formData.profit) || (Number(formData.sale_price || 0) - Number(formData.cost_price || 0)) || 0,
         provider: (formData.provider || '').trim(),
         condition: formData.condition || 'NUEVA'
-      }
+      };
 
-      await onSubmit?.(payload)
+      const response = await onSubmit?.(payload);
+      if (response && (response.status === 400 || response.status === 500)) {
+        const errorMessage = await response.text();
+        console.error('Error saving license:', errorMessage);
+        alert(`Error al guardar la licencia: ${errorMessage}`);
+        return;
+      }
     } catch (err) {
-      console.error('Error inesperado:', err)
-      alert('Ocurrió un error inesperado')
+      console.error('Error inesperado:', err);
+      alert('Ocurrió un error inesperado');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
