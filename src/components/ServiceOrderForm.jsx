@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabaseService } from '../lib/supabase'
+// import { supabaseService } from '../lib/supabase'
 import Button from './ui/Button'
 import { getTodayLocalDate } from '../utils/dateUtils'
 import { useAuth } from '../hooks/useAuth'
@@ -25,7 +25,8 @@ const formatCurrency = (value) => {
 
 
 export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
-  const { user } = useAuth()
+// Remove unused user variable since it's not being used in the component
+useAuth() // Call useAuth hook but don't destructure since we're not using any values
   const [formData, setFormData] = useState({
     customer_name: '',
     description: '',
@@ -114,11 +115,12 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
     };
   
     try {
+      if (onSubmit) await onSubmit(data);
       alert('Orden guardada correctamente ✅');
-      if (onSubmit) onSubmit(data);
     } catch (err) {
       console.error('Error al guardar orden:', err);
       alert(`No se pudo guardar la orden: ${err.message}`);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -191,9 +193,15 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
   }
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-semibold mb-4">{order ? 'Editar Orden de Servicio' : 'Nueva Orden de Servicio'}</h2>
+    <div className="p-4 md:p-6">
+      <h2 className="text-2xl font-bold mb-1 text-gray-900 dark:text-white">
+        {order ? 'Editar Orden de Servicio' : 'Nueva Orden de Servicio'}
+      </h2>
+      <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+        Completa la información del servicio, agrega los ítems y registra los pagos realizados.
+      </p>
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Datos básicos */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre del Cliente *</label>
@@ -248,6 +256,14 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
 
         <div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Ítems de Venta</h3>
+          {/* Cabecera de columnas */}
+          <div className="hidden md:grid md:grid-cols-12 gap-3 px-2 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <div className="md:col-span-5">Descripción</div>
+            <div className="md:col-span-2">Cant.</div>
+            <div className="md:col-span-2">P. Unitario</div>
+            <div className="md:col-span-2">Costo Rep.</div>
+            <div className="md:col-span-1 text-right">Total</div>
+          </div>
           <div className="space-y-3">
             {formData.items.map((item) => (
               <div key={item.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
@@ -273,6 +289,8 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
                   <input
                     type="number"
                     min="0"
+                    step="1"
+                    placeholder="$"
                     value={item.unitPrice}
                     onChange={(e) => updateItem(item.id, 'unitPrice', e.target.value)}
                     className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
@@ -282,6 +300,8 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
                   <input
                     type="number"
                     min="0"
+                    step="1"
+                    placeholder="$"
                     value={item.partCost}
                     onChange={(e) => updateItem(item.id, 'partCost', e.target.value)}
                     className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
@@ -292,25 +312,33 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
                 </div>
                 {formData.items.length > 1 && (
                   <div className="md:col-span-12 text-right">
-                    <button
+                    <Button
                       type="button"
+                      size="sm"
+                      variant="danger"
                       onClick={() => removeItem(item.id)}
-                      className="text-red-600 hover:text-red-800 text-sm"
                     >
                       Eliminar
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
             ))}
           </div>
           <div className="mt-3">
-            <Button type="button" onClick={addItem} variant="secondary">+ Agregar Ítem</Button>
+            <Button type="button" onClick={addItem} variant="success">+ Agregar Ítem</Button>
           </div>
         </div>
 
         <div>
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Pagos</h3>
+          {/* Cabecera de columnas */}
+          <div className="hidden md:grid md:grid-cols-12 gap-3 px-2 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <div className="md:col-span-3">Monto</div>
+            <div className="md:col-span-4">Fecha</div>
+            <div className="md:col-span-4">Método</div>
+            <div className="md:col-span-1 text-right">Acción</div>
+          </div>
           <div className="space-y-3">
             {formData.payments.map((payment) => (
               <div key={payment.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
@@ -343,47 +371,50 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
                   </select>
                 </div>
                 <div className="md:col-span-1 text-right">
-                  <button
+                  <Button
                     type="button"
+                    size="sm"
+                    variant="danger"
                     onClick={() => removePayment(payment.id)}
-                    className="text-red-600 hover:text-red-800 text-sm"
                   >
                     Eliminar
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
           <div className="mt-3">
-            <Button type="button" onClick={addPayment} variant="secondary">+ Agregar Pago</Button>
+            <Button type="button" onClick={addPayment} variant="success">+ Agregar Pago</Button>
           </div>
         </div>
 
         <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-md">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Resumen</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
+            <div className="p-3 rounded-md bg-white/60 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 shadow-sm">
               <p className="text-sm text-gray-600 dark:text-gray-300">Total</p>
-              <p className="text-xl font-semibold text-gray-900 dark:text-white">{formatCurrency(calculateGrandTotal())}</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{formatCurrency(calculateGrandTotal())}</p>
             </div>
-            <div className="space-y-1">
+            <div className="p-3 rounded-md bg-white/60 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 shadow-sm">
               <p className="text-sm text-gray-600 dark:text-gray-300">Costo Total</p>
-              <p className="text-xl font-semibold text-gray-900 dark:text-white">{formatCurrency(calculateTotalPartCost())}</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{formatCurrency(calculateTotalPartCost())}</p>
             </div>
-            <div className="space-y-1">
+            <div className="p-3 rounded-md bg-white/60 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 shadow-sm">
               <p className="text-sm text-gray-600 dark:text-gray-300">Ganancia</p>
-              <p className="text-xl font-semibold text-gray-900 dark:text-white">{formatCurrency(calculateProfit())}</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{formatCurrency(calculateProfit())}</p>
             </div>
-            <div className="space-y-1">
+            <div className="p-3 rounded-md bg-white/60 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 shadow-sm">
               <p className="text-sm text-gray-600 dark:text-gray-300">Saldo Pendiente</p>
-              <p className="text-xl font-semibold text-gray-900 dark:text-white">{formatCurrency(calculatePendingBalance())}</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{formatCurrency(calculatePendingBalance())}</p>
             </div>
           </div>
         </div>
 
         <div className="flex justify-end space-x-3">
           <Button type="button" onClick={onCancel} variant="secondary">Cancelar</Button>
-          <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Guardando...' : 'Guardar'}</Button>
+          <Button type="submit" loading={isSubmitting} disabled={isSubmitting}>
+            {isSubmitting ? 'Guardando...' : 'Guardar'}
+          </Button>
         </div>
       </form>
     </div>
