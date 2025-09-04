@@ -5,7 +5,7 @@ import PullToRefresh from './PullToRefresh';
 import { useSwipeCard } from '../hooks/useTouchGestures';
 import Button from './ui/Button';
 import { FaEye, FaPrint, FaEdit, FaTrash, FaBox, FaChartLine, FaFileInvoiceDollar, FaMoneyBillWave, FaCoins, FaPlus, FaArchive, FaList, FaTh, FaSync } from 'react-icons/fa';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 // Función para formatear valores en pesos colombianos
 const formatCurrency = (value) => {
@@ -20,8 +20,8 @@ const formatCurrency = (value) => {
 const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails, onAddNew }) => {
   const [filterStatus, setFilterStatus] = useState('todos');
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('date');
-  const [sortOrder, setSortOrder] = useState('desc');
+  const [sortBy] = useState('date');  
+  const [sortOrder] = useState('desc');  
   const [showPrintReceipt, setShowPrintReceipt] = useState(false);
   const [selectedOrderForPrint, setSelectedOrderForPrint] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -128,19 +128,7 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails, onAddNew 
     });
   };
 
-  const handleSort = (field) => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(field);
-      setSortOrder('desc');
-    }
-  };
-
-  const getSortIcon = (field) => {
-    if (sortBy !== field) return '↕️';
-    return sortOrder === 'asc' ? '🔼' : '🔽';
-  };
+  // Estas funciones se han eliminado porque no se utilizan en el componente
 
   const calculateTotals = () => {
     return filteredOrders.reduce((acc, order) => {

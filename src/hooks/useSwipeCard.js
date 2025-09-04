@@ -1,9 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 
 const useSwipeCard = ({ onSwipeLeft, onSwipeRight, threshold = 100 }) => {
   const [isSwiping, setIsSwiping] = useState(false);
   const [startX, setStartX] = useState(0);
-  const [currentX, setCurrentX] = useState(0);
   const [swipeTranslateX, setSwipeTranslateX] = useState(0);
 
   const handleTouchStart = (e) => {
