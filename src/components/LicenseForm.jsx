@@ -224,7 +224,6 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
             step="0.01"
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
           />
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">Ganancia estimada: {Number(formData.sale_price || 0) - Number(formData.cost_price || 0)}</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
