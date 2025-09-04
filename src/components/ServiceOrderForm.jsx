@@ -48,7 +48,7 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
         customer_name: order.customer_name || '',
         description: order.description || '',
         service_date: order.service_date || getTodayLocalDate(),
-        status: order.status || 'pending',
+        status: order.status || 'PENDIENTE',
         items: order.items && order.items.length > 0
           ? order.items.map(item => ({ ...item }))
           : [{ id: 1, description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
@@ -70,10 +70,10 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
   }, [order])
 
   const statusOptions = [
-    { value: 'pending', label: 'Pendiente' },
-    { value: 'in_progress', label: 'En Proceso' },
-    { value: 'completed', label: 'Completado' },
-    { value: 'delivered', label: 'Entregado' }
+    { value: 'PENDIENTE', label: 'Pendiente' },
+    { value: 'EN PROCESO', label: 'En Proceso' },
+    { value: 'FINALIZADO', label: 'Finalizado' },
+    { value: 'ENTREGADO', label: 'Entregado' }
   ]
 
   const handleInputChange = (e) => {
