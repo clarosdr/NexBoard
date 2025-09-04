@@ -946,3 +946,4 @@ export const supabaseService = {
     return server.vpn_password === passwordText
   }
 }
+console.log(await supabase.auth.getSession());
