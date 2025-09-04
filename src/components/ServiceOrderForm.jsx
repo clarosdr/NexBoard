@@ -100,47 +100,28 @@ export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (isSubmitting) return
-
-    if (!formData.customer_name.trim()) {
-      alert('El nombre del cliente es requerido')
-      return
-    }
-    if (!formData.description.trim()) {
-      alert('La descripción del servicio es requerida')
-      return
-    }
-    if (!user?.id) {
-      alert('Error: Usuario no autenticado. Por favor, inicia sesión nuevamente.')
-      return
-    }
-
-    setIsSubmitting(true)
-
+    e.preventDefault();
+    setIsSubmitting(true);
+  
+    const data = {
+      customer_name: formData.customer_name,
+      service_date: formData.service_date,
+      description: formData.description,
+      status: formData.status,
+      items: formData.items,
+      payments: formData.payments,
+      totalPaid: formData.totalPaid
+    };
+  
     try {
-      const { totalPaid: _totalPaid, ...formDataWithoutTotalPaid } = formData
-      const orderData = {
-        ...formDataWithoutTotalPaid,
-        customer_name: formData.customer_name.trim()
-      }
-      
-      let data
-      if (order) {
-        data = await supabaseService.updateServiceOrder(order.id, orderData, user.id)
-      } else {
-        data = await supabaseService.createServiceOrder(orderData, user.id)
-      }
-
-      alert('Orden guardada correctamente ✅')
-      if (onSubmit) onSubmit(data)
-
+      alert('Orden guardada correctamente ✅');
+      if (onSubmit) onSubmit(data);
     } catch (err) {
-      console.error('Error al guardar orden:', err)
-      alert(`No se pudo guardar la orden: ${err.message}`)
-      setIsSubmitting(false)
+      console.error('Error al guardar orden:', err);
+      alert(`No se pudo guardar la orden: ${err.message}`);
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const addItem = () => {
     const newId = Math.max(...formData.items.map(item => item.id)) + 1

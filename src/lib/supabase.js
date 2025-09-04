@@ -790,9 +790,10 @@ export const supabaseService = {
       owner_id: userId,
       company_name: sanitizeInput(credentialData.client || credentialData.company_name, 200),
       server_name: sanitizeInput(credentialData.server_name, 200),
-      vpn_password: credentialData.password || credentialData.passVpn || '',
+      // Aceptar múltiples alias y priorizar el nombre de campo del formulario (vpn_password)
+      vpn_password: credentialData.vpn_password || credentialData.vpnPassword || credentialData.password || credentialData.passVpn || '',
       vpn_ip: sanitizeInput(credentialData.vpnIp || credentialData.vpn_ip, 100),
-      local_name: credentialData.localName ? sanitizeInput(credentialData.localName, 200) : null,
+      local_name: credentialData.localName ? sanitizeInput(credentialData.localName, 200) : (credentialData.local_name ? sanitizeInput(credentialData.local_name, 200) : null),
     }
 
     // Crear el servidor primero
@@ -850,10 +851,11 @@ export const supabaseService = {
       serverData.vpn_ip = sanitizeInput(credentialData.vpnIp || credentialData.vpn_ip, 100)
     }
     if (credentialData.localName || credentialData.local_name) {
-      serverData.local_name = credentialData.localName ? sanitizeInput(credentialData.localName, 200) : null
+      serverData.local_name = credentialData.localName ? sanitizeInput(credentialData.localName, 200) : (credentialData.local_name ? sanitizeInput(credentialData.local_name, 200) : null)
     }
-    if (credentialData.password || credentialData.passVpn) {
-      serverData.vpn_password = credentialData.password || credentialData.passVpn
+    // Aceptar múltiples alias para el pass VPN (incluye vpn_password del formulario)
+    if (credentialData.vpn_password || credentialData.vpnPassword || credentialData.password || credentialData.passVpn) {
+      serverData.vpn_password = credentialData.vpn_password || credentialData.vpnPassword || credentialData.password || credentialData.passVpn
     }
 
     // Actualizar el servidor
@@ -946,4 +948,5 @@ export const supabaseService = {
     return server.vpn_password === passwordText
   }
 }
-console.log(await supabase.auth.getSession());
+// Remove top-level await console log which caused runtime/ESLint error
+// console.log(await supabase.auth.getSession());
