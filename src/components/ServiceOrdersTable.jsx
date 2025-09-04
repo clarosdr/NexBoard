@@ -4,6 +4,8 @@ import PrintReceipt from './PrintReceipt';
 import PullToRefresh from './PullToRefresh';
 import { useSwipeCard } from '../hooks/useTouchGestures';
 import Button from './ui/Button';
+import { FaEye, FaPrint, FaEdit, FaTrash, FaBox, FaChartLine, FaFileInvoiceDollar, FaMoneyBillWave, FaCoins, FaPlus, FaArchive, FaList, FaTh, FaSync } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Función para formatear valores en pesos colombianos
 const formatCurrency = (value) => {
@@ -15,7 +17,7 @@ const formatCurrency = (value) => {
   }).format(value);
 };
 
-const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
+const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails, onAddNew }) => {
   const [filterStatus, setFilterStatus] = useState('todos');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('date');
@@ -25,13 +27,15 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showArchived, setShowArchived] = useState(false);
+  const [layout, setLayout] = useState('grid'); // 'grid' or 'list'
 
   const statusOptions = [
     { value: 'todos', label: 'Todos', color: 'gray' },
     { value: 'pending', label: 'Pendiente', color: 'yellow' },
     { value: 'in_progress', label: 'En Proceso', color: 'blue' },
     { value: 'completed', label: 'Completado', color: 'green' },
-    { value: 'delivered', label: 'Entregado', color: 'gray' }
+    { value: 'delivered', label: 'Entregado', color: 'gray' },
+    { value: 'archived', label: 'Archivado', color: 'purple' }
   ];
 
   // Función para contar órdenes por estado
@@ -55,13 +59,14 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      pendiente: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-800 dark:text-yellow-300', label: 'Pendiente' },
-      en_proceso: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-800 dark:text-blue-300', label: 'En Proceso' },
-      finalizado: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-800 dark:text-green-300', label: 'Finalizado' },
-      entregado: { bg: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-800 dark:text-gray-300', label: 'Entregado' }
+      pending: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-800 dark:text-yellow-300', label: 'Pendiente' },
+      in_progress: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-800 dark:text-blue-300', label: 'En Proceso' },
+      completed: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-800 dark:text-green-300', label: 'Completado' },
+      delivered: { bg: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-800 dark:text-gray-300', label: 'Entregado' },
+      archived: { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-800 dark:text-purple-300', label: 'Archivado' }
     };
     
-    const config = statusConfig[status] || statusConfig.pendiente;
+    const config = statusConfig[status] || statusConfig.pending;
     
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text} transition-colors duration-200`}>
@@ -77,8 +82,10 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
   const filteredOrders = allOrders
     .filter(order => {
       const matchesStatus = filterStatus === 'todos' || order.status === filterStatus;
-      const matchesSearch = order.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          (order.customer_name && order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesSearch = 
+        (order.description && order.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (order.customer_name && order.customer_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (order.id && order.id.toString().includes(searchTerm));
       return matchesStatus && matchesSearch;
     })
     .sort((a, b) => {
@@ -116,8 +123,8 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('es-ES', {
       year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
+      month: 'long',
+      day: 'numeric'
     });
   };
 
@@ -132,7 +139,7 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
 
   const getSortIcon = (field) => {
     if (sortBy !== field) return '↕️';
-    return sortOrder === 'asc' ? '↑' : '↓';
+    return sortOrder === 'asc' ? '🔼' : '🔽';
   };
 
   const calculateTotals = () => {
@@ -219,472 +226,333 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails }) => {
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md transition-colors duration-200">
-      {/* Header */}
-      <div className="p-6 border-b border-gray-200 dark:border-gray-700 transition-colors duration-200">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-          <div className="flex items-center space-x-4">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white transition-colors duration-200">Órdenes de Servicio</h2>
-            <Button
-              onClick={() => setShowArchived(!showArchived)}
-              variant={showArchived ? 'secondary' : 'primary'}
-              size="sm"
-            >
-              {showArchived ? 'Ver Activas' : 'Ver Archivadas'}
-            </Button>
-            {showArchived && (
-              <span className="text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded transition-colors duration-200">
-                Datos Archivados
-              </span>
-            )}
+      <div className="bg-gray-50 dark:bg-gray-900/50 p-4 sm:p-6 rounded-lg shadow-lg">
+        {/* Header */}
+        <header className="mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h2 className="text-3xl font-bold text-gray-800 dark:text-white">Órdenes de Servicio</h2>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Buscar por cliente, ID, descripción..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full md:w-64 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              />
+              <Button onClick={onAddNew} variant="success" className="hidden sm:flex">
+                <FaPlus className="mr-2" />
+                Nueva Orden
+              </Button>
+            </div>
           </div>
           
-          {/* Búsqueda */}
-          <input
-            type="text"
-            placeholder="Buscar por descripción, cliente o ID..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-xs bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors duration-200"
-          />
+          {/* Pestañas de estado */}
+          <div className="mt-6">
+            <div className="border-b border-gray-200 dark:border-gray-700">
+              <nav className="-mb-px flex space-x-6 overflow-x-auto">
+                {statusOptions.map(option => {
+                  const count = getOrderCountByStatus(option.value);
+                  const isActive = filterStatus === option.value;
+                  const colorClasses = {
+                    yellow: isActive ? 'border-yellow-500 text-yellow-600 dark:text-yellow-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 hover:border-yellow-500',
+                    blue: isActive ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-500',
+                    green: isActive ? 'border-green-500 text-green-600 dark:text-green-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:border-green-500',
+                    gray: isActive ? 'border-gray-500 text-gray-600 dark:text-gray-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-400 hover:border-gray-500',
+                    purple: isActive ? 'border-purple-500 text-purple-600 dark:text-purple-400' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:border-purple-500'
+                  };
+                  
+                  return (
+                    <button
+                      key={option.value}
+                      onClick={() => setFilterStatus(option.value)}
+                      className={`whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-sm transition-all duration-200 focus:outline-none ${colorClasses[option.color]}`}
+                    >
+                      {option.label}
+                      <span className={`ml-2 py-0.5 px-2.5 rounded-full text-xs font-bold ${
+                        isActive 
+                          ? `bg-${option.color}-100 dark:bg-${option.color}-900/40 text-${option.color}-800 dark:text-${option.color}-200` 
+                          : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                      }`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+          </div>
+        </header>
+
+        {/* Controles y Resumen de Totales */}
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+            <div className="flex items-center gap-2">
+              <Button onClick={() => setLayout('grid')} variant={layout === 'grid' ? 'primary' : 'ghost'} size="sm"><FaTh /></Button>
+              <Button onClick={() => setLayout('list')} variant={layout === 'list' ? 'primary' : 'ghost'} size="sm"><FaList /></Button>
+              <Button onClick={() => setShowArchived(!showArchived)} variant={showArchived ? 'secondary' : 'ghost'} size="sm">
+                <FaArchive className="mr-2" />
+                {showArchived ? 'Ver Activas' : 'Ver Archivadas'}
+              </Button>
+            </div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Mostrando <span className="font-bold">{paginatedOrders.length}</span> de <span className="font-bold">{filteredOrders.length}</span> órdenes
+            </div>
+          </div>
+
+          <AnimatePresence>
+            <motion.div 
+              layout
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4"
+            >
+              <StatCard icon={<FaBox />} title="Órdenes" value={filteredOrders.length} color="blue" />
+              <StatCard icon={<FaFileInvoiceDollar />} title="Ventas" value={formatCurrency(totals.totalSales)} color="green" />
+              <StatCard icon={<FaCoins />} title="Costos" value={formatCurrency(totals.totalCosts)} color="red" />
+              <StatCard icon={<FaChartLine />} title="Ganancia" value={formatCurrency(totals.totalProfit)} color="purple" />
+              <StatCard icon={<FaMoneyBillWave />} title="Cobrado" value={formatCurrency(totals.totalPaid)} color="teal" />
+              <StatCard icon={<FaMoneyBillWave />} title="Por Cobrar" value={formatCurrency(totals.totalPending)} color="orange" />
+            </motion.div>
+          </AnimatePresence>
         </div>
-        
-        {/* Pestañas de estado */}
-        <div className="mt-6">
-          <div className="border-b border-gray-200 dark:border-gray-700 transition-colors duration-200">
-            <nav className="-mb-px flex space-x-8">
-              {statusOptions.map(option => {
-                const count = getOrderCountByStatus(option.value);
-                const isActive = filterStatus === option.value;
-                const colorClasses = {
-                  yellow: isActive ? 'border-yellow-500 text-yellow-600 dark:text-yellow-400' : 'border-transparent text-gray-600 dark:text-gray-300 hover:text-yellow-600 dark:hover:text-yellow-400 hover:border-yellow-300',
-                  blue: isActive ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300',
-                  green: isActive ? 'border-green-500 text-green-600 dark:text-green-400' : 'border-transparent text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 hover:border-green-300',
-                  gray: isActive ? 'border-gray-500 text-gray-600 dark:text-gray-400' : 'border-transparent text-gray-600 dark:text-gray-300 hover:text-gray-600 dark:hover:text-gray-300 hover:border-gray-300'
-                };
-                
-                return (
-                  <Button
-                    key={option.value}
-                    onClick={() => setFilterStatus(option.value)}
-                    variant="ghost"
-                    size="sm"
-                    className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${colorClasses[option.color]}`}
-                  >
-                    {option.label}
-                    <span className={`ml-2 py-0.5 px-2 rounded-full text-xs transition-colors duration-200 ${
-                      isActive 
-                        ? `bg-${option.color}-100 dark:bg-${option.color}-900/30 text-${option.color}-800 dark:text-${option.color}-300` 
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                    }`}>
-                      {count}
-                    </span>
-                  </Button>
-                );
-              })}
-            </nav>
-          </div>
-        </div>
-        
-        {/* Resumen de totales */}
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md transition-colors duration-200">
-            <div className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Órdenes</div>
-            <div className="text-2xl font-bold text-blue-900 dark:text-blue-300">{filteredOrders.length}</div>
-          </div>
-          <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-md transition-colors duration-200">
-            <div className="text-sm font-medium text-green-600 dark:text-green-400">Total Ventas</div>
-            <div className="text-2xl font-bold text-green-900 dark:text-green-300">{formatCurrency(totals.totalSales)}</div>
-          </div>
-          <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-md transition-colors duration-200">
-            <div className="text-sm font-medium text-red-600 dark:text-red-400">Total Costos</div>
-            <div className="text-2xl font-bold text-red-900 dark:text-red-300">{formatCurrency(totals.totalCosts)}</div>
-          </div>
-          <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-md transition-colors duration-200">
-            <div className="text-sm font-medium text-purple-600 dark:text-purple-400">Ganancia Total</div>
-            <div className="text-2xl font-bold text-purple-900 dark:text-purple-300">{formatCurrency(totals.totalProfit)}</div>
-          </div>
-          <div className="bg-teal-50 dark:bg-teal-900/20 p-3 rounded-md transition-colors duration-200">
-            <div className="text-sm font-medium text-teal-600 dark:text-teal-400">Total Cobrado</div>
-            <div className="text-2xl font-bold text-teal-900 dark:text-teal-300">{formatCurrency(totals.totalPaid)}</div>
-          </div>
-          <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-md transition-colors duration-200">
-            <div className="text-sm font-medium text-orange-600 dark:text-orange-400">Por Cobrar</div>
-            <div className="text-2xl font-bold text-orange-900 dark:text-orange-300">{formatCurrency(totals.totalPending)}</div>
-          </div>
-        </div>
-      </div>
 
-      {/* Vista Desktop - Tabla */}
-      <div className="hidden lg:block overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-700 transition-colors duration-200">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200 hidden">
-                {/* Oculto: ID */}
-              </th>
-              <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
-                onClick={() => handleSort('date')}
+        {/* Vista de Órdenes */}
+        <AnimatePresence>
+          {paginatedOrders.length > 0 ? (
+            <motion.div 
+              layout
+              className={`grid gap-4 sm:gap-6 ${layout === 'grid' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}
+            >
+              {paginatedOrders.map((order) => (
+                <OrderCard 
+                  key={order.id} 
+                  order={order}
+                  onViewDetails={onViewDetails}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  onPrint={handlePrint}
+                  getStatusBadge={getStatusBadge}
+                  formatCurrency={formatCurrency}
+                  formatDate={formatDate}
+                  calculatePendingBalance={calculatePendingBalance}
+                  layout={layout}
+                />
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
+              <FaBox className="text-6xl text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">No se encontraron órdenes</h3>
+              <p className="text-gray-500 dark:text-gray-400 mt-2">Intenta ajustar los filtros o el término de búsqueda.</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      
+        {/* Paginación */}
+        {filteredOrders.length > 0 && totalPages > 1 && (
+          <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex items-center space-x-2">
+              <label htmlFor="itemsPerPage" className="text-sm text-gray-700 dark:text-gray-300">Mostrar:</label>
+              <select
+                id="itemsPerPage"
+                value={itemsPerPage}
+                onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+                className="border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus-outline-none focus:ring-2 focus:ring-blue-500"
               >
-                Fecha {getSortIcon('date')}
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
-                Cliente
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
-                Descripción
-              </th>
-              <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
-                onClick={() => handleSort('status')}
-              >
-                Estado {getSortIcon('status')}
-              </th>
-              <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
-                onClick={() => handleSort('total')}
-              >
-                Total {getSortIcon('total')}
-              </th>
-              <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
-                onClick={() => handleSort('profit')}
-              >
-                Ganancia {getSortIcon('profit')}
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
-                Pagado
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
-                Saldo Pendiente
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider transition-colors duration-200">
-                Acciones
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 transition-colors duration-200">
-            {paginatedOrders.map((order) => (
-              <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200 hidden">
-                  {/* Oculto: #${'{'}order.id{'}'} */}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300 transition-colors duration-200">
-                  {formatDate(order.service_date || order.date)}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-900 dark:text-white transition-colors duration-200">
-                  <div className="max-w-xs truncate" title={order.customer_name}>
-                    {order.customer_name || 'N/A'}
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-900 dark:text-white transition-colors duration-200">
-                  <div className="max-w-xs truncate" title={order.description}>
-                    {order.description}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {getStatusBadge(order.status)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600 dark:text-green-400 transition-colors duration-200">
-                  {formatCurrency(order.total)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400 transition-colors duration-200">
-                  {formatCurrency(order.profit)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  {(order.status === 'FINALIZADO' || order.status === 'ENTREGADO') ? (
-                    <span className="text-teal-600 dark:text-teal-400 transition-colors duration-200">
-                      {formatCurrency(order.total_paid || order.totalPaid || 0)}
-                    </span>
-                  ) : (
-                    <span className="text-gray-400 dark:text-gray-500 transition-colors duration-200">-</span>
-                  )}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  {(order.status === 'FINALIZADO' || order.status === 'ENTREGADO') ? (
-                    <span className={calculatePendingBalance(order) > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-green-600 dark:text-green-400'} transition-colors duration-200>
-                      {formatCurrency(calculatePendingBalance(order))}
-                    </span>
-                  ) : (
-                    <span className="text-gray-400 dark:text-gray-500 transition-colors duration-200">-</span>
-                  )}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div className="flex space-x-2">
-                    <Button
-                       onClick={() => onViewDetails(order)}
-                       variant="ghost"
-                       size="sm"
-                       title="Ver detalles"
-                       aria-label="Ver detalles de la orden"
-                     >
-                       👁️
-                     </Button>
-                     <Button
-                       onClick={() => handlePrint(order)}
-                       variant="ghost"
-                       size="sm"
-                       title="Imprimir comprobante"
-                       aria-label="Imprimir comprobante de la orden"
-                     >
-                       🖨️
-                     </Button>
-                     <Button
-                       onClick={() => onEdit(order)}
-                       variant="ghost"
-                       size="sm"
-                       title="Editar"
-                       aria-label="Editar orden de servicio"
-                     >
-                       ✏️
-                     </Button>
-                     <Button
-                       onClick={() => onDelete(order.id)}
-                       variant="ghost"
-                       size="sm"
-                       title="Eliminar"
-                       aria-label="Eliminar orden de servicio"
-                     >
-                       🗑️
-                     </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Vista Mobile - Cards */}
-      <div className="lg:hidden space-y-4 p-4">
-        {paginatedOrders.map((order) => {
-          const SwipeableCard = ({ children }) => {
-                const { swipeHandlers, currentX, isDragging } = useSwipeCard({
-                   onSwipeLeft: () => onDelete(order.id),
-                   onSwipeRight: () => onViewDetails(order),
-                   threshold: 100
-                 });
-
-            return (
-                <div 
-                  {...swipeHandlers}
-                  className={`relative overflow-hidden ${
-                    isDragging ? 'transition-none' : 'transition-transform duration-200'
-                  }`}
-                  style={{
-                    transform: `translateX(${currentX}px)`
-                  }}
-              >
-                {/* Acciones de fondo */}
-                <div className="absolute inset-0 flex">
-                  {/* Acción derecha (Ver detalles) */}
-                  <div className="flex-1 bg-blue-500 flex items-center justify-start pl-4">
-                    <div className="text-white text-center">
-                      <div className="text-2xl mb-1">👁️</div>
-                      <div className="text-xs font-medium">Ver</div>
-                    </div>
-                  </div>
-                  {/* Acción izquierda (Eliminar) */}
-                  <div className="flex-1 bg-red-500 flex items-center justify-end pr-4">
-                    <div className="text-white text-center">
-                      <div className="text-2xl mb-1">🗑️</div>
-                      <div className="text-xs font-medium">Eliminar</div>
-                    </div>
-                  </div>
-                </div>
-                {/* Contenido de la tarjeta */}
-                <div className="relative bg-white dark:bg-gray-800 transition-colors duration-200">
-                  {children}
-                </div>
-              </div>
-            );
-          };
-
-          return (
-          <SwipeableCard key={order.id}>
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-4 space-y-3 transition-colors duration-200">
-            {/* Header del Card */}
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white transition-colors duration-200">Orden de Servicio</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">{formatDate(order.service_date || order.date)}</p>
-              </div>
-              <div className="text-right">
-                {getStatusBadge(order.status)}
-              </div>
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
             </div>
             
-            {/* Cliente y Descripción */}
-            <div>
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Cliente:</p>
-              <p className="text-sm text-gray-900 dark:text-white transition-colors duration-200">{order.customer_name || 'N/A'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Descripción:</p>
-              <p className="text-sm text-gray-900 dark:text-white transition-colors duration-200">{order.description}</p>
-            </div>
-            
-            {/* Información Financiera */}
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Total:</p>
-                <p className="text-green-600 dark:text-green-400 font-semibold transition-colors duration-200">{formatCurrency(order.total)}</p>
-              </div>
-              <div>
-                <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Ganancia:</p>
-                <p className="text-blue-600 dark:text-blue-400 font-semibold transition-colors duration-200">{formatCurrency(order.profit)}</p>
-              </div>
-              {(order.status === 'FINALIZADO' || order.status === 'ENTREGADO') && (
-                <>
-                  <div>
-                    <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Pagado:</p>
-                    <p className="text-teal-600 dark:text-teal-400 font-semibold transition-colors duration-200">{formatCurrency(order.total_paid || order.totalPaid || 0)}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-700 dark:text-gray-300 transition-colors duration-200">Pendiente:</p>
-                    <p className={`font-semibold transition-colors duration-200 ${
-                      calculatePendingBalance(order) > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-green-600 dark:text-green-400'
-                    }`}>
-                      {formatCurrency(calculatePendingBalance(order))}
-                    </p>
-                  </div>
-                </>
-              )}
-            </div>
-            
-            {/* Acciones */}
-            <div className="flex justify-between pt-3 border-t border-gray-100 dark:border-gray-700 transition-colors duration-200">
+            <div className="flex items-center space-x-1">
               <Button
-                 onClick={() => onViewDetails(order)}
+                 onClick={() => handlePageChange(currentPage - 1)}
+                 disabled={currentPage === 1}
                  variant="ghost"
                  size="sm"
-                 className="flex items-center space-x-2 touch-manipulation"
-                 aria-label="Ver detalles de la orden"
                >
-                 <span>👁️</span>
-                 <span className="text-sm font-medium">Ver</span>
+                 Anterior
                </Button>
-               <Button
-                 onClick={() => handlePrint(order)}
+              
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                if (totalPages <= 7 || page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                  return (
+                    <Button
+                       key={page}
+                       onClick={() => handlePageChange(page)}
+                       variant={currentPage === page ? 'primary' : 'ghost'}
+                       size="sm"
+                     >
+                       {page}
+                     </Button>
+                  );
+                } else if (page === currentPage - 2 || page === currentPage + 2) {
+                  return <span key={page} className="px-2 py-1 text-sm text-gray-500 dark:text-gray-400">...</span>;
+                }
+                return null;
+              })}
+              
+              <Button
+                 onClick={() => handlePageChange(currentPage + 1)}
+                 disabled={currentPage === totalPages}
                  variant="ghost"
                  size="sm"
-                 className="flex items-center space-x-2 touch-manipulation"
-                 aria-label="Imprimir comprobante de la orden"
                >
-                 <span>🖨️</span>
-                 <span className="text-sm font-medium">Imprimir</span>
-               </Button>
-               <Button
-                 onClick={() => onEdit(order)}
-                 variant="ghost"
-                 size="sm"
-                 className="flex items-center space-x-2 touch-manipulation"
-                 aria-label="Editar orden de servicio"
-               >
-                 <span>✏️</span>
-                 <span className="text-sm font-medium">Editar</span>
-               </Button>
-               <Button
-                 onClick={() => onDelete(order.id)}
-                 variant="ghost"
-                 size="sm"
-                 className="flex items-center space-x-2 touch-manipulation"
-                 aria-label="Eliminar orden de servicio"
-               >
-                 <span>🗑️</span>
-                 <span className="text-sm font-medium">Eliminar</span>
+                 Siguiente
                </Button>
             </div>
           </div>
-          </SwipeableCard>
-        );
-        })}
-      </div>
+        )}
       
-      {/* Paginación */}
-      {filteredOrders.length > 0 && (
-        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 transition-colors duration-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-700 dark:text-gray-300 transition-colors duration-200">
-                Mostrando {startIndex + 1} a {Math.min(endIndex, filteredOrders.length)} de {filteredOrders.length} órdenes
-              </div>
-              <div className="flex items-center space-x-2">
-                <label className="text-sm text-gray-700 dark:text-gray-300 transition-colors duration-200">Mostrar:</label>
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
-                  className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                </select>
-              </div>
-            </div>
-            
-            {totalPages > 1 && (
-              <div className="flex items-center space-x-2">
-                <Button
-                   onClick={() => handlePageChange(currentPage - 1)}
-                   disabled={currentPage === 1}
-                   variant="ghost"
-                   size="sm"
-                 >
-                   Anterior
-                 </Button>
-                
-                <div className="flex space-x-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
-                    if (totalPages <= 7 || page === 1 || page === totalPages || (page >= currentPage - 2 && page <= currentPage + 2)) {
-                      return (
-                        <Button
-                           key={page}
-                           onClick={() => handlePageChange(page)}
-                           variant={currentPage === page ? 'primary' : 'ghost'}
-                           size="sm"
-                         >
-                           {page}
-                         </Button>
-                      );
-                    } else if (page === currentPage - 3 || page === currentPage + 3) {
-                      return <span key={page} className="px-2 text-gray-500 dark:text-gray-400 transition-colors duration-200">...</span>;
-                    }
-                    return null;
-                  })}
-                </div>
-                
-                <Button
-                   onClick={() => handlePageChange(currentPage + 1)}
-                   disabled={currentPage === totalPages}
-                   variant="ghost"
-                   size="sm"
-                 >
-                   Siguiente
-                 </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-      
-      {filteredOrders.length === 0 && orders.length > 0 && (
-        <div className="p-8 text-center text-gray-500 dark:text-gray-400 transition-colors duration-200">
-          No se encontraron órdenes que coincidan con los filtros aplicados.
-        </div>
-      )}
-      
-      {showPrintReceipt && selectedOrderForPrint && (
-        <PrintReceipt
-          order={selectedOrderForPrint}
-          onClose={closePrintReceipt}
-        />
-      )}
+        {showPrintReceipt && selectedOrderForPrint && (
+          <PrintReceipt
+            order={selectedOrderForPrint}
+            onClose={closePrintReceipt}
+          />
+        )}
       </div>
     </PullToRefresh>
   );
 };
+
+const StatCard = ({ icon, title, value, color }) => {
+  const colors = {
+    blue: 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30',
+    green: 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30',
+    red: 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30',
+    purple: 'text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30',
+    teal: 'text-teal-600 dark:text-teal-400 bg-teal-100 dark:bg-teal-900/30',
+    orange: 'text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30',
+  };
+
+  return (
+    <div className={`p-3 rounded-lg flex items-center gap-3 ${colors[color]}`}>
+      <div className="text-2xl">{icon}</div>
+      <div>
+        <div className="text-sm font-medium opacity-80">{title}</div>
+        <div className="text-xl font-bold">{value}</div>
+      </div>
+    </div>
+  );
+};
+
+const OrderCard = ({ 
+  order, 
+  onViewDetails, 
+  onEdit, 
+  onDelete, 
+  onPrint, 
+  getStatusBadge, 
+  formatCurrency, 
+  formatDate, 
+  calculatePendingBalance,
+  layout
+}) => {
+  const { swipeHandlers, isSwiping, swipeTranslateX } = useSwipeCard({
+    onSwipeLeft: () => onDelete(order.id),
+    onSwipeRight: () => onEdit(order),
+    threshold: 80
+  });
+
+  const cardContent = (
+    <>
+      {/* Header */}
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex-grow">
+          <p className="text-sm text-gray-500 dark:text-gray-400">#{order.id} &bull; {formatDate(order.service_date || order.date)}</p>
+          <h3 className="text-lg font-bold text-gray-800 dark:text-white truncate" title={order.customer_name}>
+            {order.customer_name || 'Cliente no especificado'}
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300 truncate" title={order.description}>
+            {order.description}
+          </p>
+        </div>
+        <div className="flex-shrink-0 ml-2">
+          {getStatusBadge(order.status)}
+        </div>
+      </div>
+
+      {/* Financials */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm mb-4">
+        <FinancialInfo label="Total" value={formatCurrency(order.total)} color="text-green-600 dark:text-green-400" />
+        <FinancialInfo label="Ganancia" value={formatCurrency(order.profit)} color="text-blue-600 dark:text-blue-400" />
+        <FinancialInfo label="Pagado" value={formatCurrency(order.total_paid || 0)} color="text-teal-600 dark:text-teal-400" />
+        <FinancialInfo label="Pendiente" value={formatCurrency(calculatePendingBalance(order))} color={calculatePendingBalance(order) > 0 ? 'text-orange-500' : 'text-gray-500'} />
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center justify-end gap-1 border-t border-gray-200 dark:border-gray-700/50 pt-3">
+        <Button onClick={() => onViewDetails(order)} variant="ghost" size="sm" title="Ver Detalles"><FaEye /></Button>
+        <Button onClick={() => onPrint(order)} variant="ghost" size="sm" title="Imprimir"><FaPrint /></Button>
+        <Button onClick={() => onEdit(order)} variant="ghost" size="sm" title="Editar"><FaEdit /></Button>
+        <Button onClick={() => onDelete(order.id)} variant="danger" size="sm" title="Eliminar"><FaTrash /></Button>
+      </div>
+    </>
+  );
+
+  const listContent = (
+     <div className="flex items-center justify-between w-full">
+        <div className="flex items-center gap-4 flex-grow">
+            <div className="w-16 text-center">
+                {getStatusBadge(order.status)}
+            </div>
+            <div>
+                <p className="font-bold text-gray-800 dark:text-white">#{order.id} - {order.customer_name || 'N/A'}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{order.description}</p>
+            </div>
+        </div>
+        <div className="hidden md:flex items-center gap-6 text-sm">
+            <div className="text-right">
+                <p className="font-semibold text-green-600 dark:text-green-400">{formatCurrency(order.total)}</p>
+                <p className="text-xs text-gray-500">Total</p>
+            </div>
+            <div className="text-right">
+                <p className="font-semibold text-blue-600 dark:text-blue-400">{formatCurrency(order.profit)}</p>
+                <p className="text-xs text-gray-500">Ganancia</p>
+            </div>
+        </div>
+        <div className="flex items-center gap-1 ml-4">
+            <Button onClick={() => onViewDetails(order)} variant="ghost" size="sm" title="Ver Detalles"><FaEye /></Button>
+            <Button onClick={() => onEdit(order)} variant="ghost" size="sm" title="Editar"><FaEdit /></Button>
+            <Button onClick={() => onDelete(order.id)} variant="danger" size="sm" title="Eliminar"><FaTrash /></Button>
+        </div>
+    </div>
+  );
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 50, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -50, transition: { duration: 0.2 } }}
+      className="relative"
+    >
+      <div
+        {...swipeHandlers}
+        className={`bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-4 ${isSwiping ? 'cursor-grabbing' : 'cursor-grab'}`}
+        style={{ transform: `translateX(${swipeTranslateX}px)` }}
+      >
+        {layout === 'grid' ? cardContent : listContent}
+      </div>
+      {/* Swipe action hints */}
+      <div className="absolute inset-y-0 left-0 flex items-center justify-center w-20 bg-green-500 text-white rounded-l-xl" style={{ opacity: Math.max(0, swipeTranslateX / 80 - 0.2), zIndex: -1 }}>
+        <FaEdit size={24} />
+      </div>
+      <div className="absolute inset-y-0 right-0 flex items-center justify-center w-20 bg-red-500 text-white rounded-r-xl" style={{ opacity: Math.max(0, -swipeTranslateX / 80 - 0.2), zIndex: -1 }}>
+        <FaTrash size={24} />
+      </div>
+    </motion.div>
+  );
+};
+
+const FinancialInfo = ({ label, value, color }) => (
+  <div>
+    <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
+    <p className={`font-semibold ${color}`}>{value}</p>
+  </div>
+);
 
 export default ServiceOrdersTable;

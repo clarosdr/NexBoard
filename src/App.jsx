@@ -272,11 +272,12 @@ function MainApp() {
 
         {/* Contenido por Tab */}
         {state.activeTab === 'orders' && (
-          <ServiceOrdersTable
+          <ServiceOrdersTable 
             orders={state.orders}
             onEdit={handleEditOrder}
             onDelete={handleDeleteOrder}
             onViewDetails={handleViewDetails}
+            onAddNew={handleCreateOrder}
           />
         )}
 
