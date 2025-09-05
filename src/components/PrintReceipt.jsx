@@ -7,7 +7,7 @@ const PrintReceipt = ({ order, onClose }) => {
       currency: 'COP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(amount);
+    }).format(amount || 0);
   };
 
   const formatDate = (dateString) => {

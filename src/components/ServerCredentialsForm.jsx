@@ -7,7 +7,8 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
     server_name: '', // Nombre del Servidor
     vpn_ip: '', // IP VPN
     local_name: '', // Nombre local
-    vpn_password: '' // Pass VPN
+    vpn_password: '', // Pass VPN
+    notes: '' // Notas
   })
   const [users, setUsers] = useState([{ username: '', password: '' }]) // Usuarios
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -20,10 +21,11 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
         server_name: credential.server_name || '',
         vpn_ip: credential.vpnIp || credential.vpn_ip || '',
         local_name: credential.localName || credential.local_name || '',
-        vpn_password: '' // Por seguridad no prellenamos el password
+        vpn_password: credential.vpn_password || credential.password || '', // Mantener contraseña existente
+        notes: credential.notes || '' // Notas
       }))
       setUsers(Array.isArray(credential.users) && credential.users.length > 0
-        ? credential.users.map(u => ({ username: u.username || '', password: '' }))
+        ? credential.users.map(u => ({ username: u.username || '', password: u.password || '' })) // Mantener contraseñas de usuarios
         : [{ username: '', password: '' }]
       )
     }
@@ -44,14 +46,16 @@ export default function ServerCredentialsForm({ credential, onSubmit, onCancel }
   const validate = () => {
     if (!formData.company_name.trim()) { alert('La Empresa es requerida'); return false }
     if (!formData.server_name.trim()) { alert('El Nombre del Servidor es requerido'); return false }
-    if (!formData.vpn_password.trim()) { alert('El Pass VPN es requerido'); return false }
+    // Solo requerir contraseña VPN si es nueva credencial o si se está cambiando
+    if (!credential && !formData.vpn_password.trim()) { alert('El Pass VPN es requerido'); return false }
     if (!formData.vpn_ip.trim()) { alert('La IP VPN es requerida'); return false }
     if (!formData.local_name.trim()) { alert('El Nombre local es requerido'); return false }
     if (!users.length) { alert('Debe agregar al menos un usuario'); return false }
     for (let i = 0; i < users.length; i++) {
       const u = users[i]
       if (!u.username.trim()) { alert(`El usuario #${i + 1} requiere nombre de usuario`); return false }
-      if (!u.password.trim()) { alert(`El usuario #${i + 1} requiere contraseña`); return false }
+      // Solo requerir contraseña de usuario si es nueva credencial o si se está cambiando
+      if (!credential && !u.password.trim()) { alert(`El usuario #${i + 1} requiere contraseña`); return false }
     }
     return true
   }

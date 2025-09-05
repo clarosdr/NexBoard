@@ -8,7 +8,7 @@ const formatCurrency = (value) => {
     currency: 'COP',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
-  }).format(value);
+  }).format(value || 0);
 };
 
 const OrderDetailsModal = ({ order, isOpen, onClose }) => {
@@ -69,7 +69,7 @@ const OrderDetailsModal = ({ order, isOpen, onClose }) => {
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
           <div>
--            <h2 className="text-2xl font-bold text-gray-800 dark:text-white transition-colors duration-200">Orden de Servicio #{order.id}</h2>
+-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white transition-colors duration-200">Orden de Servicio</h2>
 +            <h2 className="text-2xl font-bold text-gray-800 dark:text-white transition-colors duration-200">Orden de Servicio</h2>
              <p className="text-gray-600 dark:text-gray-400 mt-1 transition-colors duration-200">Creada el {formatDateTime(order.created_at)}</p>
           </div>

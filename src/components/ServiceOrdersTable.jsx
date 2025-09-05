@@ -14,7 +14,7 @@ const formatCurrency = (value) => {
     currency: 'COP',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
-  }).format(value);
+  }).format(value || 0);
 };
 
 const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails, onAddNew }) => {
@@ -437,7 +437,7 @@ const OrderCard = ({
       {/* Header */}
       <div className="flex justify-between items-start mb-3">
         <div className="flex-grow">
-          <p className="text-sm text-gray-500 dark:text-gray-400">#{order.id} &bull; {formatDate(order.service_date || order.date)}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{formatDate(order.service_date || order.date)}</p>
           <h3 className="text-lg font-bold text-gray-800 dark:text-white truncate" title={order.customer_name}>
             {order.customer_name || 'Cliente no especificado'}
           </h3>
@@ -475,7 +475,7 @@ const OrderCard = ({
                 {getStatusBadge(order.status)}
             </div>
             <div>
-                <p className="font-bold text-gray-800 dark:text-white">#{order.id} - {order.customer_name || 'N/A'}</p>
+                <p className="font-bold text-gray-800 dark:text-white">{order.customer_name || 'N/A'}</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">{order.description}</p>
             </div>
         </div>

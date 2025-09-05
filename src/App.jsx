@@ -126,16 +126,21 @@ function MainApp() {
   }, [actions])
 
   const handleCancelForm = useCallback(() => {
+    console.log('handleCancelForm called, hasUnsavedChanges:', hasUnsavedChanges);
     if (hasUnsavedChanges) {
       const shouldClose = window.confirm(
         '¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.'
       );
       if (shouldClose) {
+        console.log('User confirmed close');
         actions.setShowOrderForm(false)
         actions.setEditingOrder(null)
         setHasUnsavedChanges(false)
+      } else {
+        console.log('User cancelled close');
       }
     } else {
+      console.log('No unsaved changes, closing form');
       actions.setShowOrderForm(false)
       actions.setEditingOrder(null)
       setHasUnsavedChanges(false)

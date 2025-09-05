@@ -10,7 +10,7 @@ const formatCurrency = (value) => {
     currency: 'COP',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
-  }).format(value);
+  }).format(value || 0);
 };
 
 const MonthlyReportsTable = ({ orders, expenses }) => {

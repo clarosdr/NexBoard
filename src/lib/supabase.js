@@ -859,8 +859,10 @@ export const supabaseService = {
       serverData.local_name = credentialData.localName ? sanitizeInput(credentialData.localName, 200) : (credentialData.local_name ? sanitizeInput(credentialData.local_name, 200) : null)
     }
     // Aceptar múltiples alias para el pass VPN (incluye vpn_password del formulario)
-    if (credentialData.vpn_password || credentialData.vpnPassword || credentialData.password || credentialData.passVpn) {
-      serverData.vpn_password = credentialData.vpn_password || credentialData.vpnPassword || credentialData.password || credentialData.passVpn
+    // Solo actualizar si la contraseña no está vacía
+    const newVpnPassword = credentialData.vpn_password || credentialData.vpnPassword || credentialData.password || credentialData.passVpn
+    if (newVpnPassword && newVpnPassword.trim()) {
+      serverData.vpn_password = newVpnPassword
     }
 
     // Actualizar el servidor
@@ -877,6 +879,19 @@ export const supabaseService = {
     // Actualizar usuarios del servidor si se proporcionan
     let serverUsers = []
     if (Array.isArray(credentialData.users)) {
+      // Obtener usuarios existentes para preservar contraseñas
+      const { data: existingUsers } = await supabase
+        .from('server_users')
+        .select('*')
+        .eq('server_id', credentialId)
+      
+      const existingUsersMap = new Map()
+      if (existingUsers) {
+        existingUsers.forEach(user => {
+          existingUsersMap.set(user.username, user.password)
+        })
+      }
+
       // Eliminar usuarios existentes
       await supabase
         .from('server_users')
@@ -888,7 +903,8 @@ export const supabaseService = {
         const usersData = credentialData.users.map(u => ({
           server_id: credentialId,
           username: sanitizeInput(u.username || '', 200),
-          password: u.password || '',
+          // Si la contraseña está vacía, usar la existente; si no existe, usar cadena vacía
+          password: (u.password && u.password.trim()) ? u.password : (existingUsersMap.get(u.username) || ''),
           notes: u.notes ? sanitizeInput(u.notes, 1000) : null,
         }))
 

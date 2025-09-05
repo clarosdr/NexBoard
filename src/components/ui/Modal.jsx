@@ -101,18 +101,25 @@ const Modal = ({
             {showCloseButton && (
               <Button
                 onClick={() => {
+                  console.log('Modal close button clicked, hasUnsavedChanges:', hasUnsavedChanges);
                   if (hasUnsavedChanges) {
                     const shouldClose = window.confirm(
                       '¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.'
                     );
                     if (shouldClose) {
+                      console.log('Modal: User confirmed close');
                       if (onConfirmClose) {
+                        console.log('Modal: Calling onConfirmClose');
                         onConfirmClose();
                       } else {
+                        console.log('Modal: Calling onClose');
                         onClose();
                       }
+                    } else {
+                      console.log('Modal: User cancelled close');
                     }
                   } else {
+                    console.log('Modal: No unsaved changes, calling onClose');
                     onClose();
                   }
                 }}

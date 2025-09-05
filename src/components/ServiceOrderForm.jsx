@@ -522,7 +522,15 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
         <div className="flex justify-end space-x-4 mt-8">
           <Button 
             type="button" 
-            onClick={onCancel} 
+            onClick={() => {
+              console.log('Cancel button clicked in ServiceOrderForm');
+              if (onCancel) {
+                console.log('Calling onCancel function');
+                onCancel();
+              } else {
+                console.log('onCancel function is not defined');
+              }
+            }} 
             variant="secondary"
             size="lg"
             className="px-6"
