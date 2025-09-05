@@ -608,17 +608,25 @@ export const supabaseService = {
 
   // Licenses
   async getLicenses(userId) {
+    if (!userId) {
+      throw new Error('User ID is required to fetch licenses')
+    }
+
     const cacheKey = `licenses_${userId}`
     const cached = cache.get(cacheKey)
     if (cached) return cached
 
+    console.log('Fetching licenses for user:', userId)
     const { data, error } = await supabase
       .from('licenses')
       .select('*')
       .eq('owner_id', userId)
       .order('created_at', { ascending: false })
 
-    if (error) throw error
+    if (error) {
+      console.error('Supabase error fetching licenses:', error)
+      throw new Error(`Error fetching licenses: ${error.message}`)
+    }
 
     // Mapear filas a la forma usada por el frontend (camelCase)
     const mapped = (data || []).map((row) => ({
@@ -645,12 +653,31 @@ export const supabaseService = {
   },
 
   async createLicense(licenseData, userId) {
+    if (!userId) {
+      throw new Error('User ID is required to create license')
+    }
+
+    // Validar campos requeridos
+    const clientName = (licenseData.clientName ?? licenseData.client_name)
+    const licenseName = (licenseData.licenseName ?? licenseData.license_name)
+    const serial = (licenseData.serial ?? licenseData.licenseKey)
+
+    if (!clientName || !clientName.trim()) {
+      throw new Error('Client name is required')
+    }
+    if (!licenseName || !licenseName.trim()) {
+      throw new Error('License name is required')
+    }
+    if (!serial || !serial.trim()) {
+      throw new Error('Serial is required')
+    }
+
     // Aceptar payload con camelCase o snake_case y convertir a columnas de BD (install_date, expiry_date)
     const dbData = {
       owner_id: userId,
-      client_name: (licenseData.clientName ?? licenseData.client_name) || null,
-      license_name: (licenseData.licenseName ?? licenseData.license_name) || null,
-      serial: (licenseData.serial ?? licenseData.licenseKey) || null,
+      client_name: clientName.trim(),
+      license_name: licenseName.trim(),
+      serial: serial.trim(),
       install_date: (licenseData.installationDate ?? licenseData.installation_date ?? licenseData.install_date ?? licenseData.purchaseDate) || null,
       expiry_date: (licenseData.expirationDate ?? licenseData.expiration_date ?? licenseData.expiry_date ?? licenseData.expiryDate) || null,
       max_installations: (licenseData.maxInstallations ?? licenseData.max_installations) ?? null,
@@ -658,18 +685,22 @@ export const supabaseService = {
       sale_price: (licenseData.salePrice ?? licenseData.sale_price) ?? 0,
       cost_price: (licenseData.costPrice ?? licenseData.cost_price ?? licenseData.cost) ?? 0,
       // profit es una columna generada en BD; no se debe enviar en INSERT/UPDATE
-      provider: (licenseData.provider ?? licenseData.vendor) || null,
-      condition: (licenseData.condition) || null,
+      provider: (licenseData.provider ?? licenseData.vendor) ? (licenseData.provider ?? licenseData.vendor).trim() : null,
+      condition: (licenseData.condition) || 'NUEVA',
       notes: (licenseData.notes) || null
     }
 
+    console.log('Creating license with data:', dbData)
     const { data, error } = await supabase
       .from('licenses')
       .insert(dbData)
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Supabase error creating license:', error)
+      throw new Error(`Error creating license: ${error.message}`)
+    }
     this.clearUserCache(userId)
 
     // Mapear respuesta a camelCase
@@ -696,11 +727,33 @@ export const supabaseService = {
   },
 
   async updateLicense(licenseId, licenseData, userId) {
+    if (!userId) {
+      throw new Error('User ID is required to update license')
+    }
+    if (!licenseId) {
+      throw new Error('License ID is required to update license')
+    }
+
+    // Validar campos requeridos
+    const clientName = (licenseData.clientName ?? licenseData.client_name)
+    const licenseName = (licenseData.licenseName ?? licenseData.license_name)
+    const serial = (licenseData.serial ?? licenseData.licenseKey)
+
+    if (!clientName || !clientName.trim()) {
+      throw new Error('Client name is required')
+    }
+    if (!licenseName || !licenseName.trim()) {
+      throw new Error('License name is required')
+    }
+    if (!serial || !serial.trim()) {
+      throw new Error('Serial is required')
+    }
+
     // Aceptar payload con camelCase o snake_case y convertir a columnas de BD (install_date, expiry_date)
     const dbData = {
-      client_name: (licenseData.clientName ?? licenseData.client_name) || null,
-      license_name: (licenseData.licenseName ?? licenseData.license_name) || null,
-      serial: (licenseData.serial ?? licenseData.licenseKey) || null,
+      client_name: clientName.trim(),
+      license_name: licenseName.trim(),
+      serial: serial.trim(),
       install_date: (licenseData.installationDate ?? licenseData.installation_date ?? licenseData.install_date ?? licenseData.purchaseDate) || null,
       expiry_date: (licenseData.expirationDate ?? licenseData.expiration_date ?? licenseData.expiry_date ?? licenseData.expiryDate) || null,
       max_installations: (licenseData.maxInstallations ?? licenseData.max_installations) ?? null,
@@ -708,11 +761,12 @@ export const supabaseService = {
       sale_price: (licenseData.salePrice ?? licenseData.sale_price) ?? 0,
       cost_price: (licenseData.costPrice ?? licenseData.cost_price ?? licenseData.cost) ?? 0,
       // profit es una columna generada en BD; no se debe enviar en INSERT/UPDATE
-      provider: (licenseData.provider ?? licenseData.vendor) || null,
-      condition: (licenseData.condition) || null,
+      provider: (licenseData.provider ?? licenseData.vendor) ? (licenseData.provider ?? licenseData.vendor).trim() : null,
+      condition: (licenseData.condition) || 'NUEVA',
       notes: (licenseData.notes) || null
     }
 
+    console.log('Updating license with data:', dbData)
     const { data, error } = await supabase
       .from('licenses')
       .update(dbData)
@@ -721,7 +775,10 @@ export const supabaseService = {
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Supabase error updating license:', error)
+      throw new Error(`Error updating license: ${error.message}`)
+    }
     this.clearUserCache(userId)
 
     // Mapear respuesta a camelCase

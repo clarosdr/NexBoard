@@ -16,13 +16,17 @@ const LicensesTable = () => {
   // Cargar licencias desde Supabase al montar el componente
   useEffect(() => {
     const loadLicenses = async () => {
-      if (user) {
+      if (user && user.id) {
+        console.log('Loading licenses for user:', user.id);
         try {
           const licensesData = await supabaseService.getLicenses(user.id);
           setLicenses(licensesData);
         } catch (error) {
-          console.error('Error loading licenses from Supabase:', error);
+          console.error('Error loading licenses from Supabase:', error.message, error.details || error);
+          alert('Error al cargar las licencias: ' + (error.message || 'Error desconocido'));
         }
+      } else {
+        console.warn('User or user.id is not available for loading licenses');
       }
     };
     loadLicenses();
@@ -51,6 +55,12 @@ const LicensesTable = () => {
   };
 
   const handleFormSubmit = async (licenseData) => {
+    if (!user || !user.id) {
+      alert('Error: Usuario no autenticado');
+      return;
+    }
+
+    console.log('Submitting license data:', licenseData);
     try {
       if (editingLicense) {
         // Actualizar licencia existente
@@ -66,8 +76,8 @@ const LicensesTable = () => {
       setShowForm(false);
       setEditingLicense(null);
     } catch (error) {
-      console.error('Error saving license:', error);
-      alert('Error al guardar la licencia');
+      console.error('Error saving license:', error.message, error.details || error);
+      alert('Error al guardar la licencia: ' + (error.message || 'Error desconocido'));
     }
   };
 

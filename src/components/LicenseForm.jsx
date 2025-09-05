@@ -65,25 +65,43 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
     setIsSubmitting(true)
 
     try {
+      // Validar campos requeridos
+      if (!formData.client_name || !formData.client_name.trim()) {
+        alert('El nombre del cliente es requerido');
+        setIsSubmitting(false);
+        return;
+      }
+      if (!formData.license_name || !formData.license_name.trim()) {
+        alert('El nombre de la licencia es requerido');
+        setIsSubmitting(false);
+        return;
+      }
+      if (!formData.serial || !formData.serial.trim()) {
+        alert('El serial es requerido');
+        setIsSubmitting(false);
+        return;
+      }
+
       // Enviar usando nombres de columnas del esquema (snake_case)
       const payload = {
-        client_name: formData.client_name,
-        license_name: formData.license_name,
-        serial: formData.serial,
+        client_name: formData.client_name.trim(),
+        license_name: formData.license_name.trim(),
+        serial: formData.serial.trim(),
         install_date: formData.install_date || null,
         expiry_date: formData.expiry_date || null,
         max_installations: Number(formData.max_installations) || null,
         current_installations: Number(formData.current_installations) || 0,
         sale_price: Number(formData.sale_price) || 0,
         cost_price: Number(formData.cost_price) || 0,
-        provider: formData.provider || null,
+        provider: formData.provider ? formData.provider.trim() : null,
         condition: formData.condition || 'NUEVA'
       }
 
+      console.log('Submitting license payload:', payload);
       await onSubmit(payload)
     } catch (error) {
-      console.error('Error submitting license form:', error)
-      alert('Error al enviar el formulario de licencia')
+      console.error('Error submitting license form:', error.message, error.details || error)
+      alert('Error al enviar el formulario de licencia: ' + (error.message || 'Error desconocido'))
     } finally {
       setIsSubmitting(false)
     }
@@ -135,6 +153,7 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
             placeholder="Ingrese el serial o clave de licencia"
             value={formData.serial}
             onChange={handleChange}
+            required
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white font-mono"
           />
         </div>
