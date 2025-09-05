@@ -28,6 +28,12 @@ function MainApp() {
   const { state, actions } = useAppState()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  // Banner de aviso cuando Supabase no está configurado (persistente por localStorage)
+  const [hideSupabaseBanner, setHideSupabaseBanner] = useState(() => localStorage.getItem('nxb_hide_supabase_banner') === '1')
+  const dismissSupabaseBanner = useCallback(() => {
+    setHideSupabaseBanner(true)
+    localStorage.setItem('nxb_hide_supabase_banner', '1')
+  }, [])
 
   // Cargar órdenes al iniciar
   useEffect(() => {
@@ -242,6 +248,25 @@ setHasUnsavedChanges(false)
           </div>
         </div>
       </header>
+
+      {/* Aviso de configuración faltante de Supabase */}
+      {!supabaseConfigured && !hideSupabaseBanner && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-start justify-between">
+            <div className="text-sm text-blue-800 dark:text-blue-200">
+              <span className="font-semibold">Modo Demo activo:</span> No se detectaron variables de Supabase. Configura VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY en Netlify y vuelve a desplegar.
+            </div>
+            <button
+              onClick={dismissSupabaseBanner}
+              className="ml-4 text-blue-700 dark:text-blue-300 hover:underline text-sm"
+              aria-label="Ocultar aviso de configuración"
+              title="Ocultar"
+            >
+              Ocultar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className={`bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors duration-200 ${mobileMenuOpen ? 'block' : 'hidden lg:block'}`}>

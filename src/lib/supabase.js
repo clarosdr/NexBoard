@@ -103,7 +103,7 @@ export const supabaseService = {
       customer_name: orderData.customer_name,
       service_date: orderData.service_date,
       description: orderData.description,
-      status: orderData.status || 'pending',
+      status: orderData.status || 'PENDIENTE',
       owner_id: userId
     }
 
@@ -494,7 +494,7 @@ export const supabaseService = {
     await supabase
       .from('budget_payments')
       .delete()
-      .eq('budget_line_id', expenseId)
+      .eq('line_id', expenseId)
     
     // Eliminar la línea de presupuesto
     const { error } = await supabase
@@ -622,8 +622,8 @@ export const supabaseService = {
       licenseName: row.license_name ?? row.licenseName ?? '',
       serial: row.serial ?? '',
       provider: row.provider ?? row.vendor ?? '',
-      installationDate: row.installation_date ?? row.installationDate ?? null,
-      expirationDate: row.expiration_date ?? row.expirationDate ?? null,
+      installationDate: row.install_date ?? row.installation_date ?? row.installationDate ?? null,
+      expirationDate: row.expiry_date ?? row.expiration_date ?? row.expirationDate ?? null,
       maxInstallations: row.max_installations ?? row.maxInstallations ?? null,
       currentInstallations: row.current_installations ?? row.currentInstallations ?? 0,
       salePrice: row.sale_price ?? row.salePrice ?? 0,
@@ -640,14 +640,14 @@ export const supabaseService = {
   },
 
   async createLicense(licenseData, userId) {
-    // Aceptar payload con camelCase o snake_case y convertir a columnas de BD
+    // Aceptar payload con camelCase o snake_case y convertir a columnas de BD (install_date, expiry_date)
     const dbData = {
       owner_id: userId,
       client_name: (licenseData.clientName ?? licenseData.client_name) || null,
       license_name: (licenseData.licenseName ?? licenseData.license_name) || null,
       serial: (licenseData.serial ?? licenseData.licenseKey) || null,
-      installation_date: (licenseData.installationDate ?? licenseData.installation_date ?? licenseData.purchaseDate) || null,
-      expiration_date: (licenseData.expirationDate ?? licenseData.expiration_date ?? licenseData.expiryDate) || null,
+      install_date: (licenseData.installationDate ?? licenseData.installation_date ?? licenseData.install_date ?? licenseData.purchaseDate) || null,
+      expiry_date: (licenseData.expirationDate ?? licenseData.expiration_date ?? licenseData.expiry_date ?? licenseData.expiryDate) || null,
       max_installations: (licenseData.maxInstallations ?? licenseData.max_installations) ?? null,
       current_installations: (licenseData.currentInstallations ?? licenseData.current_installations) ?? 0,
       sale_price: (licenseData.salePrice ?? licenseData.sale_price) ?? 0,
@@ -674,8 +674,8 @@ export const supabaseService = {
       licenseName: data.license_name ?? '',
       serial: data.serial ?? '',
       provider: data.provider ?? '',
-      installationDate: data.installation_date ?? null,
-      expirationDate: data.expiration_date ?? null,
+      installationDate: data.install_date ?? data.installation_date ?? null,
+      expirationDate: data.expiry_date ?? data.expiration_date ?? null,
       maxInstallations: data.max_installations ?? null,
       currentInstallations: data.current_installations ?? 0,
       salePrice: data.sale_price ?? 0,
@@ -691,13 +691,13 @@ export const supabaseService = {
   },
 
   async updateLicense(licenseId, licenseData, userId) {
-    // Aceptar payload con camelCase o snake_case y convertir a columnas de BD
+    // Aceptar payload con camelCase o snake_case y convertir a columnas de BD (install_date, expiry_date)
     const dbData = {
       client_name: (licenseData.clientName ?? licenseData.client_name) || null,
       license_name: (licenseData.licenseName ?? licenseData.license_name) || null,
       serial: (licenseData.serial ?? licenseData.licenseKey) || null,
-      installation_date: (licenseData.installationDate ?? licenseData.installation_date ?? licenseData.purchaseDate) || null,
-      expiration_date: (licenseData.expirationDate ?? licenseData.expiration_date ?? licenseData.expiryDate) || null,
+      install_date: (licenseData.installationDate ?? licenseData.installation_date ?? licenseData.install_date ?? licenseData.purchaseDate) || null,
+      expiry_date: (licenseData.expirationDate ?? licenseData.expiration_date ?? licenseData.expiry_date ?? licenseData.expiryDate) || null,
       max_installations: (licenseData.maxInstallations ?? licenseData.max_installations) ?? null,
       current_installations: (licenseData.currentInstallations ?? licenseData.current_installations) ?? 0,
       sale_price: (licenseData.salePrice ?? licenseData.sale_price) ?? 0,
@@ -726,8 +726,8 @@ export const supabaseService = {
       licenseName: data.license_name ?? '',
       serial: data.serial ?? '',
       provider: data.provider ?? '',
-      installationDate: data.installation_date ?? null,
-      expirationDate: data.expiration_date ?? null,
+      installationDate: data.install_date ?? data.installation_date ?? null,
+      expirationDate: data.expiry_date ?? data.expiration_date ?? null,
       maxInstallations: data.max_installations ?? null,
       currentInstallations: data.current_installations ?? 0,
       salePrice: data.sale_price ?? 0,

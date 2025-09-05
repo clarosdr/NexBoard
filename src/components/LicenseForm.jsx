@@ -30,15 +30,15 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
   useEffect(() => {
     if (license) {
       setFormData({
-        client_name: license.client_name || '',
-        license_name: license.license_name || '',
+        client_name: license.client_name || license.clientName || '',
+        license_name: license.license_name || license.licenseName || '',
         serial: license.serial || '',
-        install_date: license.install_date || new Date().toISOString().split('T')[0],
-        expiry_date: license.expiry_date || '',
-        max_installations: license.max_installations || 1,
-        current_installations: license.current_installations || 0,
-        sale_price: license.sale_price || 0,
-        cost_price: license.cost_price || 0,
+        install_date: license.install_date || license.installation_date || license.installationDate || new Date().toISOString().split('T')[0],
+        expiry_date: license.expiry_date || license.expiration_date || license.expirationDate || '',
+        max_installations: license.max_installations || license.maxInstallations || 1,
+        current_installations: license.current_installations || license.currentInstallations || 0,
+        sale_price: license.sale_price || license.salePrice || 0,
+        cost_price: license.cost_price || license.costPrice || 0,
         profit: license.profit || 0,
         provider: license.provider || '',
         condition: license.condition || 'NUEVA'
@@ -62,44 +62,30 @@ export default function LicenseForm({ license, onSubmit, onCancel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (isSubmitting) return
-
-    if (!formData.client_name.trim() || !formData.license_name.trim()) {
-      alert('El nombre del cliente y el nombre de la licencia son requeridos')
-      return
-    }
-
     setIsSubmitting(true)
 
     try {
-      // Preparar payload con nombres de campos de la base de datos
+      // Enviar usando nombres de columnas del esquema (snake_case)
       const payload = {
-        client_name: formData.client_name.trim(),
-        license_name: formData.license_name.trim(),
-        serial: (formData.serial || '').trim(),
+        client_name: formData.client_name,
+        license_name: formData.license_name,
+        serial: formData.serial,
         install_date: formData.install_date || null,
         expiry_date: formData.expiry_date || null,
         max_installations: Number(formData.max_installations) || null,
         current_installations: Number(formData.current_installations) || 0,
         sale_price: Number(formData.sale_price) || 0,
         cost_price: Number(formData.cost_price) || 0,
-        profit: Number(formData.profit) || (Number(formData.sale_price || 0) - Number(formData.cost_price || 0)) || 0,
-        provider: (formData.provider || '').trim(),
+        provider: formData.provider || null,
         condition: formData.condition || 'NUEVA'
-      };
-
-      const response = await onSubmit?.(payload);
-      if (response && (response.status === 400 || response.status === 500)) {
-        const errorMessage = await response.text();
-        console.error('Error saving license:', errorMessage);
-        alert(`Error al guardar la licencia: ${errorMessage}`);
-        return;
       }
-    } catch (err) {
-      console.error('Error inesperado:', err);
-      alert('Ocurrió un error inesperado');
+
+      await onSubmit(payload)
+    } catch (error) {
+      console.error('Error submitting license form:', error)
+      alert('Error al enviar el formulario de licencia')
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
   }
 

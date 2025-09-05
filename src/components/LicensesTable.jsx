@@ -97,7 +97,7 @@ const LicensesTable = () => {
   };
 
   const getLicenseStatus = (license) => {
-    const daysUntilExpiration = getDaysUntilExpiration(license.expiry_date);
+    const daysUntilExpiration = getDaysUntilExpiration(license.expirationDate);
     
     if (daysUntilExpiration === null) return 'unknown';
     if (daysUntilExpiration < 0) return 'expired';
@@ -107,7 +107,7 @@ const LicensesTable = () => {
 
   const getStatusBadge = (license) => {
     const status = getLicenseStatus(license);
-    const daysUntilExpiration = getDaysUntilExpiration(license.expiry_date);
+    const daysUntilExpiration = getDaysUntilExpiration(license.expirationDate);
     
     switch (status) {
       case 'expired':
@@ -137,14 +137,6 @@ const LicensesTable = () => {
     }
   };
 
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(value || 0);
-  };
-
   // Filtrar y ordenar licencias
   const filteredAndSortedLicenses = licenses
     .filter(license => {
@@ -168,8 +160,8 @@ const LicensesTable = () => {
       
       switch (sortBy) {
         case 'expiry_date':
-          aValue = new Date(a.expiry_date || '9999-12-31');
-          bValue = new Date(b.expiry_date || '9999-12-31');
+          aValue = new Date(a.expirationDate || '9999-12-31');
+          bValue = new Date(b.expirationDate || '9999-12-31');
           break;
         case 'client':
           aValue = a.client_name?.toLowerCase() || '';
@@ -191,6 +183,14 @@ const LicensesTable = () => {
       if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
       return 0;
     });
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0
+    }).format(value || 0);
+  };
 
   // Estadísticas
   const stats = {
@@ -251,9 +251,9 @@ const LicensesTable = () => {
           <div className="space-y-2">
             {licenses
               .filter(l => getLicenseStatus(l) === 'expiring')
-              .sort((a, b) => new Date(a.expiry_date) - new Date(b.expiry_date))
+              .sort((a, b) => new Date(a.expirationDate) - new Date(b.expirationDate))
               .map(license => {
-                const daysLeft = getDaysUntilExpiration(license.expiry_date);
+                const daysLeft = getDaysUntilExpiration(license.expirationDate);
                 return (
                   <div key={license.id} className="flex justify-between items-center bg-white dark:bg-gray-800 p-3 rounded border border-yellow-200 dark:border-yellow-700 transition-colors duration-200">
                     <div>
@@ -263,7 +263,7 @@ const LicensesTable = () => {
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-medium text-yellow-700 dark:text-yellow-300 transition-colors duration-200">
-                        📅 {license.expiry_date ? new Date(license.expiry_date).toLocaleDateString('es-CO') : 'Sin fecha'}
+                        📅 {license.expirationDate ? new Date(license.expirationDate).toLocaleDateString('es-CO') : 'Sin fecha'}
                       </div>
                       <div className="text-xs text-yellow-600 dark:text-yellow-400 transition-colors duration-200">
                         {daysLeft > 0 ? `${daysLeft} día(s) restante(s)` : 'Vencida'}
@@ -467,7 +467,7 @@ const LicensesTable = () => {
                         <div className="space-y-1">
                           {getStatusBadge(license)}
                           <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
-                            📅 {license.expiry_date ? new Date(license.expiry_date).toLocaleDateString('es-CO') : 'Sin fecha'}
+                            📅 {license.expirationDate ? new Date(license.expirationDate).toLocaleDateString('es-CO') : 'Sin fecha'}
                           </div>
                         </div>
                       </td>
