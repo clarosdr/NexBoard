@@ -82,6 +82,7 @@ function MainApp() {
   const handleCreateOrder = useCallback(async (orderData) => {
     try {
       await actions.createOrder(orderData, user.id)
+      await actions.loadOrders(user.id) // Recargar órdenes después de crear
       actions.setShowOrderForm(false)
     } catch {
       // Error ya manejado en el contexto
@@ -96,6 +97,7 @@ function MainApp() {
   const handleUpdateOrder = useCallback(async (updatedOrder) => {
     try {
       await actions.updateOrderAsync(updatedOrder, user.id)
+      await actions.loadOrders(user.id) // Recargar órdenes después de actualizar
       actions.setEditingOrder(null)
       actions.setShowOrderForm(false)
     } catch {

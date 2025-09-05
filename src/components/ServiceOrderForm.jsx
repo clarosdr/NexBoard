@@ -35,6 +35,11 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
     payments: [],
     totalPaid: 0
   })
+  const [newPayment, setNewPayment] = useState({
+    amount: '',
+    date: getTodayLocalDate(),
+    method: 'efectivo'
+  })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [initialFormData, setInitialFormData] = useState(null)
   const [UNSAVED_CHANGES, setHasUnsavedChanges] = useState(false)
@@ -54,7 +59,7 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
         status: order.status || 'PENDIENTE',
         items: order.items && order.items.length > 0
           ? order.items.map(item => ({ ...item }))
-          : [{ id: 1, description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
+          : [{ id: 1, description: '', quantity: 1, unitPrice: '', partCost: '' }],
         payments: payments.map(payment => ({ ...payment })),
         totalPaid: calculatedTotalPaid
       }
@@ -64,7 +69,7 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
         description: '',
         service_date: getTodayLocalDate(),
         status: 'PENDIENTE',
-        items: [{ id: 1, description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
+        items: [{ id: 1, description: '', quantity: 1, unitPrice: '', partCost: '' }],
         payments: [],
         totalPaid: 0
       }
@@ -99,11 +104,19 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
   }
 
   const calculateGrandTotal = () => {
-    return formData.items.reduce((total, item) => total + (item.quantity * item.unitPrice), 0)
+    return formData.items.reduce((total, item) => {
+      const quantity = Number(item.quantity) || 0
+      const unitPrice = Number(item.unitPrice) || 0
+      return total + (quantity * unitPrice)
+    }, 0)
   }
 
   const calculateTotalPartCost = () => {
-    return formData.items.reduce((total, item) => total + (item.quantity * item.partCost), 0)
+    return formData.items.reduce((total, item) => {
+      const quantity = Number(item.quantity) || 0
+      const partCost = Number(item.partCost) || 0
+      return total + (quantity * partCost)
+    }, 0)
   }
 
   const calculateProfit = () => {
@@ -139,15 +152,31 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
     
     setIsSubmitting(true);
   
+    // Procesar items para asegurar que los valores numéricos sean números
+    const processedItems = formData.items.map(item => ({
+      ...item,
+      quantity: Number(item.quantity) || 1,
+      unitPrice: Number(item.unitPrice) || 0,
+      partCost: Number(item.partCost) || 0
+    }));
+
+    // Procesar pagos para asegurar que los valores numéricos sean números
+    const processedPayments = formData.payments.map(payment => ({
+      ...payment,
+      amount: Number(payment.amount) || 0
+    }));
+
     const data = {
       customer_name: formData.customer_name,
       service_date: formData.service_date,
       description: formData.description,
       status: formData.status,
-      items: formData.items,
-      payments: formData.payments,
+      items: processedItems,
+      payments: processedPayments,
       totalPaid: formData.totalPaid
     };
+
+    console.log('Datos a enviar:', data);
   
     try {
       if (onSubmit) {
@@ -171,7 +200,7 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
     const newId = Math.max(...formData.items.map(item => item.id)) + 1
     setFormData(prev => ({
       ...prev,
-      items: [...prev.items, { id: newId, description: '', quantity: 1, unitPrice: 0, partCost: 0 }]
+      items: [...prev.items, { id: newId, description: '', quantity: 1, unitPrice: '', partCost: '' }]
     }))
   }
 
@@ -190,24 +219,43 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
       items: prev.items.map(item => 
         item.id === id ? { 
           ...item, 
-          [field]: field === 'description' ? value : (Number(value) || 0)
+          [field]: field === 'description' ? value : (value === '' ? '' : Number(value) || '')
         } : item
       )
     }))
   }
 
   const addPayment = () => {
-    const newPayment = {
-      id: Date.now(),
-      amount: 0,
-      date: getTodayLocalDate(),
-      method: 'efectivo'
+    if (!newPayment.amount || Number(newPayment.amount) <= 0) {
+      alert('Por favor ingresa un monto válido')
+      return
     }
+    
+    const payment = {
+      id: Date.now(),
+      amount: Number(newPayment.amount),
+      date: newPayment.date,
+      method: newPayment.method
+    }
+    
     setFormData(prev => ({
       ...prev,
-      payments: [...prev.payments, newPayment],
-      totalPaid: prev.totalPaid
+      payments: [...prev.payments, payment],
+      totalPaid: prev.totalPaid + Number(newPayment.amount)
     }))
+    
+    // Reset new payment form
+    setNewPayment({
+      amount: '',
+      date: getTodayLocalDate(),
+      method: 'efectivo'
+    })
+    
+    // Focus back to amount input
+    setTimeout(() => {
+      const amountInput = document.querySelector('.new-payment-form input[type="number"]')
+      if (amountInput) amountInput.focus()
+    }, 100)
   }
 
   const removePayment = (id) => {
@@ -223,7 +271,7 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
   const updatePayment = (id, field, value) => {
     setFormData(prev => {
       const updatedPayments = prev.payments.map(p => 
-        p.id === id ? { ...p, [field]: field === 'amount' ? (Number(value) || 0) : value } : p
+        p.id === id ? { ...p, [field]: field === 'amount' ? (value === '' ? '' : Number(value) || '') : value } : p
       )
       const totalPaid = updatedPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
       return { ...prev, payments: updatedPayments, totalPaid }
@@ -231,7 +279,9 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
   }
 
   const getItemTotal = (item) => {
-    return (item.quantity * item.unitPrice) || 0
+    const quantity = Number(item.quantity) || 0
+    const unitPrice = Number(item.unitPrice) || 0
+    return quantity * unitPrice
   }
 
   return (
@@ -254,6 +304,7 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
               onChange={handleInputChange}
               className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               placeholder="Nombre del cliente"
+              autoFocus
               required
             />
           </div>
@@ -329,6 +380,13 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
                     min="1"
                     value={item.quantity}
                     onChange={(e) => updateItem(item.id, 'quantity', e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const nextInput = e.target.closest('.grid').querySelector('input[placeholder="$"]');
+                        if (nextInput) nextInput.focus();
+                      }
+                    }}
                     className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                 </div>
@@ -340,6 +398,13 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
                     placeholder="$"
                     value={item.unitPrice}
                     onChange={(e) => updateItem(item.id, 'unitPrice', e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const nextInput = e.target.closest('.grid').nextElementSibling?.querySelector('input[placeholder="$"]');
+                        if (nextInput) nextInput.focus();
+                      }
+                    }}
                     className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                 </div>
@@ -351,6 +416,24 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
                     placeholder="$"
                     value={item.partCost}
                     onChange={(e) => updateItem(item.id, 'partCost', e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        // Check if this is the last item, if so add a new one
+                        const isLastItem = formData.items[formData.items.length - 1].id === item.id;
+                        if (isLastItem) {
+                          addItem();
+                          setTimeout(() => {
+                            const newItemDescription = document.querySelector('.space-y-3 > div:last-child input[placeholder="Descripción"]');
+                            if (newItemDescription) newItemDescription.focus();
+                          }, 100);
+                        } else {
+                          const nextItemRow = e.target.closest('.grid').parentElement.nextElementSibling;
+                          const nextDescription = nextItemRow?.querySelector('input[placeholder="Descripción"]');
+                          if (nextDescription) nextDescription.focus();
+                        }
+                      }
+                    }}
                     className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
                 </div>
@@ -455,19 +538,84 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
               </div>
             ))}
           </div>
-          <div className="mt-4 flex justify-end">
-            <Button 
-              type="button" 
-              onClick={addPayment} 
-              variant="success" 
-              size="md"
-              className="flex items-center"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-              </svg>
-              Agregar Pago
-            </Button>
+          {/* Formulario para nuevo pago */}
+          <div className="new-payment-form mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-md border border-gray-300 dark:border-gray-600">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Agregar Nuevo Pago</h4>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+              <div className="md:col-span-3">
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Monto</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={newPayment.amount}
+                  onChange={(e) => setNewPayment({ ...newPayment, amount: e.target.value })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (newPayment.amount && newPayment.date && newPayment.method) {
+                        addPayment();
+                      } else {
+                        const nextInput = e.target.closest('.grid').querySelector('input[type="date"]');
+                        if (nextInput) nextInput.focus();
+                      }
+                    }
+                  }}
+                  className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  placeholder="$"
+                />
+              </div>
+              <div className="md:col-span-4">
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Fecha</label>
+                <input
+                  type="date"
+                  value={newPayment.date}
+                  onChange={(e) => setNewPayment({ ...newPayment, date: e.target.value })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const methodSelect = e.target.closest('.grid').querySelector('select');
+                      if (methodSelect) methodSelect.focus();
+                    }
+                  }}
+                  className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div className="md:col-span-4">
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Método</label>
+                <select
+                  value={newPayment.method}
+                  onChange={(e) => setNewPayment({ ...newPayment, method: e.target.value })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (newPayment.amount && newPayment.date && newPayment.method) {
+                        addPayment();
+                      }
+                    }
+                  }}
+                  className="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                >
+                  <option value="efectivo">Efectivo</option>
+                  <option value="transferencia">Transferencia</option>
+                  <option value="tarjeta">Tarjeta</option>
+                </select>
+              </div>
+              <div className="md:col-span-1">
+                <Button 
+                  type="button" 
+                  onClick={addPayment} 
+                  variant="success" 
+                  size="sm"
+                  className="flex items-center w-full"
+                  disabled={!newPayment.amount || Number(newPayment.amount) <= 0}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                  Agregar
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
 

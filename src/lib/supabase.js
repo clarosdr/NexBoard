@@ -89,8 +89,20 @@ export const supabaseService = {
     // Mapear campos de BD a nombres del frontend
     const mapped = (data || []).map((row) => ({
       ...row,
-      items: row.order_items || [],
-      payments: row.order_payments || []
+      items: (row.order_items || []).map(item => ({
+        id: item.id,
+        description: item.item_desc,
+        quantity: item.quantity,
+        unitPrice: item.unit_price,
+        partCost: item.part_cost
+      })),
+      payments: (row.order_payments || []).map(payment => ({
+        id: payment.id,
+        amount: payment.amount,
+        date: payment.pay_date,
+        method: payment.method,
+        notes: payment.notes
+      }))
     }))
     
     cache.set(cacheKey, mapped)
@@ -161,11 +173,23 @@ export const supabaseService = {
 
     this.clearUserCache(userId)
     
-    // Devolver orden completa con items y pagos
+    // Devolver orden completa con items y pagos mapeados al frontend
     return {
       ...order,
-      items: orderItems,
-      payments: orderPayments
+      items: orderItems.map(item => ({
+        id: item.id,
+        description: item.item_desc,
+        quantity: item.quantity,
+        unitPrice: item.unit_price,
+        partCost: item.part_cost
+      })),
+      payments: orderPayments.map(payment => ({
+        id: payment.id,
+        amount: payment.amount,
+        date: payment.pay_date,
+        method: payment.method,
+        notes: payment.notes
+      }))
     }
   },
 
@@ -236,10 +260,11 @@ export const supabaseService = {
         .eq('order_id', orderId)
 
       // Crear nuevos pagos si existen
-      if (orderData.payments.length > 0) {
-        const paymentsPayload = orderData.payments.map(payment => ({
+      const validPayments = orderData.payments.filter(p => Number(p.amount) > 0)
+      if (validPayments.length > 0) {
+        const paymentsPayload = validPayments.map(payment => ({
           order_id: orderId,
-          amount: payment.amount || 0,
+          amount: payment.amount,
           pay_date: payment.date || payment.pay_date,
           method: payment.method || payment.payment_method || 'efectivo',
           notes: payment.notes ?? null
@@ -265,11 +290,23 @@ export const supabaseService = {
 
     this.clearUserCache(userId)
     
-    // Devolver orden completa con items y pagos
+    // Devolver orden completa con items y pagos mapeados al frontend
     return {
       ...order,
-      items: orderItems,
-      payments: orderPayments
+      items: orderItems.map(item => ({
+        id: item.id,
+        description: item.item_desc,
+        quantity: item.quantity,
+        unitPrice: item.unit_price,
+        partCost: item.part_cost
+      })),
+      payments: orderPayments.map(payment => ({
+        id: payment.id,
+        amount: payment.amount,
+        date: payment.pay_date,
+        method: payment.method,
+        notes: payment.notes
+      }))
     }
   },
 
