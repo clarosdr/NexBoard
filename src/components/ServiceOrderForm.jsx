@@ -132,6 +132,9 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    console.log('🔄 Iniciando proceso de guardado...');
+    console.log('📋 Datos del formulario antes de procesar:', formData);
+    
     // Validación básica
     if (!formData.customer_name.trim()) {
       alert('Por favor ingresa el nombre del cliente');
@@ -150,6 +153,7 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
       return;
     }
     
+    console.log('✅ Validaciones básicas pasadas');
     setIsSubmitting(true);
   
     // Procesar items para asegurar que los valores numéricos sean números
@@ -176,23 +180,32 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
       totalPaid: formData.totalPaid
     };
 
-    console.log('Datos a enviar:', data);
+    console.log('📤 Datos procesados a enviar:', data);
+    console.log('🔧 Items procesados:', processedItems);
+    console.log('💰 Pagos procesados:', processedPayments);
   
     try {
       if (onSubmit) {
+        console.log('📞 Llamando a onSubmit...');
         await onSubmit(data);
+        console.log('✅ onSubmit completado exitosamente');
         // Resetear el estado de cambios no guardados después del envío exitoso
         setHasUnsavedChanges(false);
         if (onFormChange) {
           onFormChange(false);
         }
+        console.log('🎉 Proceso de guardado completado');
         // No mostrar alerta, la confirmación se maneja en el componente padre
+      } else {
+        console.error('❌ onSubmit no está definido');
       }
     } catch (err) {
-      console.error('Error al guardar orden:', err);
+      console.error('❌ Error al guardar orden:', err);
+      console.error('📊 Stack trace:', err.stack);
       alert(`No se pudo guardar la orden: ${err.message || 'Error desconocido'}`);
     } finally {
       setIsSubmitting(false);
+      console.log('🏁 Finalizando proceso de guardado');
     }
   };
 

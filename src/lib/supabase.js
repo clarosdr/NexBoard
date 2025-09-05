@@ -110,6 +110,10 @@ export const supabaseService = {
   },
 
   async createServiceOrder(orderData, userId) {
+    console.log('🗄️ Supabase - createServiceOrder iniciado');
+    console.log('📋 Datos recibidos:', orderData);
+    console.log('👤 Usuario ID:', userId);
+    
     // Preparar datos de la orden principal
     const orderPayload = {
       customer_name: orderData.customer_name,
@@ -118,19 +122,28 @@ export const supabaseService = {
       status: orderData.status || 'PENDIENTE',
       owner_id: userId
     }
+    
+    console.log('📤 Payload de orden principal:', orderPayload);
 
     // Crear la orden principal
+    console.log('📞 Insertando orden principal en Supabase...');
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert(orderPayload)
       .select()
       .single()
 
-    if (orderError) throw orderError
+    if (orderError) {
+      console.error('❌ Error al insertar orden principal:', orderError);
+      throw orderError;
+    }
+    
+    console.log('✅ Orden principal creada:', order);
 
     // Crear items si existen
     let orderItems = []
     if (orderData.items && orderData.items.length > 0) {
+      console.log('🔧 Procesando items de la orden...');
       const itemsPayload = orderData.items.map(item => ({
         order_id: order.id,
         quantity: item.quantity || 1,
@@ -138,20 +151,33 @@ export const supabaseService = {
         unit_price: item.unitPrice || item.unit_price || 0,
         part_cost: item.partCost || item.part_cost || 0
       }))
+      
+      console.log('📤 Payload de items:', itemsPayload);
+      console.log('📞 Insertando items en Supabase...');
 
       const { data: items, error: itemsError } = await supabase
         .from('order_items')
         .insert(itemsPayload)
         .select()
 
-      if (itemsError) throw itemsError
+      if (itemsError) {
+        console.error('❌ Error al insertar items:', itemsError);
+        throw itemsError;
+      }
+      
+      console.log('✅ Items creados:', items);
       orderItems = items
+    } else {
+      console.log('ℹ️ No hay items para procesar');
     }
 
     // Crear pagos si existen
     let orderPayments = []
     if (orderData.payments && orderData.payments.length > 0) {
+      console.log('💰 Procesando pagos de la orden...');
       const validPayments = orderData.payments.filter(p => Number(p.amount) > 0)
+      console.log('💰 Pagos válidos encontrados:', validPayments.length);
+      
       if (validPayments.length > 0) {
         const paymentsPayload = validPayments.map(payment => ({
           order_id: order.id,
@@ -160,21 +186,34 @@ export const supabaseService = {
           method: payment.method || payment.payment_method || 'efectivo',
           notes: payment.notes ?? null
         }))
+        
+        console.log('📤 Payload de pagos:', paymentsPayload);
+        console.log('📞 Insertando pagos en Supabase...');
 
         const { data: payments, error: paymentsError } = await supabase
           .from('order_payments')
           .insert(paymentsPayload)
           .select()
 
-        if (paymentsError) throw paymentsError
+        if (paymentsError) {
+          console.error('❌ Error al insertar pagos:', paymentsError);
+          throw paymentsError;
+        }
+        
+        console.log('✅ Pagos creados:', payments);
         orderPayments = payments
+      } else {
+        console.log('ℹ️ No hay pagos válidos para procesar');
       }
+    } else {
+      console.log('ℹ️ No hay pagos para procesar');
     }
 
+    console.log('🧹 Limpiando caché de usuario...');
     this.clearUserCache(userId)
     
     // Devolver orden completa con items y pagos mapeados al frontend
-    return {
+    const finalOrder = {
       ...order,
       items: orderItems.map(item => ({
         id: item.id,
@@ -191,6 +230,9 @@ export const supabaseService = {
         notes: payment.notes
       }))
     }
+    
+    console.log('🎉 Orden completa creada exitosamente:', finalOrder);
+    return finalOrder;
   },
 
   async updateServiceOrder(orderId, orderData, userId) {

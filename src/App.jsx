@@ -80,11 +80,20 @@ function MainApp() {
   }, [user, actions])
 
   const handleCreateOrder = useCallback(async (orderData) => {
+    console.log('🆕 App.jsx - handleCreateOrder iniciado');
+    console.log('📋 Datos recibidos en handleCreateOrder:', orderData);
+    console.log('👤 Usuario ID:', user?.id);
     try {
+      console.log('📞 Llamando a actions.createOrder...');
       await actions.createOrder(orderData, user.id)
+      console.log('✅ actions.createOrder completado');
+      console.log('🔄 Recargando órdenes...');
       await actions.loadOrders(user.id) // Recargar órdenes después de crear
+      console.log('✅ Órdenes recargadas');
       actions.setShowOrderForm(false)
-    } catch {
+      console.log('🎉 handleCreateOrder completado exitosamente');
+    } catch (error) {
+      console.error('❌ Error en handleCreateOrder:', error);
       // Error ya manejado en el contexto
     }
   }, [actions, user?.id])
@@ -95,12 +104,21 @@ function MainApp() {
   }, [actions])
 
   const handleUpdateOrder = useCallback(async (updatedOrder) => {
+    console.log('✏️ App.jsx - handleUpdateOrder iniciado');
+    console.log('📋 Datos recibidos en handleUpdateOrder:', updatedOrder);
+    console.log('👤 Usuario ID:', user?.id);
     try {
+      console.log('📞 Llamando a actions.updateOrderAsync...');
       await actions.updateOrderAsync(updatedOrder, user.id)
+      console.log('✅ actions.updateOrderAsync completado');
+      console.log('🔄 Recargando órdenes...');
       await actions.loadOrders(user.id) // Recargar órdenes después de actualizar
+      console.log('✅ Órdenes recargadas');
       actions.setEditingOrder(null)
       actions.setShowOrderForm(false)
-    } catch {
+      console.log('🎉 handleUpdateOrder completado exitosamente');
+    } catch (error) {
+      console.error('❌ Error en handleUpdateOrder:', error);
       // Error ya manejado en el contexto
     }
   }, [actions, user?.id])
