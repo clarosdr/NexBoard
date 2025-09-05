@@ -5,7 +5,7 @@ import PullToRefresh from './PullToRefresh';
 import { useSwipeCard } from '../hooks/useTouchGestures';
 import Button from './ui/Button';
 import { FaEye, FaPrint, FaEdit, FaTrash, FaBox, FaChartLine, FaFileInvoiceDollar, FaMoneyBillWave, FaCoins, FaPlus, FaArchive, FaList, FaTh, FaSync } from 'react-icons/fa';
-
+import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 // Función para formatear valores en pesos colombianos
 const formatCurrency = (value) => {
@@ -132,14 +132,14 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails, onAddNew 
 
   const calculateTotals = () => {
     return filteredOrders.reduce((acc, order) => {
-      acc.totalSales += order.total;
+      acc.totalSales += order.total || 0;
       acc.totalCosts += order.total_part_cost || order.totalPartCost || 0;
-      acc.totalProfit += order.profit;
+      acc.totalProfit += order.profit || 0;
       
       // Calcular totales de pagos y saldos pendientes
       if (order.status === 'FINALIZADO' || order.status === 'ENTREGADO') {
         const totalPaid = order.total_paid || order.totalPaid || 0;
-        const pendingBalance = order.total - totalPaid;
+        const pendingBalance = (order.total || 0) - totalPaid;
         
         acc.totalPaid += totalPaid;
         acc.totalPending += pendingBalance > 0 ? pendingBalance : 0;
@@ -161,7 +161,7 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails, onAddNew 
       return 0;
     }
     const totalPaid = order.total_paid || order.totalPaid || 0;
-    return Math.max(0, order.total - totalPaid);
+    return Math.max(0, (order.total || 0) - totalPaid);
   };
 
   const totals = calculateTotals();
@@ -426,7 +426,7 @@ const OrderCard = ({
   calculatePendingBalance,
   layout
 }) => {
-  const { swipeHandlers, isSwiping, swipeTranslateX } = useSwipeCard({
+  const { swipeHandlers, isDragging, currentX } = useSwipeCard({
     onSwipeLeft: () => onDelete(order.id),
     onSwipeRight: () => onEdit(order),
     threshold: 80
@@ -507,16 +507,16 @@ const OrderCard = ({
     >
       <div
         {...swipeHandlers}
-        className={`bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-4 ${isSwiping ? 'cursor-grabbing' : 'cursor-grab'}`}
-        style={{ transform: `translateX(${swipeTranslateX}px)` }}
+        className={`bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-4 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        style={{ transform: `translateX(${currentX}px)` }}
       >
         {layout === 'grid' ? cardContent : listContent}
       </div>
       {/* Swipe action hints */}
-      <div className="absolute inset-y-0 left-0 flex items-center justify-center w-20 bg-green-500 text-white rounded-l-xl" style={{ opacity: Math.max(0, swipeTranslateX / 80 - 0.2), zIndex: -1 }}>
+      <div className="absolute inset-y-0 left-0 flex items-center justify-center w-20 bg-green-500 text-white rounded-l-xl" style={{ opacity: Math.max(0, currentX / 80 - 0.2), zIndex: -1 }}>
         <FaEdit size={24} />
       </div>
-      <div className="absolute inset-y-0 right-0 flex items-center justify-center w-20 bg-red-500 text-white rounded-r-xl" style={{ opacity: Math.max(0, -swipeTranslateX / 80 - 0.2), zIndex: -1 }}>
+      <div className="absolute inset-y-0 right-0 flex items-center justify-center w-20 bg-red-500 text-white rounded-r-xl" style={{ opacity: Math.max(0, -currentX / 80 - 0.2), zIndex: -1 }}>
         <FaTrash size={24} />
       </div>
     </motion.div>
