@@ -1,18 +1,15 @@
 name: CI / build
 
 on:
-  push:
-  pull_request:
+  workflow_dispatch:  # solo corre cuando tú lo lanzas manualmente
 
 jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      # 🔐 Dummies solo para CI (no se usan en producción)
+      # Dummies solo para CI (no producción)
       VITE_SUPABASE_URL: "https://example.supabase.co"
       VITE_SUPABASE_ANON_KEY: "test-anon-key"
-      # agrega aquí otros VITE_* que tu app lea en build
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,15 +17,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'           # o el que uses
+          node-version: '20'
           cache: 'npm'
 
       - name: Install deps
         run: npm ci || npm i
-
-      # (Opcional) Type-check separado. Si te está frenando, coméntalo.
-      # - name: Type check
-      #   run: npm run typecheck --if-present
 
       - name: Build
         run: npm run build
