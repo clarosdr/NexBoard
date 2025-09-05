@@ -13,6 +13,7 @@ import Button from './components/ui/Button'
 import ServiceOrderForm from './components/ServiceOrderForm'
 import ServiceOrdersTable from './components/ServiceOrdersTable'
 import OrderDetailsModal from './components/OrderDetailsModal'
+import Modal from './components/ui/Modal'
 import BudgetExpensesTable from './components/BudgetExpensesTable'
 import CasualExpensesTable from './components/CasualExpensesTable'
 import PasswordsTable from './components/PasswordsTable'
@@ -26,6 +27,7 @@ function MainApp() {
   const { user, signOut } = useAuth()
   const { state, actions } = useAppState()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
   // Cargar órdenes al iniciar
   useEffect(() => {
@@ -118,16 +120,40 @@ function MainApp() {
   }, [actions])
 
   const handleCancelForm = useCallback(() => {
+    if (hasUnsavedChanges) {
+      const shouldClose = window.confirm(
+        '¿Estás seguro de que deseas salir? Los cambios no guardados se perderán.'
+      );
+      if (shouldClose) {
+        actions.setShowOrderForm(false)
+        actions.setEditingOrder(null)
+        setHasUnsavedChanges(false)
+      }
+    } else {
+      actions.setShowOrderForm(false)
+      actions.setEditingOrder(null)
+      setHasUnsavedChanges(false)
+    }
+  }, [actions, hasUnsavedChanges])
+
+  const handleFormChange = useCallback((hasChanges) => {
+    setHasUnsavedChanges(hasChanges)
+  }, [])
+
+  const handleConfirmClose = useCallback(() => {
     actions.setShowOrderForm(false)
     actions.setEditingOrder(null)
+    setHasUnsavedChanges(false)
   }, [actions])
 
   const handleFormSubmit = useCallback(async (orderData) => {
-    if (state.editingOrder) {
-      await handleUpdateOrder({ ...orderData, id: state.editingOrder.id })
-    } else {
-      await handleCreateOrder(orderData)
-    }
+if (state.editingOrder) {
+  await handleUpdateOrder({ ...orderData, id: state.editingOrder.id })
+} else {
+  await handleCreateOrder(orderData)
+}
+// Resetear el estado de cambios no guardados después del envío exitoso
+setHasUnsavedChanges(false)
   }, [state.editingOrder, handleUpdateOrder, handleCreateOrder])
 
   // Memoizar la configuración de pestañas
@@ -245,17 +271,21 @@ function MainApp() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Formulario de Orden */}
-        {state.showOrderForm && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-            <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <ServiceOrderForm
-                order={state.editingOrder}
-                onSubmit={handleFormSubmit}
-                onCancel={handleCancelForm}
-              />
-            </div>
-          </div>
-        )}
+        <Modal
+          isOpen={state.showOrderForm}
+          onClose={handleCancelForm}
+          title={state.editingOrder ? 'Editar Orden de Servicio' : 'Nueva Orden de Servicio'}
+          size="lg"
+          hasUnsavedChanges={hasUnsavedChanges}
+          onConfirmClose={handleConfirmClose}
+        >
+          <ServiceOrderForm
+            order={state.editingOrder}
+            onSubmit={handleFormSubmit}
+            onCancel={handleCancelForm}
+            onFormChange={handleFormChange}
+          />
+        </Modal>
 
         {/* Modal de Detalles */}
          {state.showOrderDetails && state.selectedOrder && (

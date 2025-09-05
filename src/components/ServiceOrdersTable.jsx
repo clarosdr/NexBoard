@@ -5,7 +5,7 @@ import PullToRefresh from './PullToRefresh';
 import { useSwipeCard } from '../hooks/useTouchGestures';
 import Button from './ui/Button';
 import { FaEye, FaPrint, FaEdit, FaTrash, FaBox, FaChartLine, FaFileInvoiceDollar, FaMoneyBillWave, FaCoins, FaPlus, FaArchive, FaList, FaTh, FaSync } from 'react-icons/fa';
-import { motion, AnimatePresence } from 'framer-motion'; // eslint-disable-line no-unused-vars
+// import { motion, AnimatePresence } from 'framer-motion'; // Temporalmente deshabilitado
 
 // Función para formatear valores en pesos colombianos
 const formatCurrency = (value) => {
@@ -287,55 +287,42 @@ const ServiceOrdersTable = ({ orders, onEdit, onDelete, onViewDetails, onAddNew 
             </div>
           </div>
 
-          <AnimatePresence>
-            <motion.div 
-              layout
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4"
-            >
-              <StatCard icon={<FaBox />} title="Órdenes" value={filteredOrders.length} color="blue" />
-              <StatCard icon={<FaFileInvoiceDollar />} title="Ventas" value={formatCurrency(totals.totalSales)} color="green" />
-              <StatCard icon={<FaCoins />} title="Costos" value={formatCurrency(totals.totalCosts)} color="red" />
-              <StatCard icon={<FaChartLine />} title="Ganancia" value={formatCurrency(totals.totalProfit)} color="purple" />
-              <StatCard icon={<FaMoneyBillWave />} title="Cobrado" value={formatCurrency(totals.totalPaid)} color="teal" />
-              <StatCard icon={<FaMoneyBillWave />} title="Por Cobrar" value={formatCurrency(totals.totalPending)} color="orange" />
-            </motion.div>
-          </AnimatePresence>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+            <StatCard icon={<FaBox />} title="Órdenes" value={filteredOrders.length} color="blue" />
+            <StatCard icon={<FaFileInvoiceDollar />} title="Ventas" value={formatCurrency(totals.totalSales)} color="green" />
+            <StatCard icon={<FaCoins />} title="Costos" value={formatCurrency(totals.totalCosts)} color="red" />
+            <StatCard icon={<FaChartLine />} title="Ganancia" value={formatCurrency(totals.totalProfit)} color="purple" />
+            <StatCard icon={<FaMoneyBillWave />} title="Cobrado" value={formatCurrency(totals.totalPaid)} color="teal" />
+            <StatCard icon={<FaMoneyBillWave />} title="Por Cobrar" value={formatCurrency(totals.totalPending)} color="orange" />
+          </div>
         </div>
 
         {/* Vista de Órdenes */}
-        <AnimatePresence>
-          {paginatedOrders.length > 0 ? (
-            <motion.div 
-              layout
-              className={`grid gap-4 sm:gap-6 ${layout === 'grid' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}
-            >
-              {paginatedOrders.map((order) => (
-                <OrderCard 
-                  key={order.id} 
-                  order={order}
-                  onViewDetails={onViewDetails}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onPrint={handlePrint}
-                  getStatusBadge={getStatusBadge}
-                  formatCurrency={formatCurrency}
-                  formatDate={formatDate}
-                  calculatePendingBalance={calculatePendingBalance}
-                  layout={layout}
-                />
-              ))}
-            </motion.div>
-          ) : (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
-              <FaBox className="text-6xl text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">No se encontraron órdenes</h3>
-              <p className="text-gray-500 dark:text-gray-400 mt-2">Intenta ajustar los filtros o el término de búsqueda.</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {paginatedOrders.length > 0 ? (
+          <div className={`grid gap-4 sm:gap-6 ${layout === 'grid' ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
+            {paginatedOrders.map((order) => (
+              <OrderCard 
+                key={order.id} 
+                order={order}
+                onViewDetails={onViewDetails}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onPrint={handlePrint}
+                getStatusBadge={getStatusBadge}
+                formatCurrency={formatCurrency}
+                formatDate={formatDate}
+                calculatePendingBalance={calculatePendingBalance}
+                layout={layout}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <FaBox className="text-6xl text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">No se encontraron órdenes</h3>
+            <p className="text-gray-500 dark:text-gray-400 mt-2">Intenta ajustar los filtros o el término de búsqueda.</p>
+          </div>
+        )}
       
         {/* Paginación */}
         {filteredOrders.length > 0 && totalPages > 1 && (

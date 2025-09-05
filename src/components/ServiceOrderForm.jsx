@@ -23,7 +23,7 @@ const formatCurrency = (value) => {
 
 
 
-export default function ServiceOrderForm({ order, onSubmit, onCancel }) {
+export default function ServiceOrderForm({ order, onSubmit, onCancel, onFormChange }) {
 // Remove unused user variable since it's not being used in the component
 useAuth() // Call useAuth hook but don't destructure since we're not using any values
   const [formData, setFormData] = useState({
@@ -36,15 +36,18 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
     totalPaid: 0
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [initialFormData, setInitialFormData] = useState(null)
+  const [UNSAVED_CHANGES, setHasUnsavedChanges] = useState(false)
 
   useEffect(() => {
+    let initialData;
     if (order) {
       const payments = order.payments || []
       const calculatedTotalPaid = payments.reduce((sum, payment) => {
         const amount = Number(payment.amount) || 0
         return sum + amount
       }, 0)
-      setFormData({
+      initialData = {
         customer_name: order.customer_name || '',
         description: order.description || '',
         service_date: order.service_date || getTodayLocalDate(),
@@ -54,9 +57,9 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
           : [{ id: 1, description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
         payments: payments.map(payment => ({ ...payment })),
         totalPaid: calculatedTotalPaid
-      })
+      }
     } else {
-      setFormData({
+      initialData = {
         customer_name: '',
         description: '',
         service_date: getTodayLocalDate(),
@@ -64,10 +67,24 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
         items: [{ id: 1, description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
         payments: [],
         totalPaid: 0
-      })
+      }
     }
+    setFormData(initialData)
+    setInitialFormData(JSON.parse(JSON.stringify(initialData)))
     setIsSubmitting(false)
+    setHasUnsavedChanges(false)
   }, [order])
+
+  // Detectar cambios en el formulario
+  useEffect(() => {
+    if (initialFormData) {
+      const hasChanges = JSON.stringify(formData) !== JSON.stringify(initialFormData)
+      setHasUnsavedChanges(hasChanges)
+      if (onFormChange) {
+        onFormChange(hasChanges)
+      }
+    }
+  }, [formData, initialFormData, onFormChange])
 
   const statusOptions = [
     { value: 'PENDIENTE', label: 'Pendiente' },
@@ -135,6 +152,11 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
     try {
       if (onSubmit) {
         await onSubmit(data);
+        // Resetear el estado de cambios no guardados después del envío exitoso
+        setHasUnsavedChanges(false);
+        if (onFormChange) {
+          onFormChange(false);
+        }
         // No mostrar alerta, la confirmación se maneja en el componente padre
       }
     } catch (err) {
