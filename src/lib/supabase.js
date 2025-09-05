@@ -139,20 +139,24 @@ export const supabaseService = {
     // Crear pagos si existen
     let orderPayments = []
     if (orderData.payments && orderData.payments.length > 0) {
-      const paymentsPayload = orderData.payments.map(payment => ({
-        order_id: order.id,
-        amount: payment.amount || 0,
-        payment_date: payment.date || payment.payment_date,
-        payment_method: payment.method || payment.payment_method || 'efectivo'
-      }))
+      const validPayments = orderData.payments.filter(p => Number(p.amount) > 0)
+      if (validPayments.length > 0) {
+        const paymentsPayload = validPayments.map(payment => ({
+          order_id: order.id,
+          amount: payment.amount,
+          pay_date: payment.date || payment.pay_date,
+          method: payment.method || payment.payment_method || 'efectivo',
+          notes: payment.notes ?? null
+        }))
 
-      const { data: payments, error: paymentsError } = await supabase
-        .from('order_payments')
-        .insert(paymentsPayload)
-        .select()
+        const { data: payments, error: paymentsError } = await supabase
+          .from('order_payments')
+          .insert(paymentsPayload)
+          .select()
 
-      if (paymentsError) throw paymentsError
-      orderPayments = payments
+        if (paymentsError) throw paymentsError
+        orderPayments = payments
+      }
     }
 
     this.clearUserCache(userId)
@@ -236,8 +240,9 @@ export const supabaseService = {
         const paymentsPayload = orderData.payments.map(payment => ({
           order_id: orderId,
           amount: payment.amount || 0,
-          payment_date: payment.date || payment.payment_date,
-          payment_method: payment.method || payment.payment_method || 'efectivo'
+          pay_date: payment.date || payment.pay_date,
+          method: payment.method || payment.payment_method || 'efectivo',
+          notes: payment.notes ?? null
         }))
 
         const { data: payments, error: paymentsError } = await supabase

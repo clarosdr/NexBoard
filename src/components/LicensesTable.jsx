@@ -9,7 +9,7 @@ const LicensesTable = () => {
   const [editingLicense, setEditingLicense] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all'); // all, active, expiring, expired
-  const [sortBy, setSortBy] = useState('expiry_date'); // expiry_date, client, licenseName, profit
+  const [sortBy, setSortBy] = useState('expirationDate'); // expirationDate, client, licenseName, profit
   const [sortOrder, setSortOrder] = useState('asc');
   const { user } = useAuth();
 
@@ -142,8 +142,8 @@ const LicensesTable = () => {
     .filter(license => {
       // Filtro por término de búsqueda
       const matchesSearch = 
-        license.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        license.license_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        license.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        license.licenseName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         license.serial?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         license.provider?.toLowerCase().includes(searchTerm.toLowerCase());
       
@@ -159,17 +159,17 @@ const LicensesTable = () => {
       let aValue, bValue;
       
       switch (sortBy) {
-        case 'expiry_date':
+        case 'expirationDate':
           aValue = new Date(a.expirationDate || '9999-12-31');
           bValue = new Date(b.expirationDate || '9999-12-31');
           break;
         case 'client':
-          aValue = a.client_name?.toLowerCase() || '';
-          bValue = b.client_name?.toLowerCase() || '';;
+          aValue = a.clientName?.toLowerCase() || '';
+          bValue = b.clientName?.toLowerCase() || '';
           break;
         case 'licenseName':
-          aValue = a.license_name?.toLowerCase() || '';
-          bValue = b.license_name?.toLowerCase() || '';
+          aValue = a.licenseName?.toLowerCase() || '';
+          bValue = b.licenseName?.toLowerCase() || '';
           break;
         case 'profit':
           aValue = a.profit || 0;
@@ -258,7 +258,7 @@ const LicensesTable = () => {
                   <div key={license.id} className="flex justify-between items-center bg-white dark:bg-gray-800 p-3 rounded border border-yellow-200 dark:border-yellow-700 transition-colors duration-200">
                     <div>
                       <span className="font-medium text-gray-900 dark:text-white transition-colors duration-200">
-                        🏢 {license.client_name}
+                        🏢 {license.clientName}
                       </span>
                     </div>
                     <div className="text-right">
@@ -374,7 +374,7 @@ const LicensesTable = () => {
               onChange={(e) => setSortBy(e.target.value)}
               className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
             >
-              <option value="expiry_date">📅 Fecha vencimiento</option>
+              <option value="expirationDate">📅 Fecha vencimiento</option>
               <option value="client">🏢 Cliente</option>
               <option value="licenseName">📋 Licencia</option>
               <option value="profit">💰 Ganancia</option>
@@ -439,10 +439,10 @@ const LicensesTable = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900 dark:text-white transition-colors duration-200">
-                            🏢 {license.client_name}
+                            🏢 {license.clientName}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
-                            📋 {license.license_name}
+                            📋 {license.licenseName}
                           </div>
                         </div>
                       </td>
@@ -474,7 +474,7 @@ const LicensesTable = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm text-gray-900 dark:text-white transition-colors duration-200">
-                            💻 {license.current_installations || 0} / {license.max_installations || 'N/A'}
+                            💻 {license.currentInstallations || 0} / {license.maxInstallations || 'N/A'}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200">
                             📦 {license.condition || 'N/A'}
@@ -484,10 +484,10 @@ const LicensesTable = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm">
                           <div className="text-gray-900 dark:text-white transition-colors duration-200">
-                            💰 {formatCurrency(license.sale_price)}
+                            💰 {formatCurrency(license.salePrice)}
                           </div>
                           <div className="text-gray-500 dark:text-gray-400 transition-colors duration-200">
-                            💸 {formatCurrency(license.cost_price)}
+                            💸 {formatCurrency(license.costPrice)}
                           </div>
                           <div className={`font-medium transition-colors duration-200 ${
                             license.profit > 0 ? 'text-green-600 dark:text-green-400' : 

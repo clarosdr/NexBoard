@@ -5,7 +5,7 @@ import PullToRefresh from './PullToRefresh';
 import { useSwipeCard } from '../hooks/useTouchGestures';
 import Button from './ui/Button';
 import { FaEye, FaPrint, FaEdit, FaTrash, FaBox, FaChartLine, FaFileInvoiceDollar, FaMoneyBillWave, FaCoins, FaPlus, FaArchive, FaList, FaTh, FaSync } from 'react-icons/fa';
-// import { motion, AnimatePresence } from 'framer-motion'; // Temporalmente deshabilitado
+
 
 // Función para formatear valores en pesos colombianos
 const formatCurrency = (value) => {
