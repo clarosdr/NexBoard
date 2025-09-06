@@ -131,31 +131,31 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     console.log('🔄 Iniciando proceso de guardado...');
     console.log('📋 Datos del formulario antes de procesar:', formData);
-    
+
     // Validación básica
     if (!formData.customer_name.trim()) {
       alert('Por favor ingresa el nombre del cliente');
       return;
     }
-    
+
     if (!formData.description.trim()) {
       alert('Por favor ingresa la descripción del servicio');
       return;
     }
-    
+
     // Validar que los ítems tengan descripción
     const invalidItems = formData.items.filter(item => !item.description.trim());
     if (invalidItems.length > 0) {
       alert('Todos los ítems deben tener una descripción');
       return;
     }
-    
+
     console.log('✅ Validaciones básicas pasadas');
     setIsSubmitting(true);
-  
+
     // Procesar items para asegurar que los valores numéricos sean números
     const processedItems = formData.items.map(item => ({
       ...item,
@@ -177,13 +177,13 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
       status: formData.status,
       items: processedItems,
       payments: processedPayments,
-      totalPaid: formData.totalPaid
+      totalPaid: Number(formData.totalPaid) || 0
     };
 
     console.log('📤 Datos procesados a enviar:', data);
     console.log('🔧 Items procesados:', processedItems);
     console.log('💰 Pagos procesados:', processedPayments);
-  
+
     try {
       if (onSubmit) {
         console.log('📞 Llamando a onSubmit...');
@@ -199,13 +199,11 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
       } else {
         console.error('❌ onSubmit no está definido');
       }
-    } catch (err) {
-      console.error('❌ Error al guardar orden:', err);
-      console.error('📊 Stack trace:', err.stack);
-      alert(`No se pudo guardar la orden: ${err.message || 'Error desconocido'}`);
+    } catch (error) {
+      console.error('❌ Error al enviar los datos:', error);
+      alert('Hubo un error al guardar la orden. Por favor intenta nuevamente.');
     } finally {
       setIsSubmitting(false);
-      console.log('🏁 Finalizando proceso de guardado');
     }
   };
 
@@ -492,7 +490,7 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3 flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-green-500" viewBox="0 0 20 20" fill="currentColor">
               <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
-              <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clipRule="evenodd" />
+              <path fillRule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2H1a1 1 0 100-2H9z" clipRule="evenodd" />
             </svg>
             Pagos
           </h3>
