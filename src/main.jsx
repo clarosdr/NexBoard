@@ -2,6 +2,9 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
+import { ThemeProvider } from './contexts/ThemeContextProvider.jsx'
+import { AuthProvider } from './contexts/AuthContext.jsx'
+import { AppStateProvider } from './contexts/AppStateContext.jsx'
 
 // Registrar Service Worker para PWA con mejor manejo de errores
 if ('serviceWorker' in navigator && 'PushManager' in window) {
@@ -62,6 +65,12 @@ const root = createRoot(rootElement);
 
 root.render(
   <StrictMode>
-    <App />
+    <ThemeProvider>
+      <AuthProvider>
+        <AppStateProvider>
+          <App />
+        </AppStateProvider>
+      </AuthProvider>
+    </ThemeProvider>
   </StrictMode>
 );

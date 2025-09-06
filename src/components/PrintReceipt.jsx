@@ -11,6 +11,7 @@ const PrintReceipt = ({ order, onClose }) => {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('es-CO', {
       year: 'numeric',
       month: 'long',
@@ -25,9 +26,9 @@ const PrintReceipt = ({ order, onClose }) => {
   const getStatusText = (status) => {
     const statusMap = {
       'pendiente': 'Pendiente',
-      'en_proceso': 'En Proceso',
-      'finalizado': 'Finalizado',
-      'entregado': 'Entregado'
+      'EN PROCESO': 'En Proceso',
+      'FINALIZADO': 'Finalizado',
+      'ENTREGADO': 'Entregado'
     };
     return statusMap[status] || status;
   };
@@ -35,7 +36,7 @@ const PrintReceipt = ({ order, onClose }) => {
   if (!order) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 printable-area">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto transition-colors duration-200">
         {/* Header con botones - Solo visible en pantalla */}
         <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 print:hidden transition-colors duration-200">
@@ -57,7 +58,7 @@ const PrintReceipt = ({ order, onClose }) => {
         </div>
 
         {/* Contenido del comprobante */}
-        <div className="p-8 print:p-4">
+        <div className="p-8 print:p-4" id="printable-receipt">
           {/* Encabezado de la empresa */}
           <div className="text-center mb-8 print:mb-6">
             <h1 className="text-3xl font-bold text-gray-800 dark:text-white print:text-2xl transition-colors duration-200">NexBoard</h1>
@@ -74,9 +75,9 @@ const PrintReceipt = ({ order, onClose }) => {
                 <p><span className="font-medium">Fecha:</span> {formatDate(order.service_date || order.date)}</p>
                 <p><span className="font-medium">Estado:</span> 
                   <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
-                    order.status === 'pendiente' ? 'bg-yellow-100 text-yellow-800' :
-                    order.status === 'en_proceso' ? 'bg-blue-100 text-blue-800' :
-                    order.status === 'finalizado' ? 'bg-green-100 text-green-800' :
+                    order.status === 'PENDIENTE' ? 'bg-yellow-100 text-yellow-800' :
+                    order.status === 'EN PROCESO' ? 'bg-blue-100 text-blue-800' :
+                    order.status === 'FINALIZADO' ? 'bg-green-100 text-green-800' :
                     'bg-gray-100 text-gray-800'
                   }`}>
                     {getStatusText(order.status)}
@@ -117,7 +118,7 @@ const PrintReceipt = ({ order, onClose }) => {
                   </thead>
                   <tbody>
                     {order.items.map((item, index) => {
-                      const subtotal = item.quantity * item.unitPrice;
+                      const subtotal = (item.quantity || 0) * (item.unitPrice || 0);
                       return (
                         <tr key={index} className="bg-white dark:bg-gray-800 transition-colors duration-200">
                           <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-700 dark:text-gray-300 transition-colors duration-200">{item.description}</td>
@@ -156,40 +157,30 @@ const PrintReceipt = ({ order, onClose }) => {
       </div>
 
       {/* Estilos específicos para impresión */}
-      <style jsx>{`
-        @media print {
-          body * {
-            visibility: hidden;
+      <style>
+        {`
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            .printable-area, .printable-area * {
+              visibility: visible;
+            }
+            .printable-area {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+              height: auto;
+              overflow: visible;
+              background-color: white !important;
+            }
+            #printable-receipt {
+              color: black !important;
+            }
           }
-          .print\\:block {
-            display: block !important;
-          }
-          .print\\:hidden {
-            display: none !important;
-          }
-          .print\\:p-4 {
-            padding: 1rem !important;
-          }
-          .print\\:mb-6 {
-            margin-bottom: 1.5rem !important;
-          }
-          .print\\:text-2xl {
-            font-size: 1.5rem !important;
-          }
-          .print\\:bg-white {
-            background-color: white !important;
-          }
-          .print\\:border {
-            border: 1px solid #d1d5db !important;
-          }
-          .print\\:bg-gray-100 {
-            background-color: #f3f4f6 !important;
-          }
-          .print\\:mt-6 {
-            margin-top: 1.5rem !important;
-          }
-        }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };

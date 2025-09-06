@@ -22,14 +22,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-# Environment variables
-# ⬇️ Seguridad: nunca versionar variables de entorno
-.env
-.env.*
-*.env
-
-# Node/Yarn/Editor
-node_modules/
-dist/
-.DS_Store

@@ -4,7 +4,7 @@ import { actionTypes } from '../constants/actionTypes'
 
 // Estado inicial
 const initialState = {
-  activeTab: 'orders',
+  activeTab: 'dashboard',
   orders: [],
   showOrderForm: false,
   editingOrder: null,
@@ -27,7 +27,7 @@ function appStateReducer(state, action) {
       return { ...state, orders: action.payload }
     
     case actionTypes.ADD_ORDER:
-      return { ...state, orders: [...state.orders, action.payload] }
+      return { ...state, orders: [action.payload, ...state.orders] }
     
     case actionTypes.UPDATE_ORDER:
       return {
@@ -121,40 +121,24 @@ export function AppStateProvider({ children }) {
     },
     
     createOrder: async (orderData, userId) => {
-      console.log('🏪 AppStateContext - createOrder iniciado');
-      console.log('📋 Datos recibidos en createOrder:', orderData);
-      console.log('👤 Usuario ID:', userId);
       try {
-        console.log('📞 Llamando a supabaseService.createServiceOrder...');
         const newOrder = await supabaseService.createServiceOrder(orderData, userId)
-        console.log('✅ supabaseService.createServiceOrder completado');
-        console.log('📦 Nueva orden creada:', newOrder);
-        console.log('🔄 Despachando ADD_ORDER...');
         dispatch({ type: actionTypes.ADD_ORDER, payload: newOrder })
-        console.log('✅ ADD_ORDER despachado exitosamente');
+        return newOrder;
       } catch (error) {
         console.error('❌ Error creating order:', error)
-        console.error('📊 Error stack:', error.stack);
         alert('Error al crear la orden. Por favor, intenta de nuevo.')
         throw error
       }
     },
     
     updateOrderAsync: async (updatedOrder, userId) => {
-      console.log('✏️ AppStateContext - updateOrderAsync iniciado');
-      console.log('📋 Datos recibidos en updateOrderAsync:', updatedOrder);
-      console.log('👤 Usuario ID:', userId);
       try {
-        console.log('📞 Llamando a supabaseService.updateServiceOrder...');
         const updated = await supabaseService.updateServiceOrder(updatedOrder.id, updatedOrder, userId)
-        console.log('✅ supabaseService.updateServiceOrder completado');
-        console.log('📦 Orden actualizada:', updated);
-        console.log('🔄 Despachando UPDATE_ORDER...');
         dispatch({ type: actionTypes.UPDATE_ORDER, payload: updated })
-        console.log('✅ UPDATE_ORDER despachado exitosamente');
+        return updated;
       } catch (error) {
         console.error('❌ Error updating order:', error)
-        console.error('📊 Error stack:', error.stack);
         alert('Error al actualizar la orden. Por favor, intenta de nuevo.')
         throw error
       }

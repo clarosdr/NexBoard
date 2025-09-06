@@ -56,6 +56,7 @@ const OrderDetailsModal = ({ order, isOpen, onClose }) => {
   };
 
   const formatDateTime = (dateString) => {
+    if (!dateString) return '-';
     return new Date(dateString).toLocaleString('es-ES', {
       year: 'numeric',
       month: '2-digit',
@@ -66,33 +67,55 @@ const OrderDetailsModal = ({ order, isOpen, onClose }) => {
   };
 
   return (
-    <div className="modal">
-      <div className="modal-header">
-        <h2>Detalles de la Orden</h2>
-        {getStatusBadge(order.estado)}
-      </div>
-
-      <div className="modal-body">
-        <p><strong>Cliente:</strong> {order.cliente || 'Sin nombre'}</p>
-        <p><strong>Fecha:</strong> {formatDateTime(order.fecha)}</p>
-
-        <div className="totales mt-4">
-          <p><strong>Ventas:</strong> {formatCurrency(order.ventas)}</p>
-          <p><strong>Costos:</strong> {formatCurrency(order.costos)}</p>
-          <p><strong>Ganancia:</strong> {formatCurrency(order.ganancia)}</p>
-          <p><strong>Pagado:</strong> {formatCurrency(order.pagado)}</p>
-          <p><strong>Pendiente:</strong> {formatCurrency(order.pendiente)}</p>
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+      <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full p-6">
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h2 className="text-xl font-bold">Detalles de la Orden</h2>
+            <p className="text-sm text-gray-500">Cliente: {order.cliente || order.customer_name || 'Sin nombre'}</p>
+          </div>
+          {getStatusBadge(order.estado || order.status)}
         </div>
-      </div>
 
-      <div className="modal-footer">
-        <button onClick={handlePrint}>🧾 Imprimir Recibo</button>
-        <button onClick={onClose}>Cerrar</button>
-      </div>
+        <div className="space-y-4">
+          <p><strong>Fecha:</strong> {formatDateTime(order.fecha || order.service_date)}</p>
+          
+          <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+            <h3 className="font-semibold mb-2">Descripción</h3>
+            <p>{order.description || 'Sin descripción'}</p>
+          </div>
 
-      {showPrintReceipt && (
-        <PrintReceipt order={order} onClose={closePrintReceipt} />
-      )}
+          <div>
+            <h3 className="font-semibold mb-2">Items</h3>
+            {order.items && order.items.length > 0 ? (
+              <ul className="list-disc pl-5 space-y-1">
+                {order.items.map((item, index) => (
+                  <li key={index}>
+                    {item.description} ({item.quantity} x {formatCurrency(item.unitPrice)}) = {formatCurrency(item.quantity * item.unitPrice)}
+                  </li>
+                ))}
+              </ul>
+            ) : <p>No hay items.</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 pt-4 border-t dark:border-gray-600">
+            <p><strong>Ventas:</strong> {formatCurrency(order.ventas || order.total)}</p>
+            <p><strong>Costos:</strong> {formatCurrency(order.costos || 0)}</p>
+            <p><strong>Ganancia:</strong> {formatCurrency(order.ganancia || 0)}</p>
+            <p><strong>Pagado:</strong> {formatCurrency(order.pagado || 0)}</p>
+            <p className="font-bold"><strong>Pendiente:</strong> {formatCurrency(order.pendiente || 0)}</p>
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-3 mt-6">
+          <button onClick={handlePrint} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">🧾 Imprimir Recibo</button>
+          <button onClick={onClose} className="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded hover:bg-gray-300 dark:hover:bg-gray-500">Cerrar</button>
+        </div>
+
+        {showPrintReceipt && (
+          <PrintReceipt order={order} onClose={closePrintReceipt} />
+        )}
+      </div>
     </div>
   );
 };

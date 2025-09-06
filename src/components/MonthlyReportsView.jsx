@@ -4,12 +4,12 @@ import MonthlyReportsTable from './MonthlyReportsTable';
 import { useMonthlyReports } from '../hooks/useMonthlyReports';
 
 const MonthlyReportsView = () => {
-  const { refetch } = useMonthlyReports();
+  const { reports, loading, refetch } = useMonthlyReports();
 
   return (
     <div className="p-6 space-y-6">
       <MonthlyReportForm onSaved={refetch} />
-      <MonthlyReportsTable />
+      <MonthlyReportsTable reports={reports} loading={loading} onRefresh={refetch} />
     </div>
   );
 };

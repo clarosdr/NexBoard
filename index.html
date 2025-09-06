@@ -1,47 +1,21 @@
-<!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    
-    <!-- PWA Meta Tags -->
-    <title>NexBoard - Gestión Empresarial</title>
-    <meta name="description" content="Sistema integral de gestión empresarial para órdenes de servicio, presupuesto personal y reportes financieros" />
-    <meta name="keywords" content="gestión, empresarial, órdenes, servicio, presupuesto, finanzas" />
-    <meta name="author" content="NexBoard" />
-    
-    <!-- Theme Color -->
-    <meta name="theme-color" content="#3B82F6" />
-    <meta name="msapplication-navbutton-color" content="#3B82F6" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    
-    <!-- Mobile App Capable -->
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="NexBoard" />
-    
-    <!-- Manifest -->
-    <link rel="manifest" href="/manifest.json" />
-    
-    <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.svg" />
-    <link rel="icon" type="image/svg+xml" sizes="32x32" href="/icons/favicon-32x32.svg" />
-    <link rel="icon" type="image/svg+xml" sizes="16x16" href="/icons/favicon-32x32.svg" />
-    
-    <!-- Splash Screens for iOS -->
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    
-    <!-- Prevent zoom on input focus -->
-    <meta name="format-detection" content="telephone=no" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js');
-      }
-    </script>
-  </body>
-</html>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "recharts": "https://aistudiocdn.com/recharts@^3.1.2",
+    "xlsx": "https://aistudiocdn.com/xlsx@^0.18.5",
+    "vitest": "https://aistudiocdn.com/vitest@^3.2.4",
+    "@supabase/supabase-js": "https://aistudiocdn.com/@supabase/supabase-js@^2.57.2",
+    "@hookform/resolvers/": "https://aistudiocdn.com/@hookform/resolvers@^5.2.1/",
+    "react-hook-form": "https://aistudiocdn.com/react-hook-form@^7.62.0",
+    "zod": "https://aistudiocdn.com/zod@^4.1.5",
+    "@testing-library/react-hooks": "https://aistudiocdn.com/@testing-library/react-hooks@^8.0.1"
+  }
+}
+</script>
+<div id="root"></div>
+<script type="module" src="/src/main.jsx"></script>
+<link rel="stylesheet" href="/index.css">
+<script type="module" src="/index.tsx"></script>
