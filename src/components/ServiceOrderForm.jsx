@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { serviceOrderSchema } from '../lib/schema';
-import { upsertServiceOrder } from '../lib/serviceOrderService';
 
 function getTodayLocalDate() {
   const today = new Date();
@@ -68,6 +67,8 @@ export default function ServiceOrderForm({ order, onSaved }) {
         payments: order.payments || []
       };
       reset(resetData);
+    } else {
+        reset(defaultValues);
     }
   }, [order, reset]);
 
@@ -99,153 +100,175 @@ export default function ServiceOrderForm({ order, onSaved }) {
   };
 
   const onSubmit = async (data) => {
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
-      
       const cleanedData = {
         ...data,
         items: data.items?.filter(item => item.description?.trim()) || [],
         payments: data.payments?.filter(payment => payment.amount > 0) || []
       };
-      
-      const result = await upsertServiceOrder(cleanedData, order?.id);
-      onSaved?.(result);
-      
+      await onSaved?.(cleanedData);
     } catch (error) {
-      console.error('❌ Error saving order:', error);
+      console.error('❌ Error during form submission:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="p-4 bg-white rounded shadow-md max-w-2xl mx-auto">
-      <h2 className="text-xl font-bold mb-4">{order ? 'Editar Orden' : 'Nueva Orden de Servicio'}</h2>
+    <form onSubmit={handleSubmit(onSubmit)} className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md max-w-2xl mx-auto">
+      <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">{order ? 'Editar Orden' : 'Nueva Orden de Servicio'}</h2>
 
-      <input
-        {...register('customer_name')}
-        placeholder="Cliente"
-        className="w-full mb-2 p-2 border rounded"
-      />
-      {errors.customer_name && <p className="text-red-500 text-sm">{errors.customer_name.message}</p>}
-
-      <textarea
-        {...register('description')}
-        placeholder="Descripción"
-        className="w-full mb-2 p-2 border rounded"
-      />
-      {errors.description && <p className="text-red-500 text-sm">{errors.description.message}</p>}
-
-      <input
-        {...register('service_date')}
-        type="date"
-        className="w-full mb-2 p-2 border rounded"
-      />
-      {errors.service_date && <p className="text-red-500 text-sm">{errors.service_date.message}</p>}
-
-      <select
-        {...register('status')}
-        className="w-full mb-4 p-2 border rounded"
-      >
-        <option value="PENDIENTE">Pendiente</option>
-        <option value="EN PROCESO">En Proceso</option>
-        <option value="FINALIZADO">Finalizado</option>
-        <option value="ENTREGADO">Entregado</option>
-      </select>
-
-      <h3 className="font-semibold mb-2">Ítems</h3>
-      {itemFields.map((item, index) => (
-        <div key={item.id} className="grid grid-cols-5 gap-2 mb-2">
-          <input
-            {...register(`items.${index}.description`)}
-            placeholder="Descripción"
-            className="p-2 border rounded"
-          />
-          <input
-            {...register(`items.${index}.quantity`)}
-            type="number"
-            placeholder="Cantidad"
-            className="p-2 border rounded"
-          />
-          <input
-            {...register(`items.${index}.unitPrice`)}
-            type="number"
-            step="0.01"
-            placeholder="Precio Unitario"
-            className="p-2 border rounded"
-          />
-          <input
-            {...register(`items.${index}.partCost`)}
-            type="number"
-            step="0.01"
-            placeholder="Costo Repuesto"
-            className="p-2 border rounded"
-          />
-          <button
-            type="button"
-            onClick={() => removeItem(index)}
-            className="px-2 py-1 bg-red-500 text-white rounded"
-          >
-            Eliminar
-          </button>
+      <div className="space-y-4">
+        <div>
+            <label htmlFor="customer_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Cliente</label>
+            <input
+                id="customer_name"
+                {...register('customer_name')}
+                placeholder="Nombre del cliente"
+                className="mt-1 w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+            />
+            {errors.customer_name && <p className="text-red-500 text-xs mt-1">{errors.customer_name.message}</p>}
         </div>
-      ))}
-      
-      <button
-        type="button"
-        onClick={() => appendItem({ description: '', quantity: 1, unitPrice: 0, partCost: 0 })}
-        className="mb-4 px-3 py-1 bg-green-500 text-white rounded"
-      >
-        Agregar Ítem
-      </button>
 
-      <h3 className="font-semibold mb-2 mt-4">Pagos</h3>
-      {paymentFields.map((payment, index) => (
-        <div key={payment.id} className="grid grid-cols-3 gap-2 mb-2">
-          <input
-            {...register(`payments.${index}.method`)}
-            placeholder="Método de pago"
-            className="p-2 border rounded"
-          />
-          <input
-            {...register(`payments.${index}.amount`)}
-            type="number"
-            step="0.01"
-            placeholder="Monto"
-            className="p-2 border rounded"
-          />
-          <button
-            type="button"
-            onClick={() => removePayment(index)}
-            className="px-2 py-1 bg-red-500 text-white rounded"
-          >
-            Eliminar
-          </button>
+        <div>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Descripción</label>
+            <textarea
+                id="description"
+                {...register('description')}
+                placeholder="Descripción del servicio o equipo"
+                className="mt-1 w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                rows="3"
+            />
+            {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>}
         </div>
-      ))}
-      
-      <button
-        type="button"
-        onClick={() => appendPayment({ method: '', amount: 0 })}
-        className="mb-4 px-3 py-1 bg-green-500 text-white rounded"
-      >
-        Agregar Pago
-      </button>
 
-      <div className="mt-4 p-3 bg-gray-100 rounded">
-        <p><strong>Total Servicio:</strong> ${calculateTotalServiceCost().toFixed(2)}</p>
-        <p><strong>Total Repuestos:</strong> ${calculateTotalPartCost().toFixed(2)}</p>
-        <p><strong>Total Pagado:</strong> ${calculateTotalPaid().toFixed(2)}</p>
-        <p><strong>Saldo Pendiente:</strong> ${(calculateTotalServiceCost() + calculateTotalPartCost() - calculateTotalPaid()).toFixed(2)}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label htmlFor="service_date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha</label>
+                <input
+                    id="service_date"
+                    {...register('service_date')}
+                    type="date"
+                    className="mt-1 w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                />
+                {errors.service_date && <p className="text-red-500 text-xs mt-1">{errors.service_date.message}</p>}
+            </div>
+            <div>
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Estado</label>
+                <select
+                    id="status"
+                    {...register('status')}
+                    className="mt-1 w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                >
+                    <option value="PENDIENTE">Pendiente</option>
+                    <option value="EN PROCESO">En Proceso</option>
+                    <option value="FINALIZADO">Finalizado</option>
+                    <option value="ENTREGADO">Entregado</option>
+                </select>
+            </div>
+        </div>
+
+        <div className="pt-4 border-t dark:border-gray-700">
+            <h3 className="font-semibold mb-2 text-gray-800 dark:text-white">Ítems</h3>
+            {itemFields.map((item, index) => (
+                <div key={item.id} className="grid grid-cols-1 md:grid-cols-5 gap-2 mb-2 p-2 bg-gray-50 dark:bg-gray-900/50 rounded-md">
+                    <input
+                        {...register(`items.${index}.description`)}
+                        placeholder="Descripción del ítem"
+                        className="p-2 border rounded-md col-span-1 md:col-span-2 dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <input
+                        {...register(`items.${index}.quantity`)}
+                        type="number"
+                        placeholder="Cant."
+                        className="p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <input
+                        {...register(`items.${index}.unitPrice`)}
+                        type="number"
+                        step="0.01"
+                        placeholder="P. Unitario"
+                        className="p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <div className="flex items-center">
+                        <input
+                            {...register(`items.${index}.partCost`)}
+                            type="number"
+                            step="0.01"
+                            placeholder="Costo Rep."
+                            className="p-2 border rounded-md w-full dark:bg-gray-700 dark:border-gray-600"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => removeItem(index)}
+                            className="ml-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+                        >
+                            X
+                        </button>
+                    </div>
+                </div>
+            ))}
+            <button
+                type="button"
+                onClick={() => appendItem({ description: '', quantity: 1, unitPrice: 0, partCost: 0 })}
+                className="mt-2 px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
+            >
+                + Ítem
+            </button>
+        </div>
+
+        <div className="pt-4 border-t dark:border-gray-700">
+            <h3 className="font-semibold mb-2 text-gray-800 dark:text-white">Pagos</h3>
+            {paymentFields.map((payment, index) => (
+                <div key={payment.id} className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2 p-2 bg-gray-50 dark:bg-gray-900/50 rounded-md">
+                    <input
+                        {...register(`payments.${index}.method`)}
+                        placeholder="Método de pago"
+                        className="p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <input
+                        {...register(`payments.${index}.amount`)}
+                        type="number"
+                        step="0.01"
+                        placeholder="Monto"
+                        className="p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => removePayment(index)}
+                        className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                    >
+                        Eliminar Pago
+                    </button>
+                </div>
+            ))}
+            <button
+                type="button"
+                onClick={() => appendPayment({ method: '', amount: 0 })}
+                className="mt-2 px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
+            >
+                + Pago
+            </button>
+        </div>
+
+        <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm space-y-2">
+            <div className="flex justify-between"><span>Total Servicio:</span> <span className="font-medium">${calculateTotalServiceCost().toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>Total Repuestos:</span> <span className="font-medium">${calculateTotalPartCost().toFixed(2)}</span></div>
+            <div className="flex justify-between text-green-600 dark:text-green-400"><span>Total Pagado:</span> <span className="font-medium">${calculateTotalPaid().toFixed(2)}</span></div>
+            <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2 dark:border-gray-600"><span>Saldo Pendiente:</span> <span>${(calculateTotalServiceCost() + calculateTotalPartCost() - calculateTotalPaid()).toFixed(2)}</span></div>
+        </div>
+
+        <div className="mt-6 flex justify-end">
+            <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            >
+                {isSubmitting ? 'Guardando...' : 'Guardar Orden'}
+            </button>
+        </div>
       </div>
-
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-      >
-        {isSubmitting ? 'Guardando...' : 'Guardar Orden'}
-      </button>
     </form>
   );
 }
