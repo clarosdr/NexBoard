@@ -570,7 +570,11 @@ export const supabaseService = {
   },
 
   async createLicense(licenseData, userId) {
-    const payload = { ...licenseData, owner_id: userId };
+    const payload = {
+      owner_id: userId,
+      nombre: licenseData.nombre,
+      clave: licenseData.clave,
+    };
     const { data, error } = await supabase
       .from('licenses')
       .insert(payload)
@@ -611,7 +615,13 @@ export const supabaseService = {
   },
 
   async createServerCredential(credentialData, userId) {
-    const payload = { ...credentialData, owner_id: userId };
+    const payload = {
+      owner_id: userId,
+      nombre: credentialData.nombre,
+      ip: credentialData.ip,
+      usuario: credentialData.usuario,
+      clave: credentialData.clave,
+    };
     const { data, error } = await supabase
       .from('servers')
       .insert(payload)

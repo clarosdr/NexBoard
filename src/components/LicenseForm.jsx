@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabaseService } from '../lib/supabase';
+import { useAuth } from '../hooks/useAuth';
 
 const LicenseForm = ({ onSaved }) => {
   const [nombre, setNombre] = useState('');
   const [clave, setClave] = useState('');
   const [mensaje, setMensaje] = useState('');
+  const { user } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,18 +17,20 @@ const LicenseForm = ({ onSaved }) => {
       return;
     }
 
-    const { error } = await supabase
-      .from('licenses')
-      .insert([{ nombre, clave }]);
+    if (!user) {
+        setMensaje('❌ Error: Usuario no autenticado.');
+        return;
+    }
 
-    if (error) {
-      console.error('❌ Error al guardar licencia:', error);
-      setMensaje('❌ Error al guardar. Revisa la consola.');
-    } else {
+    try {
+      await supabaseService.createLicense({ nombre, clave }, user.id);
       setMensaje('✅ Licencia guardada correctamente.');
       setNombre('');
       setClave('');
       if (onSaved) onSaved();
+    } catch (error) {
+      console.error('❌ Error al guardar licencia:', error);
+      setMensaje('❌ Error al guardar. Revisa la consola.');
     }
   };
 

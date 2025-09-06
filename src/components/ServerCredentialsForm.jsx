@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabaseService } from '../lib/supabase';
+import { useAuth } from '../hooks/useAuth';
 
 const ServerCredentialsForm = ({ onSaved }) => {
   const [nombre, setNombre] = useState('');
@@ -7,6 +8,7 @@ const ServerCredentialsForm = ({ onSaved }) => {
   const [usuario, setUsuario] = useState('');
   const [clave, setClave] = useState('');
   const [mensaje, setMensaje] = useState('');
+  const { user } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,20 +19,22 @@ const ServerCredentialsForm = ({ onSaved }) => {
       return;
     }
 
-    const { error } = await supabase
-      .from('servers')
-      .insert([{ nombre, ip, usuario, clave }]);
-
-    if (error) {
-      console.error('❌ Error al guardar servidor:', error);
-      setMensaje('❌ Error al guardar. Revisa la consola.');
-    } else {
-      setMensaje('✅ Servidor guardado correctamente.');
-      setNombre('');
-      setIp('');
-      setUsuario('');
-      setClave('');
-      if (onSaved) onSaved();
+    if (!user) {
+        setMensaje('❌ Error: Usuario no autenticado.');
+        return;
+    }
+    
+    try {
+        await supabaseService.createServerCredential({ nombre, ip, usuario, clave }, user.id);
+        setMensaje('✅ Servidor guardado correctamente.');
+        setNombre('');
+        setIp('');
+        setUsuario('');
+        setClave('');
+        if (onSaved) onSaved();
+    } catch (error) {
+        console.error('❌ Error al guardar servidor:', error);
+        setMensaje('❌ Error al guardar. Revisa la consola.');
     }
   };
 

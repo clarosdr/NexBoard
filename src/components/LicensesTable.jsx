@@ -1,29 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabaseService } from '../lib/supabase';
+import { useAuth } from '../hooks/useAuth';
 
 const LicensesTable = () => {
   const [licenses, setLicenses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   const fetchLicenses = async () => {
+    if (!user) return;
     setLoading(true);
-    const { data, error } = await supabase
-      .from('licenses')
-      .select('*')
-      .order('nombre', { ascending: true });
-
-    if (error) {
+    try {
+      const data = await supabaseService.getLicenses(user.id);
+      setLicenses(data || []);
+    } catch (error) {
       console.error('❌ Error al cargar licencias:', error);
       setLicenses([]);
-    } else {
-      setLicenses(data || []);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
     fetchLicenses();
-  }, []);
+  }, [user]);
 
   return (
     <div className="p-4">

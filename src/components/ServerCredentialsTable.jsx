@@ -1,29 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabaseService } from '../lib/supabase';
+import { useAuth } from '../hooks/useAuth';
 
 const ServerCredentialsTable = () => {
   const [servers, setServers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   const fetchServers = async () => {
+    if (!user) return;
     setLoading(true);
-    const { data, error } = await supabase
-      .from('servers')
-      .select('*')
-      .order('nombre', { ascending: true });
-
-    if (error) {
-      console.error('❌ Error al cargar servidores:', error);
-      setServers([]);
-    } else {
-      setServers(data || []);
+    try {
+        const data = await supabaseService.getServerCredentials(user.id);
+        setServers(data || []);
+    } catch(error) {
+        console.error('❌ Error al cargar servidores:', error);
+        setServers([]);
+    } finally {
+        setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
     fetchServers();
-  }, []);
+  }, [user]);
 
   return (
     <div className="p-4">

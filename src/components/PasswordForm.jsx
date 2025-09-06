@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabaseService } from '../lib/supabase';
+import { useAuth } from '../hooks/useAuth';
 
 const PasswordForm = ({ onSaved }) => {
   const [servicio, setServicio] = useState('');
   const [usuario, setUsuario] = useState('');
   const [clave, setClave] = useState('');
   const [mensaje, setMensaje] = useState('');
+  const { user } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,20 +17,22 @@ const PasswordForm = ({ onSaved }) => {
       setMensaje('⚠️ Todos los campos son obligatorios.');
       return;
     }
+    
+    if (!user) {
+        setMensaje('❌ Error: Usuario no autenticado.');
+        return;
+    }
 
-    const { error } = await supabase
-      .from('passwords')
-      .insert([{ servicio, usuario, clave }]);
-
-    if (error) {
-      console.error('❌ Error al guardar contraseña:', error);
-      setMensaje('❌ Error al guardar. Revisa la consola.');
-    } else {
-      setMensaje('✅ Contraseña guardada correctamente.');
-      setServicio('');
-      setUsuario('');
-      setClave('');
-      if (onSaved) onSaved();
+    try {
+        await supabaseService.createPassword({ servicio, usuario, clave }, user.id);
+        setMensaje('✅ Contraseña guardada correctamente.');
+        setServicio('');
+        setUsuario('');
+        setClave('');
+        if (onSaved) onSaved();
+    } catch(error) {
+        console.error('❌ Error al guardar contraseña:', error);
+        setMensaje('❌ Error al guardar. Revisa la consola.');
     }
   };
 

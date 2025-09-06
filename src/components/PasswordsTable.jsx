@@ -1,29 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabaseService } from '../lib/supabase';
+import { useAuth } from '../hooks/useAuth';
 
 const PasswordsTable = () => {
   const [passwords, setPasswords] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   const fetchPasswords = async () => {
+    if (!user) return;
     setLoading(true);
-    const { data, error } = await supabase
-      .from('passwords')
-      .select('*')
-      .order('servicio', { ascending: true });
-
-    if (error) {
-      console.error('❌ Error al cargar contraseñas:', error);
-      setPasswords([]);
-    } else {
-      setPasswords(data || []);
+    try {
+        const data = await supabaseService.getPasswords(user.id);
+        setPasswords(data || []);
+    } catch(error) {
+        console.error('❌ Error al cargar contraseñas:', error);
+        setPasswords([]);
+    } finally {
+        setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
     fetchPasswords();
-  }, []);
+  }, [user]);
 
   return (
     <div className="p-4">
