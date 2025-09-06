@@ -176,12 +176,14 @@ export default function ServiceOrderForm({ order, onSaved }) {
                     <input
                         {...register(`items.${index}.description`)}
                         placeholder="Descripción del ítem"
+                        aria-label={`Descripción del ítem ${index + 1}`}
                         className="p-2 border rounded-md col-span-1 md:col-span-2 dark:bg-gray-700 dark:border-gray-600"
                     />
                     <input
                         {...register(`items.${index}.quantity`)}
                         type="number"
                         placeholder="Cant."
+                        aria-label={`Cantidad para el ítem ${index + 1}`}
                         className="p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
                     />
                     <input
@@ -189,6 +191,7 @@ export default function ServiceOrderForm({ order, onSaved }) {
                         type="number"
                         step="0.01"
                         placeholder="P. Unitario"
+                        aria-label={`Precio unitario para el ítem ${index + 1}`}
                         className="p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
                     />
                     <div className="flex items-center">
@@ -197,12 +200,14 @@ export default function ServiceOrderForm({ order, onSaved }) {
                             type="number"
                             step="0.01"
                             placeholder="Costo Rep."
+                            aria-label={`Costo de repuesto para el ítem ${index + 1}`}
                             className="p-2 border rounded-md w-full dark:bg-gray-700 dark:border-gray-600"
                         />
                         <button
                             type="button"
                             onClick={() => removeItem(index)}
                             className="ml-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+                            aria-label={`Eliminar ítem ${index + 1}`}
                         >
                             X
                         </button>
@@ -225,6 +230,7 @@ export default function ServiceOrderForm({ order, onSaved }) {
                     <input
                         {...register(`payments.${index}.method`)}
                         placeholder="Método de pago"
+                        aria-label={`Método de pago ${index + 1}`}
                         className="p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
                     />
                     <input
@@ -232,6 +238,7 @@ export default function ServiceOrderForm({ order, onSaved }) {
                         type="number"
                         step="0.01"
                         placeholder="Monto"
+                        aria-label={`Monto del pago ${index + 1}`}
                         className="p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600"
                     />
                     <button
