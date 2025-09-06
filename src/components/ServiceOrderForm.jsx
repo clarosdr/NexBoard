@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Button from './ui/Button'
 import { getTodayLocalDate } from '../utils/dateUtils'
 import { useAuth } from '../hooks/useAuth'
+import { supabase } from '../lib/supabase'
 
 const GENERATE_UUID = () => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -129,78 +130,72 @@ useAuth() // Call useAuth hook but don't destructure since we're not using any v
     return Math.max(0, total - paid)
   }
 
+  const sanitizeFormData = (data) => ({
+    ...data,
+    totalPaid: Number(data.totalPaid) || 0,
+    items: data.items.map(item => ({
+      ...item,
+      quantity: Number(item.quantity) || 0,
+      unitPrice: Number(item.unitPrice) || 0,
+      partCost: Number(item.partCost) || 0,
+    })),
+    payments: data.payments.map(p => ({
+      ...p,
+      amount: Number(p.amount) || 0,
+    })),
+  });
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    console.log('🔄 Iniciando proceso de guardado...');
-    console.log('📋 Datos del formulario antes de procesar:', formData);
-
+    
     // Validación básica
     if (!formData.customer_name.trim()) {
       alert('Por favor ingresa el nombre del cliente');
       return;
     }
-
+    
     if (!formData.description.trim()) {
       alert('Por favor ingresa la descripción del servicio');
       return;
     }
-
-    // Validar que los ítems tengan descripción
-    const invalidItems = formData.items.filter(item => !item.description.trim());
-    if (invalidItems.length > 0) {
-      alert('Todos los ítems deben tener una descripción');
-      return;
-    }
-
-    console.log('✅ Validaciones básicas pasadas');
+    
     setIsSubmitting(true);
-
-    // Procesar items para asegurar que los valores numéricos sean números
-    const processedItems = formData.items.map(item => ({
-      ...item,
-      quantity: Number(item.quantity) || 1,
-      unitPrice: Number(item.unitPrice) || 0,
-      partCost: Number(item.partCost) || 0
-    }));
-
-    // Procesar pagos para asegurar que los valores numéricos sean números
-    const processedPayments = formData.payments.map(payment => ({
-      ...payment,
-      amount: Number(payment.amount) || 0
-    }));
-
-    const data = {
-      customer_name: formData.customer_name,
-      service_date: formData.service_date,
-      description: formData.description,
-      status: formData.status,
-      items: processedItems,
-      payments: processedPayments,
-      totalPaid: Number(formData.totalPaid) || 0
-    };
-
-    console.log('📤 Datos procesados a enviar:', data);
-    console.log('🔧 Items procesados:', processedItems);
-    console.log('💰 Pagos procesados:', processedPayments);
-
+    
     try {
-      if (onSubmit) {
-        console.log('📞 Llamando a onSubmit...');
-        await onSubmit(data);
-        console.log('✅ onSubmit completado exitosamente');
-        // Resetear el estado de cambios no guardados después del envío exitoso
-        setHasUnsavedChanges(false);
-        if (onFormChange) {
-          onFormChange(false);
-        }
-        console.log('🎉 Proceso de guardado completado');
-        // No mostrar alerta, la confirmación se maneja en el componente padre
+      const cleanData = sanitizeFormData(formData);
+      
+      if (order) {
+        // Actualizar orden existente
+        const { error } = await supabase
+          .from('ordenes_servicio')
+          .update(cleanData)
+          .eq('id', order.id);
+        
+        if (error) throw error;
+        alert('Orden actualizada correctamente');
       } else {
-        console.error('❌ onSubmit no está definido');
+        // Crear nueva orden
+        const { error } = await supabase
+          .from('ordenes_servicio')
+          .insert([cleanData]);
+        
+        if (error) throw error;
+        alert('Orden creada correctamente');
       }
+      
+      // Resetear el estado de cambios no guardados
+      setHasUnsavedChanges(false);
+      if (onFormChange) {
+        onFormChange(false);
+      }
+      
+      // Llamar callback si existe
+      if (onSubmit) {
+        await onSubmit(cleanData);
+      }
+      
     } catch (error) {
-      console.error('❌ Error al enviar los datos:', error);
+      console.error('Error al guardar la orden:', error);
       alert('Hubo un error al guardar la orden. Por favor intenta nuevamente.');
     } finally {
       setIsSubmitting(false);
