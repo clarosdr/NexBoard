@@ -32,8 +32,9 @@ const ServerCredentialsTable = () => {
         <button
           onClick={fetchServers}
           className="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+          disabled={loading}
         >
-          🔄 Recargar
+          {loading ? 'Cargando...' : '🔄 Recargar'}
         </button>
       </div>
 
@@ -42,26 +43,26 @@ const ServerCredentialsTable = () => {
       ) : servers.length === 0 ? (
         <p>No hay servidores registrados.</p>
       ) : (
-        <table className="min-w-full border text-sm">
-          <thead className="bg-gray-100 dark:bg-gray-800">
-            <tr>
-              <th className="px-4 py-2 text-left">Nombre</th>
-              <th className="px-4 py-2 text-left">IP</th>
-              <th className="px-4 py-2 text-left">Usuario</th>
-              <th className="px-4 py-2 text-left">Clave</th>
-            </tr>
-          </thead>
-          <tbody>
-            {servers.map(server => (
-              <tr key={server.id} className="border-t hover:bg-gray-50 dark:hover:bg-gray-900">
-                <td className="px-4 py-2">{server.nombre}</td>
-                <td className="px-4 py-2">{server.ip}</td>
-                <td className="px-4 py-2">{server.usuario}</td>
-                <td className="px-4 py-2">{server.clave}</td>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border text-sm">
+            <thead className="bg-gray-100 dark:bg-gray-800">
+              <tr>
+                <th className="px-4 py-2 text-left">Empresa</th>
+                <th className="px-4 py-2 text-left">Servidor</th>
+                <th className="px-4 py-2 text-left">IP VPN</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {servers.map(server => (
+                <tr key={server.id} className="border-t hover:bg-gray-50 dark:hover:bg-gray-900">
+                  <td className="px-4 py-2">{server.company_name}</td>
+                  <td className="px-4 py-2">{server.server_name}</td>
+                  <td className="px-4 py-2">{server.vpn_ip}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

@@ -32,8 +32,9 @@ const PasswordsTable = () => {
         <button
           onClick={fetchPasswords}
           className="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+          disabled={loading}
         >
-          🔄 Recargar
+          {loading ? 'Cargando...' : '🔄 Recargar'}
         </button>
       </div>
 
@@ -42,24 +43,28 @@ const PasswordsTable = () => {
       ) : passwords.length === 0 ? (
         <p>No hay contraseñas registradas.</p>
       ) : (
-        <table className="min-w-full border text-sm">
-          <thead className="bg-gray-100 dark:bg-gray-800">
-            <tr>
-              <th className="px-4 py-2 text-left">Servicio</th>
-              <th className="px-4 py-2 text-left">Usuario</th>
-              <th className="px-4 py-2 text-left">Clave</th>
-            </tr>
-          </thead>
-          <tbody>
-            {passwords.map(pass => (
-              <tr key={pass.id} className="border-t hover:bg-gray-50 dark:hover:bg-gray-900">
-                <td className="px-4 py-2">{pass.servicio}</td>
-                <td className="px-4 py-2">{pass.usuario}</td>
-                <td className="px-4 py-2">{pass.clave}</td>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border text-sm">
+            <thead className="bg-gray-100 dark:bg-gray-800">
+              <tr>
+                <th className="px-4 py-2 text-left">Servicio/App</th>
+                <th className="px-4 py-2 text-left">Usuario</th>
+                <th className="px-4 py-2 text-left">Clave</th>
+                <th className="px-4 py-2 text-left">Categoría</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {passwords.map(pass => (
+                <tr key={pass.id} className="border-t hover:bg-gray-50 dark:hover:bg-gray-900">
+                  <td className="px-4 py-2">{pass.site_app}</td>
+                  <td className="px-4 py-2">{pass.username}</td>
+                  <td className="px-4 py-2">{pass.password}</td>
+                  <td className="px-4 py-2 capitalize">{pass.category}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

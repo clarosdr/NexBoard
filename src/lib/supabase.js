@@ -376,14 +376,14 @@ export const supabaseService = {
     this.clearUserCache(userId)
   },
 
-  // Passwords
+  // Passwords (using 'credentials' table)
   async getPasswords(userId) {
-    const cacheKey = `passwords_${userId}`
+    const cacheKey = `credentials_${userId}`
     const cached = cache.get(cacheKey)
     if (cached) return cached
 
     const { data, error } = await supabase
-      .from('passwords')
+      .from('credentials')
       .select('*')
       .eq('owner_id', userId)
       .order('created_at', { ascending: false })
@@ -394,35 +394,17 @@ export const supabaseService = {
   },
 
   async createPassword(passwordData, userId) {
-    const sanitizedData = {
+    const payload = {
       owner_id: userId,
-      servicio: sanitizeInput(passwordData.servicio, 200),
-      usuario: sanitizeInput(passwordData.usuario, 200),
-      clave: passwordData.clave,
+      site_app: sanitizeInput(passwordData.site_app, 200),
+      username: sanitizeInput(passwordData.username, 200),
+      password: passwordData.password, // Clave no se sanitiza para no alterarla
+      category: passwordData.category || 'otros'
     }
 
     const { data, error } = await supabase
-      .from('passwords')
-      .insert(sanitizedData)
-      .select()
-      .single()
-
-    if (error) throw error
-    this.clearUserCache(userId)
-    return data
-  },
-
-  async updatePassword(passwordId, passwordData, userId) {
-    const sanitizedData = {}
-    if(passwordData.servicio) sanitizedData.servicio = sanitizeInput(passwordData.servicio, 200);
-    if(passwordData.usuario) sanitizedData.usuario = sanitizeInput(passwordData.usuario, 200);
-    if(passwordData.clave) sanitizedData.clave = passwordData.clave;
-    
-    const { data, error } = await supabase
-      .from('passwords')
-      .update(sanitizedData)
-      .eq('id', passwordId)
-      .eq('owner_id', userId)
+      .from('credentials')
+      .insert(payload)
       .select()
       .single()
 
@@ -433,7 +415,7 @@ export const supabaseService = {
 
   async deletePassword(passwordId, userId) {
     const { error } = await supabase
-      .from('passwords')
+      .from('credentials')
       .delete()
       .eq('id', passwordId)
       .eq('owner_id', userId)
@@ -444,12 +426,12 @@ export const supabaseService = {
 
   // Budget Expenses
   async getBudgetExpenses(userId) {
-    const cacheKey = `budget_expenses_${userId}`
+    const cacheKey = `budget_lines_${userId}`
     const cached = cache.get(cacheKey)
     if (cached) return cached
 
     const { data, error } = await supabase
-      .from('budget_expenses')
+      .from('budget_lines')
       .select(`*`)
       .eq('owner_id', userId)
       .order('created_at', { ascending: false })
@@ -464,27 +446,13 @@ export const supabaseService = {
       owner_id: userId,
       description: expenseData.description,
       amount: expenseData.amount,
-      date: expenseData.date,
+      due_day: new Date(expenseData.date).getDate(), // Extract day from date
       category: expenseData.category,
-      detail: expenseData.detail
+      notes: expenseData.detail
     };
     const { data, error } = await supabase
-      .from('budget_expenses')
+      .from('budget_lines')
       .insert(payload)
-      .select()
-      .single()
-
-    if (error) throw error
-    this.clearUserCache(userId)
-    return data;
-  },
-
-  async updateBudgetExpense(expenseId, expenseData, userId) {
-    const { data, error } = await supabase
-      .from('budget_expenses')
-      .update(expenseData)
-      .eq('id', expenseId)
-      .eq('owner_id', userId)
       .select()
       .single()
 
@@ -495,7 +463,7 @@ export const supabaseService = {
 
   async deleteBudgetExpense(expenseId, userId) {
     const { error } = await supabase
-      .from('budget_expenses')
+      .from('budget_lines')
       .delete()
       .eq('id', expenseId)
       .eq('owner_id', userId)
@@ -504,14 +472,14 @@ export const supabaseService = {
     this.clearUserCache(userId)
   },
 
-  // Casual Expenses
+  // Casual Expenses (using 'expenses' table)
   async getCasualExpenses(userId) {
-    const cacheKey = `casual_expenses_${userId}`
+    const cacheKey = `expenses_${userId}`
     const cached = cache.get(cacheKey)
     if (cached) return cached
 
     const { data, error } = await supabase
-      .from('casual_expenses')
+      .from('expenses')
       .select('*')
       .eq('owner_id', userId)
       .order('created_at', { ascending: false })
@@ -526,27 +494,13 @@ export const supabaseService = {
       owner_id: userId,
       description: expenseData.description,
       amount: expenseData.amount,
-      date: expenseData.date,
+      expense_date: expenseData.date,
       category: expenseData.category,
       detail: expenseData.detail
     };
     const { data, error } = await supabase
-      .from('casual_expenses')
+      .from('expenses')
       .insert(payload)
-      .select()
-      .single()
-
-    if (error) throw error
-    this.clearUserCache(userId)
-    return data;
-  },
-
-  async updateCasualExpense(expenseId, expenseData, userId) {
-    const { data, error } = await supabase
-      .from('casual_expenses')
-      .update(expenseData)
-      .eq('id', expenseId)
-      .eq('owner_id', userId)
       .select()
       .single()
 
@@ -557,7 +511,7 @@ export const supabaseService = {
 
   async deleteCasualExpense(expenseId, userId) {
     const { error } = await supabase
-      .from('casual_expenses')
+      .from('expenses')
       .delete()
       .eq('id', expenseId)
       .eq('owner_id', userId)
@@ -586,8 +540,9 @@ export const supabaseService = {
   async createLicense(licenseData, userId) {
     const payload = {
       owner_id: userId,
-      nombre: licenseData.nombre,
-      clave: licenseData.clave,
+      client_name: licenseData.client_name,
+      license_name: licenseData.license_name,
+      serial: licenseData.serial,
     };
     const { data, error } = await supabase
       .from('licenses')
@@ -614,9 +569,9 @@ export const supabaseService = {
     this.clearUserCache(userId)
   },
 
-  // Server Credentials
+  // Server Credentials (using 'servers' table)
   async getServerCredentials(userId) {
-    const cacheKey = `server_credentials_${userId}`
+    const cacheKey = `servers_${userId}`
     const cached = cache.get(cacheKey)
     if (cached) return cached
 
@@ -634,10 +589,10 @@ export const supabaseService = {
   async createServerCredential(credentialData, userId) {
     const payload = {
       owner_id: userId,
-      nombre: credentialData.nombre,
-      ip: credentialData.ip,
-      usuario: credentialData.usuario,
-      clave: credentialData.clave,
+      company_name: credentialData.company_name,
+      server_name: credentialData.server_name,
+      vpn_ip: credentialData.vpn_ip,
+      vpn_password: credentialData.vpn_password,
     };
     const { data, error } = await supabase
       .from('servers')
