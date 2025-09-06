@@ -1,39 +1,32 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+// vite.config.js
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  build: {
-    // Optimizaciones para producción
-    minify: 'esbuild',
-    sourcemap: false,
-    rollupOptions: {
-      output: {
-        // Separar chunks para mejor caching
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          supabase: ['@supabase/supabase-js']
-        }
-      }
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@components': path.resolve(__dirname, './src/components'),
+      '@hooks': path.resolve(__dirname, './src/hooks'),
+      '@lib': path.resolve(__dirname, './src/lib'),
+      '@utils': path.resolve(__dirname, './src/utils'),
     },
-    // Configuración de assets
-    assetsDir: 'assets',
-    // Límite de tamaño para inline assets (4KB)
-    assetsInlineLimit: 4096
   },
-  // Optimización de dependencias
-  optimizeDeps: {
-    include: ['react', 'react-dom', '@supabase/supabase-js']
+  css: {
+    preprocessorOptions: {
+      css: {
+        additionalData: `@import "@/tailwind.css";`,
+      },
+    },
   },
-  // Configuración del servidor de desarrollo
-  server: {
-    port: 5173,
-    host: true
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.js'], // opcional si usas mocks globales
+    coverage: {
+      reporter: ['text', 'json', 'html'],
+    },
   },
-  // Configuración de preview
-  preview: {
-    port: 4173,
-    host: true
-  }
-})
+});
