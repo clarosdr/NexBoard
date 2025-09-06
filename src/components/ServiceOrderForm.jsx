@@ -1,141 +1,86 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../supabase/client';
-import { getTodayLocalDate } from '../utils/dateUtils';
+import React, { useEffect } from 'react';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { serviceOrderSchema } from '../lib/schema';
+import { upsertServiceOrder } from '../lib/serviceOrderService';
 
-export default function ServiceOrderForm({ order, onFormChange }) {
-  const [formData, setFormData] = useState(null);
-  const [initialFormData, setInitialFormData] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
-  useEffect(() => {
-    let initialData;
-    if (order) {
-      initialData = {
-        customer_name: order.customer_name || '',
-        description: order.description || '',
-        service_date: order.service_date || getTodayLocalDate(),
-        status: order.status || 'PENDIENTE',
-        items: order.items && order.items.length > 0
-          ? order.items.map(item => ({
-              ...item,
-              quantity: Number(item.quantity) || 0,
-              unitPrice: Number(item.unitPrice) || 0,
-              partCost: Number(item.partCost) || 0
-            }))
-          : [{ id: 1, description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
-        payments: order.payments || [],
-        totalPaid: Number(order.totalPaid) || 0
-      };
-    } else {
-      initialData = {
-        customer_name: '',
-        description: '',
-        service_date: getTodayLocalDate(),
-        status: 'PENDIENTE',
-        items: [{ id: 1, description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
-        payments: [],
-        totalPaid: 0
-      };
+export default function ServiceOrderForm({ order, onSaved }) {
+  const {
+    register, control, handleSubmit, watch,
+    formState: { errors, isSubmitting },
+    reset
+  } = useForm({
+    resolver: zodResolver(serviceOrderSchema),
+    defaultValues: order ?? {
+      customer_name: '',
+      description: '',
+      service_date: new Date().toISOString().slice(0,10),
+      status: 'PENDIENTE',
+      items: [{ description:'', quantity:'1', unitPrice:'', partCost:'' }],
+      payments: []
     }
+  });
 
-    setFormData(initialData);
-    setInitialFormData(JSON.parse(JSON.stringify(initialData)));
-    setIsSubmitting(false);
-    setHasUnsavedChanges(false);
-  }, [order]);
+  const { fields: items, append: appendItem, remove: removeItem } = useFieldArray({ control, name: 'items' });
+  const { fields: payments, append: appendPay, remove: removePay } = useFieldArray({ control, name: 'payments' });
 
-  useEffect(() => {
-    if (initialFormData) {
-      const hasChanges = JSON.stringify(formData) !== JSON.stringify(initialFormData);
-      setHasUnsavedChanges(hasChanges);
-      if (onFormChange) onFormChange(hasChanges);
+  // Cálculos
+  const allItems = watch('items');
+  const grandTotal = allItems.reduce((sum, i) => sum + (Number(i.quantity)||0)*(Number(i.unitPrice)||0), 0);
+  const totalPartCost = allItems.reduce((sum, i) => sum + (Number(i.quantity)||0)*(Number(i.partCost)||0), 0);
+  const totalPaid = (watch('payments')||[]).reduce((sum, p) => sum + (Number(p.amount)||0), 0);
+
+  // Cuando cambie "order" inicial, resetea el form
+  useEffect(() => { if(order) reset(order); }, [order, reset]);
+
+  const onSubmit = async (data) => {
+    try {
+      const cleaned = {
+        ...data,
+        items: data.items.map(i => ({
+          ...i,
+          quantity: Number(i.quantity),
+          unitPrice: Number(i.unitPrice),
+          partCost: Number(i.partCost)
+        })),
+        payments: data.payments.map(p => ({
+          ...p,
+          amount: Number(p.amount)
+        }))
+      };
+      const saved = await upsertServiceOrder(cleaned);
+      onSaved(saved);
+    } catch (err) {
+      console.error(err);
+      alert('Error guardando orden: ' + err.message);
     }
-  }, [formData, initialFormData, onFormChange]);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
   };
-
-  const handleItemChange = (index, field, value) => {
-    const updatedItems = [...formData.items];
-    updatedItems[index][field] = field === 'description' ? value : Number(value) || 0;
-    setFormData(prev => ({ ...prev, items: updatedItems }));
-  };
-
-  const calculateGrandTotal = () => {
-    return formData.items.reduce((total, item) => {
-      const quantity = Number(item.quantity) || 0;
-      const unitPrice = Number(item.unitPrice) || 0;
-      return total + (quantity * unitPrice);
-    }, 0);
-  };
-
-  const calculateTotalPartCost = () => {
-    return formData.items.reduce((total, item) => {
-      const quantity = Number(item.quantity) || 0;
-      const partCost = Number(item.partCost) || 0;
-      return total + (quantity * partCost);
-    }, 0);
-  };
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    const sanitizedItems = formData.items.map(item => ({
-      ...item,
-      quantity: Number(item.quantity) || 0,
-      unitPrice: Number(item.unitPrice) || 0,
-      partCost: Number(item.partCost) || 0
-    }));
-
-    const payload = {
-      ...formData,
-      items: sanitizedItems,
-      grandTotal: calculateGrandTotal(),
-      totalPartCost: calculateTotalPartCost()
-    };
-
-    const { error } = await supabase.from('ordenes_servicio').insert(payload);
-    if (error) console.error('Error al guardar:', error);
-    setIsSubmitting(false);
-  };
-
-  if (!formData) return null;
 
   return (
-    <div className="p-4 bg-white rounded shadow-md max-w-2xl mx-auto">
-      <h2 className="text-xl font-bold mb-4">Nueva Orden de Servicio</h2>
+    <form onSubmit={handleSubmit(onSubmit)} className="p-4 bg-white rounded shadow-md max-w-2xl mx-auto">
+      <h2 className="text-xl font-bold mb-4">{order ? 'Editar Orden' : 'Nueva Orden de Servicio'}</h2>
 
       <input
-        type="text"
-        name="customer_name"
-        value={formData.customer_name}
-        onChange={handleInputChange}
+        {...register('customer_name')}
         placeholder="Cliente"
         className="w-full mb-2 p-2 border rounded"
       />
+      {errors.customer_name && <p className="text-red-500 text-sm">{errors.customer_name.message}</p>}
 
       <textarea
-        name="description"
-        value={formData.description}
-        onChange={handleInputChange}
+        {...register('description')}
         placeholder="Descripción"
         className="w-full mb-2 p-2 border rounded"
       />
 
       <input
+        {...register('service_date')}
         type="date"
-        name="service_date"
-        value={formData.service_date}
-        onChange={handleInputChange}
         className="w-full mb-2 p-2 border rounded"
       />
 
       <select
-        name="status"
-        value={formData.status}
-        onChange={handleInputChange}
+        {...register('status')}
         className="w-full mb-4 p-2 border rounded"
       >
         <option value="PENDIENTE">Pendiente</option>
@@ -145,51 +90,98 @@ export default function ServiceOrderForm({ order, onFormChange }) {
       </select>
 
       <h3 className="font-semibold mb-2">Ítems</h3>
-      {formData.items.map((item, index) => (
-        <div key={item.id} className="grid grid-cols-4 gap-2 mb-2">
+      {items.map((item, index) => (
+        <div key={item.id} className="grid grid-cols-5 gap-2 mb-2">
           <input
-            type="text"
-            value={item.description}
-            onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+            {...register(`items.${index}.description`)}
             placeholder="Descripción"
             className="p-2 border rounded"
           />
           <input
+            {...register(`items.${index}.quantity`)}
             type="number"
-            value={item.quantity}
-            onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
             placeholder="Cantidad"
             className="p-2 border rounded"
           />
           <input
+            {...register(`items.${index}.unitPrice`)}
             type="number"
-            value={item.unitPrice}
-            onChange={(e) => handleItemChange(index, 'unitPrice', e.target.value)}
+            step="0.01"
             placeholder="Precio Unitario"
             className="p-2 border rounded"
           />
           <input
+            {...register(`items.${index}.partCost`)}
             type="number"
-            value={item.partCost}
-            onChange={(e) => handleItemChange(index, 'partCost', e.target.value)}
+            step="0.01"
             placeholder="Costo Repuesto"
             className="p-2 border rounded"
           />
+          <button
+            type="button"
+            onClick={() => removeItem(index)}
+            className="px-2 py-1 bg-red-500 text-white rounded"
+          >
+            Eliminar
+          </button>
         </div>
       ))}
-
-      <div className="mt-4">
-        <p><strong>Total Servicio:</strong> ${calculateGrandTotal()}</p>
-        <p><strong>Total Repuestos:</strong> ${calculateTotalPartCost()}</p>
-      </div>
-
+      
       <button
-        onClick={handleSubmit}
-        disabled={isSubmitting}
-        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        type="button"
+        onClick={() => appendItem({ description: '', quantity: '1', unitPrice: '', partCost: '' })}
+        className="mb-4 px-3 py-1 bg-green-500 text-white rounded"
       >
-        {isSubmitting ? 'Guardando...' : 'Guardar Orden'}
+        Agregar Ítem
       </button>
-    </div>
+
+      <h3 className="font-semibold mb-2 mt-4">Pagos</h3>
+       {payments.map((payment, index) => (
+         <div key={payment.id} className="grid grid-cols-3 gap-2 mb-2">
+           <input
+             {...register(`payments.${index}.method`)}
+             placeholder="Método de pago"
+             className="p-2 border rounded"
+           />
+           <input
+             {...register(`payments.${index}.amount`)}
+             type="number"
+             step="0.01"
+             placeholder="Monto"
+             className="p-2 border rounded"
+           />
+           <button
+             type="button"
+             onClick={() => removePay(index)}
+             className="px-2 py-1 bg-red-500 text-white rounded"
+           >
+             Eliminar
+           </button>
+         </div>
+       ))}
+       
+       <button
+         type="button"
+         onClick={() => appendPay({ method: '', amount: '' })}
+         className="mb-4 px-3 py-1 bg-green-500 text-white rounded"
+       >
+         Agregar Pago
+       </button>
+
+       <div className="mt-4 p-3 bg-gray-100 rounded">
+         <p><strong>Total Servicio:</strong> ${grandTotal.toFixed(2)}</p>
+         <p><strong>Total Repuestos:</strong> ${totalPartCost.toFixed(2)}</p>
+         <p><strong>Total Pagado:</strong> ${totalPaid.toFixed(2)}</p>
+         <p><strong>Saldo Pendiente:</strong> ${(grandTotal + totalPartCost - totalPaid).toFixed(2)}</p>
+       </div>
+
+       <button
+         type="submit"
+         disabled={isSubmitting}
+         className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+       >
+         {isSubmitting ? 'Guardando...' : 'Guardar Orden'}
+       </button>
+    </form>
   );
 }
