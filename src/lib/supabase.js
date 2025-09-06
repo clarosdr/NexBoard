@@ -114,9 +114,9 @@ export const supabaseService = {
     console.log('📋 Datos recibidos:', orderData);
     console.log('👤 Usuario ID:', userId);
     
-    // Preparar datos de la orden principal
+    // Preparar datos de la orden principal, manejando el campo 'cliente' heredado
     const orderPayload = {
-      customer_name: orderData.customer_name,
+      customer_name: orderData.customer_name || orderData.cliente,
       service_date: orderData.service_date,
       description: orderData.description,
       status: orderData.status || 'PENDIENTE',
@@ -460,7 +460,14 @@ export const supabaseService = {
   },
 
   async createBudgetExpense(expenseData, userId) {
-    const payload = { ...expenseData, owner_id: userId };
+    const payload = {
+      owner_id: userId,
+      description: expenseData.description,
+      amount: expenseData.amount,
+      date: expenseData.date,
+      category: expenseData.category,
+      detail: expenseData.detail
+    };
     const { data, error } = await supabase
       .from('budget_expenses')
       .insert(payload)
@@ -515,7 +522,14 @@ export const supabaseService = {
   },
 
   async createCasualExpense(expenseData, userId) {
-    const payload = { ...expenseData, owner_id: userId };
+    const payload = {
+      owner_id: userId,
+      description: expenseData.description,
+      amount: expenseData.amount,
+      date: expenseData.date,
+      category: expenseData.category,
+      detail: expenseData.detail
+    };
     const { data, error } = await supabase
       .from('casual_expenses')
       .insert(payload)
@@ -581,8 +595,11 @@ export const supabaseService = {
       .select()
       .single()
 
-    if (error) throw error
-    this.clearUserCache(userId)
+    if (error) {
+      console.error('Supabase error creating license:', error);
+      throw new Error(`Error creating license: ${error.message}`);
+    }
+    this.clearUserCache(userId);
     return data;
   },
 

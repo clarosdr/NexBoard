@@ -44,10 +44,15 @@ const DataMigration = ({ onClose }) => {
         setMigrationStatus(`Migrando ${localData.orders.length} órdenes de servicio...`);
         for (const order of localData.orders) {
           try {
-            await supabaseService.createServiceOrder(order, user.id);
+            // Normalizar datos: manejar el campo 'cliente' heredado
+            const orderToMigrate = {
+              ...order,
+              customer_name: order.customer_name || order.cliente || 'Cliente no especificado',
+            };
+            await supabaseService.createServiceOrder(orderToMigrate, user.id);
             migratedCount++;
           } catch (err) {
-            console.error('Error migrando orden:', err);
+            console.error('Error migrando orden:', order, err);
           }
         }
       }
@@ -57,10 +62,18 @@ const DataMigration = ({ onClose }) => {
         setMigrationStatus(`Migrando ${localData.casualExpenses.length} gastos casuales...`);
         for (const expense of localData.casualExpenses) {
           try {
-            await supabaseService.createCasualExpense(expense, user.id);
+            // Normalizar datos: mapear 'notes' a 'detail' y seleccionar campos válidos
+            const expenseToMigrate = {
+              description: expense.description,
+              amount: expense.amount,
+              date: expense.date,
+              category: expense.category,
+              detail: expense.detail || expense.notes || ''
+            };
+            await supabaseService.createCasualExpense(expenseToMigrate, user.id);
             migratedCount++;
           } catch (err) {
-            console.error('Error migrando gasto casual:', err);
+            console.error('Error migrando gasto casual:', expense, err);
           }
         }
       }
@@ -70,10 +83,18 @@ const DataMigration = ({ onClose }) => {
         setMigrationStatus(`Migrando ${localData.budgetExpenses.length} gastos de presupuesto...`);
         for (const expense of localData.budgetExpenses) {
           try {
-            await supabaseService.createBudgetExpense(expense, user.id);
+            // Normalizar datos: mapear 'notes' a 'detail' y seleccionar campos válidos
+            const expenseToMigrate = {
+              description: expense.description,
+              amount: expense.amount,
+              date: expense.date,
+              category: expense.category,
+              detail: expense.detail || expense.notes || ''
+            };
+            await supabaseService.createBudgetExpense(expenseToMigrate, user.id);
             migratedCount++;
           } catch (err) {
-            console.error('Error migrando gasto de presupuesto:', err);
+            console.error('Error migrando gasto de presupuesto:', expense, err);
           }
         }
       }
@@ -83,10 +104,15 @@ const DataMigration = ({ onClose }) => {
         setMigrationStatus(`Migrando ${localData.licenses.length} licencias...`);
         for (const license of localData.licenses) {
           try {
-            await supabaseService.createLicense(license, user.id);
+            // Normalizar datos: seleccionar solo los campos que existen en la tabla
+            const licenseToMigrate = {
+              nombre: license.nombre,
+              clave: license.clave
+            };
+            await supabaseService.createLicense(licenseToMigrate, user.id);
             migratedCount++;
           } catch (err) {
-            console.error('Error migrando licencia:', err);
+            console.error('Error migrando licencia:', license, err);
           }
         }
       }
@@ -96,10 +122,16 @@ const DataMigration = ({ onClose }) => {
         setMigrationStatus(`Migrando ${localData.passwords.length} contraseñas...`);
         for (const password of localData.passwords) {
           try {
-            await supabaseService.createPassword(password, user.id);
+            // Normalizar datos: seleccionar solo los campos válidos
+            const passwordToMigrate = {
+              servicio: password.servicio,
+              usuario: password.usuario,
+              clave: password.clave
+            };
+            await supabaseService.createPassword(passwordToMigrate, user.id);
             migratedCount++;
           } catch (err) {
-            console.error('Error migrando contraseña:', err);
+            console.error('Error migrando contraseña:', password, err);
           }
         }
       }
@@ -109,10 +141,18 @@ const DataMigration = ({ onClose }) => {
         setMigrationStatus(`Migrando ${localData.serverCredentials.length} credenciales de servidor...`);
         for (const credential of localData.serverCredentials) {
           try {
-            await supabaseService.createServerCredential(credential, user.id);
+            // Normalizar datos: seleccionar solo los campos válidos
+            const credentialToMigrate = {
+              nombre: credential.nombre,
+              ip: credential.ip,
+              usuario: credential.usuario,
+              clave: credential.clave
+            };
+            await supabaseService.createServerCredential(credentialToMigrate, user.id);
             migratedCount++;
-          } catch (err) {
-            console.error('Error migrando credencial de servidor:', err);
+          } catch (err)
+ {
+            console.error('Error migrando credencial de servidor:', credential, err);
           }
         }
       }
