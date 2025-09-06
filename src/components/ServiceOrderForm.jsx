@@ -1,58 +1,120 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { serviceOrderSchema } from '../lib/schema';
 import { upsertServiceOrder } from '../lib/serviceOrderService';
 
+function getTodayLocalDate() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export default function ServiceOrderForm({ order, onSaved }) {
-  const {
-    register, control, handleSubmit, watch,
-    formState: { errors, isSubmitting },
-    reset
-  } = useForm({
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const defaultValues = {
+    customer_name: order?.customer_name || '',
+    description: order?.description || '',
+    service_date: order?.service_date || getTodayLocalDate(),
+    status: order?.status || 'PENDIENTE',
+    items: order?.items?.length > 0 
+      ? order.items.map(item => ({
+          ...item,
+          quantity: Number(item.quantity) || 0,
+          unitPrice: Number(item.unitPrice) || 0,
+          partCost: Number(item.partCost) || 0
+        }))
+      : [{ description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
+    payments: order?.payments || []
+  };
+
+  const { register, control, handleSubmit, watch, formState: { errors }, reset } = useForm({
     resolver: zodResolver(serviceOrderSchema),
-    defaultValues: order ?? {
-      customer_name: '',
-      description: '',
-      service_date: new Date().toISOString().slice(0,10),
-      status: 'PENDIENTE',
-      items: [{ description:'', quantity:'1', unitPrice:'', partCost:'' }],
-      payments: []
-    }
+    defaultValues
   });
 
-  const { fields: items, append: appendItem, remove: removeItem } = useFieldArray({ control, name: 'items' });
-  const { fields: payments, append: appendPay, remove: removePay } = useFieldArray({ control, name: 'payments' });
+  const { fields: itemFields, append: appendItem, remove: removeItem } = useFieldArray({
+    control,
+    name: 'items'
+  });
 
-  // Cálculos
-  const allItems = watch('items');
-  const grandTotal = allItems.reduce((sum, i) => sum + (Number(i.quantity)||0)*(Number(i.unitPrice)||0), 0);
-  const totalPartCost = allItems.reduce((sum, i) => sum + (Number(i.quantity)||0)*(Number(i.partCost)||0), 0);
-  const totalPaid = (watch('payments')||[]).reduce((sum, p) => sum + (Number(p.amount)||0), 0);
+  const { fields: paymentFields, append: appendPayment, remove: removePayment } = useFieldArray({
+    control,
+    name: 'payments'
+  });
 
-  // Cuando cambie "order" inicial, resetea el form
-  useEffect(() => { if(order) reset(order); }, [order, reset]);
+  const watchedItems = watch('items');
+  const watchedPayments = watch('payments');
+
+  // Reset form when order changes
+  useEffect(() => {
+    if (order) {
+      const resetData = {
+        customer_name: order.customer_name || '',
+        description: order.description || '',
+        service_date: order.service_date || getTodayLocalDate(),
+        status: order.status || 'PENDIENTE',
+        items: order.items?.length > 0 
+          ? order.items.map(item => ({
+              ...item,
+              quantity: Number(item.quantity) || 0,
+              unitPrice: Number(item.unitPrice) || 0,
+              partCost: Number(item.partCost) || 0
+            }))
+          : [{ description: '', quantity: 1, unitPrice: 0, partCost: 0 }],
+        payments: order.payments || []
+      };
+      reset(resetData);
+    }
+  }, [order, reset]);
+
+  // Calculations based on watched values
+  const calculateTotalServiceCost = () => {
+    if (!Array.isArray(watchedItems)) return 0;
+    return watchedItems.reduce((total, item) => {
+      const quantity = Number(item?.quantity) || 0;
+      const unitPrice = Number(item?.unitPrice) || 0;
+      return total + (quantity * unitPrice);
+    }, 0);
+  };
+
+  const calculateTotalPartCost = () => {
+    if (!Array.isArray(watchedItems)) return 0;
+    return watchedItems.reduce((total, item) => {
+      const quantity = Number(item?.quantity) || 0;
+      const partCost = Number(item?.partCost) || 0;
+      return total + (quantity * partCost);
+    }, 0);
+  };
+
+  const calculateTotalPaid = () => {
+    if (!Array.isArray(watchedPayments)) return 0;
+    return watchedPayments.reduce((total, payment) => {
+      const amount = Number(payment?.amount) || 0;
+      return total + amount;
+    }, 0);
+  };
 
   const onSubmit = async (data) => {
     try {
-      const cleaned = {
+      setIsSubmitting(true);
+      
+      const cleanedData = {
         ...data,
-        items: data.items.map(i => ({
-          ...i,
-          quantity: Number(i.quantity),
-          unitPrice: Number(i.unitPrice),
-          partCost: Number(i.partCost)
-        })),
-        payments: data.payments.map(p => ({
-          ...p,
-          amount: Number(p.amount)
-        }))
+        items: data.items?.filter(item => item.description?.trim()) || [],
+        payments: data.payments?.filter(payment => payment.amount > 0) || []
       };
-      const saved = await upsertServiceOrder(cleaned);
-      onSaved(saved);
-    } catch (err) {
-      console.error(err);
-      alert('Error guardando orden: ' + err.message);
+      
+      const result = await upsertServiceOrder(cleanedData, order?.id);
+      onSaved?.(result);
+      
+    } catch (error) {
+      console.error('❌ Error saving order:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -72,12 +134,14 @@ export default function ServiceOrderForm({ order, onSaved }) {
         placeholder="Descripción"
         className="w-full mb-2 p-2 border rounded"
       />
+      {errors.description && <p className="text-red-500 text-sm">{errors.description.message}</p>}
 
       <input
         {...register('service_date')}
         type="date"
         className="w-full mb-2 p-2 border rounded"
       />
+      {errors.service_date && <p className="text-red-500 text-sm">{errors.service_date.message}</p>}
 
       <select
         {...register('status')}
@@ -90,7 +154,7 @@ export default function ServiceOrderForm({ order, onSaved }) {
       </select>
 
       <h3 className="font-semibold mb-2">Ítems</h3>
-      {items.map((item, index) => (
+      {itemFields.map((item, index) => (
         <div key={item.id} className="grid grid-cols-5 gap-2 mb-2">
           <input
             {...register(`items.${index}.description`)}
@@ -129,59 +193,59 @@ export default function ServiceOrderForm({ order, onSaved }) {
       
       <button
         type="button"
-        onClick={() => appendItem({ description: '', quantity: '1', unitPrice: '', partCost: '' })}
+        onClick={() => appendItem({ description: '', quantity: 1, unitPrice: 0, partCost: 0 })}
         className="mb-4 px-3 py-1 bg-green-500 text-white rounded"
       >
         Agregar Ítem
       </button>
 
       <h3 className="font-semibold mb-2 mt-4">Pagos</h3>
-       {payments.map((payment, index) => (
-         <div key={payment.id} className="grid grid-cols-3 gap-2 mb-2">
-           <input
-             {...register(`payments.${index}.method`)}
-             placeholder="Método de pago"
-             className="p-2 border rounded"
-           />
-           <input
-             {...register(`payments.${index}.amount`)}
-             type="number"
-             step="0.01"
-             placeholder="Monto"
-             className="p-2 border rounded"
-           />
-           <button
-             type="button"
-             onClick={() => removePay(index)}
-             className="px-2 py-1 bg-red-500 text-white rounded"
-           >
-             Eliminar
-           </button>
-         </div>
-       ))}
-       
-       <button
-         type="button"
-         onClick={() => appendPay({ method: '', amount: '' })}
-         className="mb-4 px-3 py-1 bg-green-500 text-white rounded"
-       >
-         Agregar Pago
-       </button>
+      {paymentFields.map((payment, index) => (
+        <div key={payment.id} className="grid grid-cols-3 gap-2 mb-2">
+          <input
+            {...register(`payments.${index}.method`)}
+            placeholder="Método de pago"
+            className="p-2 border rounded"
+          />
+          <input
+            {...register(`payments.${index}.amount`)}
+            type="number"
+            step="0.01"
+            placeholder="Monto"
+            className="p-2 border rounded"
+          />
+          <button
+            type="button"
+            onClick={() => removePayment(index)}
+            className="px-2 py-1 bg-red-500 text-white rounded"
+          >
+            Eliminar
+          </button>
+        </div>
+      ))}
+      
+      <button
+        type="button"
+        onClick={() => appendPayment({ method: '', amount: 0 })}
+        className="mb-4 px-3 py-1 bg-green-500 text-white rounded"
+      >
+        Agregar Pago
+      </button>
 
-       <div className="mt-4 p-3 bg-gray-100 rounded">
-         <p><strong>Total Servicio:</strong> ${grandTotal.toFixed(2)}</p>
-         <p><strong>Total Repuestos:</strong> ${totalPartCost.toFixed(2)}</p>
-         <p><strong>Total Pagado:</strong> ${totalPaid.toFixed(2)}</p>
-         <p><strong>Saldo Pendiente:</strong> ${(grandTotal + totalPartCost - totalPaid).toFixed(2)}</p>
-       </div>
+      <div className="mt-4 p-3 bg-gray-100 rounded">
+        <p><strong>Total Servicio:</strong> ${calculateTotalServiceCost().toFixed(2)}</p>
+        <p><strong>Total Repuestos:</strong> ${calculateTotalPartCost().toFixed(2)}</p>
+        <p><strong>Total Pagado:</strong> ${calculateTotalPaid().toFixed(2)}</p>
+        <p><strong>Saldo Pendiente:</strong> ${(calculateTotalServiceCost() + calculateTotalPartCost() - calculateTotalPaid()).toFixed(2)}</p>
+      </div>
 
-       <button
-         type="submit"
-         disabled={isSubmitting}
-         className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-       >
-         {isSubmitting ? 'Guardando...' : 'Guardar Orden'}
-       </button>
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+      >
+        {isSubmitting ? 'Guardando...' : 'Guardar Orden'}
+      </button>
     </form>
   );
 }
