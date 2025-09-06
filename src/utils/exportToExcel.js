@@ -1,6 +1,11 @@
 import * as XLSX from 'xlsx';
 
 export const exportToExcel = (data, filename = 'ReporteMensual') => {
+  if (!data || data.length === 0) {
+    console.warn('⚠️ No hay datos para exportar.');
+    return;
+  }
+
   const worksheetData = data.map((rep) => ({
     Mes: rep.mes,
     Ventas: rep.ventas,
