@@ -114,9 +114,9 @@ export const supabaseService = {
     console.log('📋 Datos recibidos:', orderData);
     console.log('👤 Usuario ID:', userId);
     
-    // Preparar datos de la orden principal, manejando el campo 'cliente' heredado
+    // Preparar datos de la orden principal, manejando campos heredados y nulos
     const orderPayload = {
-      customer_name: orderData.customer_name || orderData.cliente,
+      customer_name: orderData.customer_name || orderData.cliente || 'Cliente no especificado',
       service_date: orderData.service_date,
       description: orderData.description,
       status: orderData.status || 'PENDIENTE',
